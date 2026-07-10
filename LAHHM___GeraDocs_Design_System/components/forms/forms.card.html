@@ -1,0 +1,47 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Forms" subtitle="Inputs, select, textarea, field wrapper, upload, choice cards, search, filters" -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body { background: #F8FAFC; margin: 0; padding: 20px; }</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { Input, Textarea, Select, FormField, FileUpload, ChoiceCard, SearchInput, FilterTabs } = window.LAHHMGeraDocsDesignSystem_11bcef;
+function Demo() {
+  const [file, setFile] = React.useState("DFD-2024-089.pdf");
+  const [sel, setSel] = React.useState("pregao");
+  const [filter, setFilter] = React.useState("todos");
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <FormField label="Fundamento Legal" required hint="Cite o artigo aplicável da Lei 14.133/21">
+          <Input placeholder="Ex: Art. 75, II, Lei 14.133/21" />
+        </FormField>
+        <FormField label="Valor Unitário Estimado (R$)" required>
+          <Input prefix="R$" defaultValue="3.233,33" />
+        </FormField>
+        <FormField label="Secretaria Requisitante" required>
+          <Select placeholder="Selecione a secretaria..." options={["Secretaria de Educação","Secretaria de Saúde","Secretaria de Obras e Infraestrutura"]} />
+        </FormField>
+        <FileUpload file={file} onChange={setFile} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <ChoiceCard selected={sel === "pregao"} onClick={() => setSel("pregao")} icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>} title="Pregão Eletrônico" desc="Para aquisição de bens e serviços comuns" />
+        <ChoiceCard selected={sel === "dispensa"} onClick={() => setSel("dispensa")} icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>} title="Dispensa de Licitação" desc="Casos previstos no Art. 75 da Lei 14.133/21" />
+        <SearchInput placeholder="Buscar processo, documento..." kbd="⌘K" width="100%" />
+        <FilterTabs active={filter} onChange={setFilter} options={[{key:"todos",label:"Todos"},{key:"rascunho",label:"Rascunho"},{key:"aprovado",label:"Aprovado"},{key:"concluido",label:"Concluído"}]} />
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>
+</body>
+</html>

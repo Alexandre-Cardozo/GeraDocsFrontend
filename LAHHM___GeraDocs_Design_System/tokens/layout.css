@@ -1,0 +1,52 @@
+/* GeraDocs — Spacing, radii, borders, shadows, motion */
+:root {
+  /* Radii (lifted verbatim) */
+  --radius-xs: 4px;    /* kbd chip */
+  --radius-sm: 6px;    /* pills, small buttons, checkboxes */
+  --radius-md: 8px;    /* inputs, buttons, nav items, search */
+  --radius-lg: 9px;    /* quick-action rows, wizard CTA */
+  --radius-xl: 10px;   /* stat icons, info banners, choice radios */
+  --radius-card: 12px; /* cards, tables, panels */
+  --radius-full: 999px;/* badges, toggles, avatars, progress */
+
+  /* Spacing rhythm */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;  /* page padding */
+
+  /* Fixed chrome */
+  --sidebar-width: 240px;
+  --header-height: 60px;
+  --section-rail-width: 280px;
+  --control-height: 36px; /* header controls */
+  --input-height: 38px;
+
+  /* Borders */
+  --border-default: 1px solid var(--color-border);
+  --border-soft: 1px solid var(--color-border-soft);
+  --border-selected: 2px solid var(--color-royal);
+  --border-dashed: 2px dashed #CBD5E1; /* @kind other */
+  --border-on-dark: 1px solid rgba(255,255,255,0.06); /* @kind other */
+
+  /* Shadows — the system is nearly flat; borders carry separation */
+  --shadow-toggle-knob: 0 1px 3px rgba(0,0,0,0.2);
+
+  /* Motion */
+  --transition-fast: all 0.15s; /* @kind other */
+  --transition-bg: background 0.15s; /* @kind other */
+  --transition-slow: all 0.2s; /* @kind other */
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background-color: var(--surface-app); }
+
+/* Thin scrollbars, verbatim from prototype */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }

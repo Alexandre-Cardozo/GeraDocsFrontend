@@ -1,0 +1,36 @@
+/* GeraDocs — Typography tokens */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif; /* headings, card titles, emphasis */
+  --font-body: 'Inter', system-ui, sans-serif;                /* everything else */
+  --font-mono: 'JetBrains Mono', monospace;                   /* process IDs, money, ⌘K */
+
+  /* Scale (px values lifted verbatim from prototype) */
+  --text-2xs: 10px;   /* uppercase micro-labels, sidebar section headers */
+  --text-xs: 11px;    /* table headers, ids, hints */
+  --text-sm: 12px;    /* secondary cell text, badges md */
+  --text-base: 13px;  /* default UI text, buttons, nav */
+  --text-md: 14px;    /* inputs, card titles, body copy */
+  --text-lg: 15px;    /* card headings */
+  --text-xl: 17px;    /* page header title */
+  --text-2xl: 20px;   /* step headings */
+  --text-3xl: 22px;   /* dashboard greeting */
+  --text-stat: 30px;  /* stat card numbers */
+
+  /* Letter-spacing */
+  --tracking-tight: -0.5px;    /* big display */
+  --tracking-heading: -0.3px;  /* headings */
+  --tracking-caps: 0.5px;      /* uppercase table headers */
+  --tracking-caps-wide: 0.8px; /* uppercase sidebar labels */
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
+.mono { font-family: var(--font-mono); }
+a { color: var(--color-royal); text-decoration: none; }
+a:hover { color: var(--color-royal-hover); }

@@ -1,0 +1,57 @@
+/* GeraDocs — Color tokens (source: prototype src/index.css + component code) */
+:root {
+  /* Brand */
+  --color-navy: #071A3D;       /* sidebar, headings, institutional */
+  --color-petroleum: #0D3B66;  /* secondary states, money values, hover */
+  --color-royal: #2563EB;      /* primary actions, links, active */
+  --color-royal-hover: #1D4ED8;
+  --color-electric: #38BDF8;   /* accents, indicators, gradients */
+  --color-slate: #64748B;      /* secondary text, labels */
+  --color-ice: #F8FAFC;        /* app background */
+
+  /* Neutrals (slate scale used throughout the prototype) */
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-border-soft: #F1F5F9;
+  --color-text-1: #071A3D;
+  --color-text-2: #374151;
+  --color-text-3: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-text-faint: #CBD5E1;
+
+  /* Semantic */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #38BDF8;
+
+  /* Status tints (badge bg / fg / dot) */
+  --status-draft-bg: #F1F5F9;      --status-draft-fg: #475569;      --status-draft-dot: #94A3B8;
+  --status-review-bg: #FEF3C7;     --status-review-fg: #92400E;     --status-review-dot: #F59E0B;
+  --status-waiting-bg: #EFF6FF;    --status-waiting-fg: #1D4ED8;    --status-waiting-dot: #3B82F6;
+  --status-approved-bg: #ECFDF5;   --status-approved-fg: #065F46;   --status-approved-dot: #10B981;
+  --status-rejected-bg: #FEF2F2;   --status-rejected-fg: #991B1B;   --status-rejected-dot: #EF4444;
+  --status-done-bg: #F0FDF4;       --status-done-fg: #15803D;       --status-done-dot: #22C55E;
+
+  /* Document accent tints (doc type cards) */
+  --doc-etp: #2563EB;     --doc-etp-bg: #EFF6FF;
+  --doc-tr: #0D9488;      --doc-tr-bg: #F0FDFA;
+  --doc-cotacao: #7C3AED; --doc-cotacao-bg: #F5F3FF;
+  --doc-mapa: #B45309;    --doc-mapa-bg: #FFFBEB;
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #2563EB, #38BDF8); /* @kind color */
+  --gradient-user: linear-gradient(135deg, #0D3B66, #2563EB); /* @kind color */
+  --gradient-progress: linear-gradient(90deg, #2563EB, #38BDF8); /* @kind color */
+  --gradient-panel: linear-gradient(135deg, #1E3A5F 0%, #0D3B66 100%); /* @kind color */
+
+  /* Semantic aliases */
+  --surface-app: var(--color-ice);
+  --surface-card: var(--color-surface);
+  --surface-sidebar: var(--color-navy);
+  --text-body: var(--color-text-1);
+  --text-secondary: var(--color-text-3);
+  --text-label: var(--color-text-2);
+  --action-primary: var(--color-royal);
+  --action-primary-hover: var(--color-royal-hover);
+}
