@@ -1,0 +1,27 @@
+/**
+ * Barrel do Design System LAHHM · GeraDocs — importe componentes daqui
+ * (regra de aderência: nunca dos módulos internos).
+ */
+export { Button, Toggle } from "./actions"
+export {
+  CheckMark,
+  ChoiceCard,
+  FileUpload,
+  FilterTabs,
+  FormField,
+  Input,
+  SearchInput,
+  Select,
+  Textarea,
+} from "./forms"
+export {
+  DocPill,
+  InfoBanner,
+  ProgressBar,
+  StatCard,
+  StatusBadge,
+  Tag,
+  ValidationMsg,
+} from "./feedback"
+export { SectionBlock, StepIndicator } from "./navigation"
+export * from "./icons"

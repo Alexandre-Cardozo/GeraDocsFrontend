@@ -1,0 +1,344 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GeraDocs — Global styles
+   Tokens portados de LAHHM___GeraDocs_Design_System/tokens/{colors,typography,layout}.css.
+   Fontes carregadas via next/font (app/layout.tsx) — sem @import de Google Fonts.
+   Este é o ÚNICO lugar do app onde valores crus (hex/px) são permitidos;
+   todo o código TSX referencia tokens via var(--...).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand ──────────────────────────────────────────────────────────────── */
+  --color-navy: #071A3D;
+  --color-petroleum: #0D3B66;
+  --color-royal: #2563EB;
+  --color-royal-hover: #1D4ED8;
+  --color-electric: #38BDF8;
+  --color-slate: #64748B;
+  --color-ice: #F8FAFC;
+
+  /* ── Neutrals ───────────────────────────────────────────────────────────── */
+  --color-surface: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-border-soft: #F1F5F9;
+  --color-text-1: #071A3D;
+  --color-text-2: #374151;
+  --color-text-3: #64748B;
+  --color-text-muted: #94A3B8;
+  --color-text-faint: #CBD5E1;
+
+  /* ── Semantic ───────────────────────────────────────────────────────────── */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #38BDF8;
+
+  /* ── Status tints (badge bg / fg / dot) ─────────────────────────────────── */
+  --status-draft-bg: #F1F5F9;      --status-draft-fg: #475569;      --status-draft-dot: #94A3B8;
+  --status-review-bg: #FEF3C7;     --status-review-fg: #92400E;     --status-review-dot: #F59E0B;
+  --status-waiting-bg: #EFF6FF;    --status-waiting-fg: #1D4ED8;    --status-waiting-dot: #3B82F6;
+  --status-approved-bg: #ECFDF5;   --status-approved-fg: #065F46;   --status-approved-dot: #10B981;
+  --status-rejected-bg: #FEF2F2;   --status-rejected-fg: #991B1B;   --status-rejected-dot: #EF4444;
+  --status-done-bg: #F0FDF4;       --status-done-fg: #15803D;       --status-done-dot: #22C55E;
+
+  /* ── Document accent tints ──────────────────────────────────────────────── */
+  --doc-etp: #2563EB;     --doc-etp-bg: #EFF6FF;
+  --doc-tr: #0D9488;      --doc-tr-bg: #F0FDFA;
+  --doc-cotacao: #7C3AED; --doc-cotacao-bg: #F5F3FF;
+  --doc-mapa: #B45309;    --doc-mapa-bg: #FFFBEB;
+
+  /* ── Gradients (usos canônicos: chip da logo, avatar, progresso) ────────── */
+  --gradient-brand: linear-gradient(135deg, #2563EB, #38BDF8);
+  --gradient-user: linear-gradient(135deg, #0D3B66, #2563EB);
+  --gradient-progress: linear-gradient(90deg, #2563EB, #38BDF8);
+  --gradient-panel: linear-gradient(135deg, #1E3A5F 0%, #0D3B66 100%);
+
+  /* ── Semantic aliases ───────────────────────────────────────────────────── */
+  --surface-app: var(--color-ice);
+  --surface-card: var(--color-surface);
+  --surface-sidebar: var(--color-navy);
+  --text-body: var(--color-text-1);
+  --text-secondary: var(--color-text-3);
+  --text-label: var(--color-text-2);
+  --action-primary: var(--color-royal);
+  --action-primary-hover: var(--color-royal-hover);
+
+  /* ── Typography ─────────────────────────────────────────────────────────── */
+  --font-display: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --text-2xl: 20px;
+  --text-3xl: 22px;
+  --text-stat: 30px;
+
+  --tracking-tight: -0.5px;
+  --tracking-heading: -0.3px;
+  --tracking-caps: 0.5px;
+  --tracking-caps-wide: 0.8px;
+
+  /* ── Radii ──────────────────────────────────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 9px;
+  --radius-xl: 10px;
+  --radius-card: 12px;
+  --radius-full: 999px;
+
+  /* ── Spacing ────────────────────────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+
+  /* ── Fixed chrome ───────────────────────────────────────────────────────── */
+  --sidebar-width: 240px;
+  --header-height: 60px;
+  --section-rail-width: 280px;
+  --control-height: 36px;
+  --input-height: 38px;
+
+  /* ── Borders ────────────────────────────────────────────────────────────── */
+  --border-default: 1px solid var(--color-border);
+  --border-soft: 1px solid var(--color-border-soft);
+  --border-selected: 2px solid var(--color-royal);
+  --border-dashed: 2px dashed #CBD5E1;
+  --border-on-dark: 1px solid rgba(255, 255, 255, 0.06);
+
+  /* ── Shadows (sistema flat — só o knob do toggle) ───────────────────────── */
+  --shadow-toggle-knob: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+  /* ── Motion ─────────────────────────────────────────────────────────────── */
+  --transition-fast: all 0.15s;
+  --transition-bg: background 0.15s;
+  --transition-slow: all 0.2s;
+
+  /* ═══ Extensões do app (derivadas do protótipo; hex cru só aqui) ═══════════
+     Tints usados pelas views que não constam nos tokens de origem. */
+  --tint-royal-bg: #EFF6FF;
+  --tint-royal-border: #BFDBFE;
+  --tint-success-bg: #ECFDF5;
+  --tint-success-border: #A7F3D0;
+  --tint-success-fg: #065F46;
+  --tint-success-fg-soft: #047857;
+  --tint-warning-bg: #FFFBEB;
+  --tint-warning-border: #FDE68A;
+  --tint-warning-fg: #92400E;
+  --tint-warning-fg-strong: #B45309;
+  --tint-warning-chip-bg: #FEF3C7;
+  --tint-danger-bg: #FEF2F2;
+  --tint-danger-border: #FECACA;
+  --tint-danger-border-strong: #FCA5A5;
+  --tint-danger-fg: #991B1B;
+  --tint-danger-fg-strong: #B91C1C;
+  --tint-violet-bg: #F5F3FF;
+  --tint-violet-fg: #6D28D9;
+  --color-violet: #7C3AED;
+  --color-teal: #0D9488;
+  --color-green: #16A34A;
+  --color-warning-strong: #D97706;
+  --color-slate-strong: #475569;
+  --surface-upload: #FAFAFA;
+  --gradient-hero: linear-gradient(135deg, #071A3D 0%, #0D3B66 100%);
+
+  /* Tracking complementar (protótipo) */
+  --tracking-stat: -1px;
+  --tracking-badge: 0.1px;
+  --tracking-display: -0.4px;
+  --tracking-stat-sm: -0.8px;
+
+  /* Superfícies sobre navy (sidebar, painéis escuros) */
+  --on-dark-text: #FFFFFF;
+  --on-dark-text-65: rgba(255, 255, 255, 0.65);
+  --on-dark-text-60: rgba(255, 255, 255, 0.6);
+  --on-dark-text-55: rgba(255, 255, 255, 0.55);
+  --on-dark-text-45: rgba(255, 255, 255, 0.45);
+  --on-dark-text-40: rgba(255, 255, 255, 0.4);
+  --on-dark-text-35: rgba(255, 255, 255, 0.35);
+  --on-dark-text-30: rgba(255, 255, 255, 0.3);
+  --on-dark-text-20: rgba(255, 255, 255, 0.2);
+  --on-dark-fill: rgba(255, 255, 255, 0.06);
+  --on-dark-fill-hover: rgba(255, 255, 255, 0.1);
+  --on-dark-border: rgba(255, 255, 255, 0.08);
+  --on-dark-active: rgba(37, 99, 235, 0.18);
+  --on-dark-royal-chip: rgba(37, 99, 235, 0.4);
+  --on-dark-electric-chip: rgba(56, 189, 248, 0.15);
+
+  /* Larguras de colunas/rails específicas de layout */
+  --rail-approvals: 340px;
+  --col-dash-side: 340px;
+
+  /* Larguras máximas de conteúdo */
+  --content-max: 1200px;
+  --content-max-wizard: 880px;
+  --content-max-review: 820px;
+  --content-max-settings: 900px;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--surface-app);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+a {
+  color: var(--color-royal);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--color-royal-hover);
+}
+
+button, input, select, textarea {
+  font-family: var(--font-body);
+}
+
+/* ── Focus ring (correção de acessibilidade obrigatória — seção 3.3) ────────
+   O protótipo usava outline:none; aqui todo elemento interativo ganha anel
+   visível via :focus-visible, preservando a estética flat. */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--color-royal);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+/* Sobre superfícies navy o anel royal some — usa electric. */
+.gd-on-dark :focus-visible {
+  outline-color: var(--color-electric);
+}
+/* Inputs/áreas com borda própria: anel colado na borda. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-royal);
+  outline-offset: 0;
+  border-color: var(--color-royal);
+}
+
+/* ── Scrollbars finas (verbatim do protótipo) ──────────────────────────────── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ── Classes utilitárias com pseudo-estados (hover sem JS) ─────────────────── */
+
+/* Linha de tabela/lista clicável — hover para ice */
+.gd-row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.gd-row:hover {
+  background: var(--color-ice);
+}
+
+/* Item de navegação da sidebar (sobre navy) */
+.gd-nav-item {
+  transition: var(--transition-fast);
+}
+.gd-nav-item:hover:not(.gd-nav-item--active) {
+  background: var(--on-dark-fill);
+  color: var(--on-dark-text);
+}
+
+/* Linhas de ação rápida sobre navy */
+.gd-dark-row {
+  transition: var(--transition-bg);
+}
+.gd-dark-row:hover {
+  background: var(--on-dark-fill-hover) !important;
+}
+
+/* Barra ativa 3×20 electric à esquerda (item ativo da sidebar) */
+.gd-active-bar {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--color-electric);
+  border-radius: 0 3px 3px 0;
+}
+
+/* Spinner funcional (1s linear) */
+@keyframes gd-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.gd-spinner {
+  animation: gd-spin 1s linear infinite;
+}
+
+/* Grids que exigem trilhas com largura fixa */
+.gd-dash-grid {
+  display: grid;
+  grid-template-columns: 1fr var(--col-dash-side);
+  gap: 20px;
+}
+@media (max-width: 1080px) {
+  .gd-dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Toast (mock de exportação e afins) */
+.gd-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  background: var(--color-navy);
+  color: var(--on-dark-text);
+  border-radius: var(--radius-xl);
+  padding: 12px 18px;
+  font-size: var(--text-base);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: var(--border-on-dark);
+}
