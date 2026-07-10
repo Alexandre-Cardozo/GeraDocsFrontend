@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    name: Lint · Type-check · Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: ESLint (eslint-config-next + aderência ao DS)
+        run: npm run lint
+
+      - name: Lint de aderência (oxlint)
+        run: npm run lint:ds
+
+      - name: Type-check (tsc --noEmit, strict)
+        run: npm run typecheck
+
+      - name: Build de produção
+        run: npm run build

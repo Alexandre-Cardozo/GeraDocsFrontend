@@ -310,7 +310,7 @@ export function SearchInput({
         paddingInline: 12,
         height: 36,
         width: grow ? undefined : width,
-        flex: grow ? "1 1 260px" : undefined,
+        flexGrow: grow ? 1 : undefined, flexShrink: grow ? 1 : undefined, flexBasis: grow ? 260 : undefined,
         maxWidth: grow ? 320 : undefined,
       }}
     >

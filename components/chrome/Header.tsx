@@ -90,7 +90,7 @@ export default function Header() {
             height: 7,
             background: "var(--color-danger)",
             borderRadius: "var(--radius-full)",
-            border: "2px solid var(--color-ice)",
+            border: "var(--border-ice-2)",
           }}
         />
       </button>

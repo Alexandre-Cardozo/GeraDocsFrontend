@@ -15,7 +15,7 @@ export function LoadingState({ label = "Carregando..." }: { label?: string }) {
         style={{
           width: 24,
           height: 24,
-          border: "3px solid var(--tint-royal-border)",
+          border: "var(--border-tint-royal-3)",
           borderTopColor: "var(--color-royal)",
           borderRadius: "var(--radius-full)",
           display: "inline-block",

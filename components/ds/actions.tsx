@@ -63,7 +63,7 @@ export function Button({
     ghost: { background: hover ? "var(--tint-royal-bg)" : "transparent", color: "var(--color-royal)" },
     "danger-soft": {
       background: "var(--tint-danger-bg)",
-      border: "2px solid var(--tint-danger-border-strong)",
+      border: "var(--border-tint-danger-2)",
       color: "var(--color-danger)",
     },
   }
