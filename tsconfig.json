@@ -42,7 +42,6 @@
   ],
   "exclude": [
     "node_modules",
-    "prototype",
-    "LAHHM___GeraDocs_Design_System"
+    "design_system"
   ]
 }

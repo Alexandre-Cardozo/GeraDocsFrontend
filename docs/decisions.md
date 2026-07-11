@@ -60,4 +60,4 @@ O protótipo tinha só Aprovar/Rejeitar. A fase exige comentário obrigatório, 
 
 ## 9. Protótipo preservado
 
-O protótipo Vite original foi movido para `prototype/` como referência visual (comparação lado a lado). Não participa do build, lint ou type-check.
+O protótipo Vite original foi mantido em `prototype/` como referência visual durante a migração e **removido do repositório** após a conclusão das 8 telas (permanece disponível no histórico do git, commit `131c240`). A especificação visual vigente é o design system em `design_system/` (renomeado de `LAHHM___GeraDocs_Design_System/`).

@@ -52,8 +52,7 @@ lib/
   mocks/fixtures.ts     # dados — nunca importar em componentes
   api/client.ts         # client mock (assinaturas = futuro cliente OpenAPI)
   api/hooks.ts          # hooks TanStack Query (única porta das views)
-prototype/              # protótipo Vite original (referência visual; fora do build)
-LAHHM___GeraDocs_Design_System/  # DS fonte (tokens, .prompt.md, guidelines)
+design_system/          # DS fonte (tokens, .prompt.md, guidelines)
 docs/decisions.md       # decisões de arquitetura desta fase
 ```
 
