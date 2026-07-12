@@ -83,7 +83,7 @@ export default function VerificacaoDFD() {
 
   if (processo.isPending || parecer.isPending) {
     return (
-      <div style={{ padding: 28, maxWidth: "var(--content-max-review)" }}>
+      <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
         <LoadingState label="Carregando processo..." />
       </div>
     )
@@ -94,7 +94,7 @@ export default function VerificacaoDFD() {
   const errorCount = parecer.data?.achados.filter((a) => a.tipo === "alerta" && a.severidade === "atencao").length ?? 0
 
   return (
-    <div style={{ padding: 28, maxWidth: "var(--content-max-review)" }}>
+    <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
       {/* Breadcrumb */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
         <Link href="/processos" style={{ fontSize: 13, color: "var(--text-secondary)" }}>
@@ -122,6 +122,7 @@ export default function VerificacaoDFD() {
           display: "flex",
           alignItems: "center",
           gap: 20,
+          flexWrap: "wrap",
         }}
       >
         <div
@@ -404,7 +405,7 @@ export default function VerificacaoDFD() {
             </div>
 
             {/* Resumo */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+            <div className="gd-grid-3" style={{ marginBottom: 20 }}>
               {[
                 { count: okCount, label: "Conformes", bg: "var(--tint-success-bg)", fg: "var(--tint-success-fg)", sub: "var(--tint-success-fg-soft)", icon: <IconCheck size={18} strokeWidth={2.5} />, iconColor: "var(--color-success)" },
                 { count: warnCount, label: "Recomendações", bg: "var(--tint-warning-bg)", fg: "var(--tint-warning-fg)", sub: "var(--tint-warning-fg-strong)", icon: <IconInfo size={18} strokeWidth={2.5} />, iconColor: "var(--color-warning)" },
@@ -465,9 +466,10 @@ export default function VerificacaoDFD() {
               display: "flex",
               alignItems: "center",
               gap: 16,
+              flexWrap: "wrap",
             }}
           >
-            <div style={{ flex: 1 }}>
+            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 260 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)", marginBottom: 4 }}>
                 Como deseja prosseguir?
               </div>
@@ -475,7 +477,7 @@ export default function VerificacaoDFD() {
                 O DFD foi aceito com ressalvas. Você pode corrigir os pontos apontados antes de continuar ou prosseguir para o ETP com as informações atuais.
               </p>
             </div>
-            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>
               <Button
                 variant="secondary"
                 onClick={() => {

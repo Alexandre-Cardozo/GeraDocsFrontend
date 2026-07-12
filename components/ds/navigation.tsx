@@ -54,6 +54,7 @@ export function StepIndicator({ steps, current }: { steps: string[]; current: nu
               {current > i + 1 ? <IconCheck size={14} strokeWidth={3} /> : i + 1}
             </div>
             <span
+              className={`gd-step-label${current === i + 1 ? " gd-step-label--active" : ""}`}
               style={{
                 fontSize: 13,
                 fontWeight: current === i + 1 ? 700 : 500,
@@ -66,12 +67,9 @@ export function StepIndicator({ steps, current }: { steps: string[]; current: nu
           </div>
           {i < steps.length - 1 && (
             <div
+              className="gd-step-connector"
               style={{
-                width: 60,
-                height: 2,
                 background: current > i + 1 ? "var(--color-success)" : "var(--color-border)",
-                marginInline: 12,
-                transition: "background 0.2s",
               }}
             />
           )}

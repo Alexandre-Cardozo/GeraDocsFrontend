@@ -41,9 +41,9 @@ export default function Dashboard() {
   const pendentes = (aprovacoes.data ?? []).filter((a) => a.status === "aguardando")
 
   return (
-    <div style={{ padding: 28, maxWidth: "var(--content-max)" }}>
+    <div className="gd-page" style={{ maxWidth: "var(--content-max)" }}>
       {/* Saudação */}
-      <div style={{ marginBottom: 28, display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+      <div className="gd-page-header">
         <div>
           <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>
             Segunda-feira, 07 de julho de 2024
@@ -88,7 +88,7 @@ export default function Dashboard() {
           <ErrorState onRetry={() => void estatisticas.refetch()} />
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+        <div className="gd-stats-grid">
           {estatisticas.isPending ? (
             Array.from({ length: 4 }, (_, i) => (
               <div
@@ -169,7 +169,8 @@ export default function Dashboard() {
           {processos.isPending && <SkeletonRows rows={5} />}
           {processos.isError && <ErrorState onRetry={() => void processos.refetch()} />}
           {processos.isSuccess && (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div className="gd-table-wrap">
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
               <thead>
                 <tr style={{ background: "var(--color-ice)" }}>
                   {["Processo", "Secretaria", "Valor Est.", "Status", "Data"].map((h) => (
@@ -216,6 +217,7 @@ export default function Dashboard() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 

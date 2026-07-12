@@ -84,19 +84,9 @@ export default function Aprovacoes() {
   const pendentesCount = itens.filter((a) => a.status === "aguardando").length
 
   return (
-    <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
-      {/* Lista à esquerda */}
-      <div
-        style={{
-          width: "var(--rail-approvals)",
-          minWidth: "var(--rail-approvals)",
-          background: "var(--color-surface)",
-          borderRight: "var(--border-default)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
+    <div className="gd-split">
+      {/* Lista à esquerda (empilha acima do detalhe no celular) */}
+      <div className="gd-approvals-rail">
         <div style={{ paddingBlock: 16, paddingInline: 18, borderBottom: "var(--border-soft)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-body)" }}>Pendentes de Aprovação</div>
           <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
@@ -145,9 +135,9 @@ export default function Aprovacoes() {
       {/* Detalhe à direita */}
       {active && (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--surface-app)" }}>
-          <div style={{ background: "var(--color-surface)", borderBottom: "var(--border-default)", paddingBlock: 16, paddingInline: 24 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-              <div>
+          <div style={{ background: "var(--color-surface)", borderBottom: "var(--border-default)", paddingBlock: 16, paddingInline: 16 }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-muted)", marginBottom: 4 }}>
                   {active.processoId}
                 </div>
@@ -198,9 +188,9 @@ export default function Aprovacoes() {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", paddingBlock: 20, paddingInline: 24 }}>
+          <div className="gd-split-content" style={{ flex: 1, overflowY: "auto" }}>
             {/* Cards de informação */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 20 }}>
+            <div className="gd-info-grid">
               {[
                 { label: "Modalidade", value: <span>{active.modalidade}</span> },
                 { label: "Tipo", value: <span>{active.tipo}</span> },
@@ -360,9 +350,9 @@ export default function Aprovacoes() {
               {erroComentario && <ValidationMsg type="error" msg="Informe o parecer antes de registrar a decisão." />}
             </div>
 
-            {/* Decisão */}
+            {/* Decisão — empilha no celular, lado a lado no tablet+ */}
             {active.status === "aguardando" ? (
-              <div style={{ display: "flex", gap: 12 }}>
+              <div className="gd-actions-stack">
                 <Button
                   variant="danger-soft"
                   size="lg"

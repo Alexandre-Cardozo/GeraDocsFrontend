@@ -48,9 +48,9 @@ export default function Documentos() {
   ]
 
   return (
-    <div style={{ padding: 28 }}>
+    <div className="gd-page">
       {/* Cards de resumo — ícones de linha, sem emoji (correção 3.3.2) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24, maxWidth: 700 }}>
+      <div className="gd-grid-3" style={{ marginBottom: 24, maxWidth: 700 }}>
         {resumo.map((s) => (
           <div
             key={s.label}
@@ -94,12 +94,14 @@ export default function Documentos() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 10,
           }}
         >
           <h3 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)" }}>
             Documentos Gerados
           </h3>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {(Object.keys(tiposDoc) as TipoDocumento[]).map((f) => {
               const ativo = filtroTipo === f
               return (
@@ -133,7 +135,8 @@ export default function Documentos() {
         {documentos.isSuccess && docs.length === 0 && <EmptyState message="Nenhum documento encontrado para o filtro selecionado" />}
 
         {documentos.isSuccess && docs.length > 0 && (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="gd-table-wrap">
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 820 }}>
             <thead>
               <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
                 {["Documento", "Processo", "Tipo", "Formato", "Gerado em", "Tamanho", "Status", ""].map((h, i) => (
@@ -221,6 +224,7 @@ export default function Documentos() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -236,9 +240,10 @@ export default function Documentos() {
           display: "flex",
           alignItems: "center",
           gap: 20,
+          flexWrap: "wrap",
         }}
       >
-        <div style={{ flex: 1 }}>
+        <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 260 }}>
           <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800, color: "var(--on-dark-text)", margin: 0, marginBottom: 6 }}>
             Gerar Novo Documento
           </h3>

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import type { ReactNode } from "react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
 import {
   IconBuilding,
@@ -13,22 +13,31 @@ import {
   IconFileText,
   IconMoreVertical,
   IconSettings,
-} from "@/components/ds/icons"
-import { useFilaAprovacoes, useUsuarioAtual } from "@/lib/api/hooks"
+} from "@/components/ds/icons";
+import { useFilaAprovacoes, useUsuarioAtual } from "@/lib/api/hooks";
 
 interface NavItem {
-  href: string
-  label: string
-  icon: ReactNode
-  badge?: number
+  href: string;
+  label: string;
+  icon: ReactNode;
+  badge?: number;
   /** Prefixos extras que mantêm o item ativo (ex.: /processos/... ). */
-  match?: (pathname: string) => boolean
+  match?: (pathname: string) => boolean;
 }
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({
+  item,
+  active,
+  onNavigate,
+}: {
+  item: NavItem;
+  active: boolean;
+  onNavigate?: () => void;
+}) {
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={`gd-nav-item${active ? " gd-nav-item--active" : ""}`}
       style={{
         display: "flex",
@@ -49,7 +58,14 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
       }}
     >
       {active && <span className="gd-active-bar" />}
-      <span style={{ color: active ? "var(--color-electric)" : "inherit", display: "flex" }}>{item.icon}</span>
+      <span
+        style={{
+          color: active ? "var(--color-electric)" : "inherit",
+          display: "flex",
+        }}
+      >
+        {item.icon}
+      </span>
       <span style={{ flex: 1 }}>{item.label}</span>
       {item.badge != null && item.badge > 0 && (
         <span
@@ -69,10 +85,16 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
         </span>
       )}
     </Link>
-  )
+  );
 }
 
-function SectionLabel({ children, top }: { children: ReactNode; top?: boolean }) {
+function SectionLabel({
+  children,
+  top,
+}: {
+  children: ReactNode;
+  top?: boolean;
+}) {
   return (
     <div
       style={{
@@ -89,18 +111,30 @@ function SectionLabel({ children, top }: { children: ReactNode; top?: boolean })
     >
       {children}
     </div>
-  )
+  );
 }
 
-export default function Sidebar() {
-  const pathname = usePathname()
-  const { data: usuario } = useUsuarioAtual()
-  const { data: fila } = useFilaAprovacoes()
+export default function Sidebar({
+  aberta = false,
+  onNavigate,
+}: {
+  /** Drawer aberto (só tem efeito abaixo de 1024px; no laptop a sidebar é fixa). */
+  aberta?: boolean;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+  const { data: usuario } = useUsuarioAtual();
+  const { data: fila } = useFilaAprovacoes();
 
-  const pendentes = fila?.filter((a) => a.status === "aguardando").length
+  const pendentes = fila?.filter((a) => a.status === "aguardando").length;
 
   const navItems: NavItem[] = [
-    { href: "/", label: "Dashboard", icon: <IconDashboard size={18} />, match: (p) => p === "/" },
+    {
+      href: "/",
+      label: "Dashboard",
+      icon: <IconDashboard size={18} />,
+      match: (p) => p === "/",
+    },
     {
       href: "/processos",
       label: "Processos",
@@ -120,7 +154,7 @@ export default function Sidebar() {
       icon: <IconDownload size={18} />,
       match: (p) => p.startsWith("/documentos"),
     },
-  ]
+  ];
 
   const bottomItems: NavItem[] = [
     {
@@ -129,23 +163,30 @@ export default function Sidebar() {
       icon: <IconSettings size={18} />,
       match: (p) => p.startsWith("/configuracoes"),
     },
-  ]
+  ];
 
   return (
     <aside
-      className="gd-on-dark"
+      className={`gd-on-dark gd-sidebar${aberta ? " gd-sidebar--open" : ""}`}
       style={{
         width: "var(--sidebar-width)",
         minWidth: "var(--sidebar-width)",
         background: "var(--surface-sidebar)",
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
+        height: "100%",
         overflow: "hidden",
       }}
     >
       {/* Logo — wordmark GeraDocs (correção 3.3.1): chip gradiente 34px + texto */}
-      <div style={{ paddingTop: 24, paddingInline: 20, paddingBottom: 20, borderBottom: "var(--border-on-dark)" }}>
+      <div
+        style={{
+          paddingTop: 24,
+          paddingInline: 20,
+          paddingBottom: 20,
+          borderBottom: "var(--border-on-dark)",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
@@ -160,7 +201,17 @@ export default function Sidebar() {
               color: "var(--on-dark-text)",
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
               <polyline points="9 14 11 16 15 12" />
@@ -188,14 +239,20 @@ export default function Sidebar() {
                 marginTop: 1,
               }}
             >
-              Gov · Municipal
+              LAHHM · Gov
             </div>
           </div>
         </div>
       </div>
 
       {/* Órgão atual */}
-      <div style={{ paddingBlock: 14, paddingInline: 20, borderBottom: "var(--border-on-dark)" }}>
+      <div
+        style={{
+          paddingBlock: 14,
+          paddingInline: 20,
+          borderBottom: "var(--border-on-dark)",
+        }}
+      >
         <div
           style={{
             fontSize: 10,
@@ -253,7 +310,15 @@ export default function Sidebar() {
             >
               Pref. de São Paulo
             </span>
-            <span style={{ display: "block", fontSize: 10, color: "var(--on-dark-text-40)" }}>Secretaria de Compras</span>
+            <span
+              style={{
+                display: "block",
+                fontSize: 10,
+                color: "var(--on-dark-text-40)",
+              }}
+            >
+              Secretaria de Compras
+            </span>
           </span>
           <span style={{ display: "flex", color: "var(--on-dark-text-30)" }}>
             <IconChevronDown size={12} strokeWidth={2.5} />
@@ -265,17 +330,33 @@ export default function Sidebar() {
       <nav style={{ flex: 1, padding: 12, overflowY: "auto" }}>
         <SectionLabel top>Principal</SectionLabel>
         {navItems.map((item) => (
-          <NavLink key={item.href} item={item} active={item.match ? item.match(pathname) : pathname === item.href} />
+          <NavLink
+            key={item.href}
+            item={item}
+            active={item.match ? item.match(pathname) : pathname === item.href}
+            onNavigate={onNavigate}
+          />
         ))}
 
         <SectionLabel>Sistema</SectionLabel>
         {bottomItems.map((item) => (
-          <NavLink key={item.href} item={item} active={item.match ? item.match(pathname) : pathname === item.href} />
+          <NavLink
+            key={item.href}
+            item={item}
+            active={item.match ? item.match(pathname) : pathname === item.href}
+            onNavigate={onNavigate}
+          />
         ))}
       </nav>
 
       {/* Usuário */}
-      <div style={{ paddingBlock: 12, paddingInline: 16, borderTop: "var(--border-on-dark)" }}>
+      <div
+        style={{
+          paddingBlock: 12,
+          paddingInline: 16,
+          borderTop: "var(--border-on-dark)",
+        }}
+      >
         <button
           type="button"
           style={{
@@ -321,7 +402,13 @@ export default function Sidebar() {
             >
               {usuario?.nome ?? "Carregando..."}
             </span>
-            <span style={{ display: "block", fontSize: 11, color: "var(--on-dark-text-40)" }}>
+            <span
+              style={{
+                display: "block",
+                fontSize: 11,
+                color: "var(--on-dark-text-40)",
+              }}
+            >
               {usuario?.descricao ?? ""}
             </span>
           </span>
@@ -331,5 +418,5 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
-  )
+  );
 }

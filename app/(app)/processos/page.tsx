@@ -50,7 +50,7 @@ export default function Processos() {
   const itens = processos.data?.itens ?? []
 
   return (
-    <div style={{ padding: 28 }}>
+    <div className="gd-page">
       {/* Filtros */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <SearchInput
@@ -97,7 +97,8 @@ export default function Processos() {
         {processos.isError && <ErrorState onRetry={() => void processos.refetch()} />}
 
         {processos.isSuccess && itens.length > 0 && (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="gd-table-wrap">
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 880 }}>
             <thead>
               <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
                 {["Processo / Objeto", "Secretaria", "Modalidade", "Valor Est.", "ETP", "TR", "Responsável", "Status", ""].map((h, i) => (
@@ -178,6 +179,7 @@ export default function Processos() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {processos.isSuccess && itens.length === 0 && <EmptyState message="Nenhum processo encontrado" />}

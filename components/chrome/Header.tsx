@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useState } from "react"
 
 import { SearchInput } from "@/components/ds"
-import { IconBell, IconPlus } from "@/components/ds/icons"
+import { IconBell, IconMenu, IconPlus } from "@/components/ds/icons"
 
 /** Título do header por rota (equivalente ao viewTitles do protótipo). */
 function tituloDaRota(pathname: string): string {
@@ -20,7 +20,7 @@ function tituloDaRota(pathname: string): string {
   return "GeraDocs"
 }
 
-export default function Header() {
+export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname()
   const [busca, setBusca] = useState("")
   const [hoverCta, setHoverCta] = useState(false)
@@ -29,18 +29,39 @@ export default function Header() {
 
   return (
     <header
+      className="gd-header"
       style={{
         height: "var(--header-height)",
         background: "var(--color-surface)",
         borderBottom: "var(--border-default)",
         display: "flex",
         alignItems: "center",
-        paddingInline: 28,
-        gap: 16,
+        gap: 12,
         flexShrink: 0,
+        minWidth: 0,
       }}
     >
-      <div style={{ flex: 1 }}>
+      {/* Hambúrguer — abre o drawer da sidebar abaixo de 1024px */}
+      <button
+        type="button"
+        className="gd-only-mobile"
+        aria-label="Abrir menu de navegação"
+        onClick={onMenuClick}
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "var(--radius-md)",
+          border: "var(--border-default)",
+          background: "var(--color-ice)",
+          cursor: "pointer",
+          flexShrink: 0,
+          color: "var(--text-secondary)",
+        }}
+      >
+        <IconMenu size={18} />
+      </button>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
         <h1
           style={{
             fontFamily: "var(--font-display)",
@@ -49,18 +70,24 @@ export default function Header() {
             color: "var(--text-body)",
             margin: 0,
             letterSpacing: "var(--tracking-heading)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {tituloDaRota(pathname)}
         </h1>
       </div>
 
-      <SearchInput
-        placeholder="Buscar processo, documento..."
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-        kbd="⌘K"
-      />
+      {/* Busca global — oculta em telas estreitas */}
+      <div className="gd-hide-sm">
+        <SearchInput
+          placeholder="Buscar processo, documento..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          kbd="⌘K"
+        />
+      </div>
 
       <button
         type="button"
@@ -98,6 +125,7 @@ export default function Header() {
       {showNewProcess && (
         <Link
           href="/processos/novo"
+          aria-label="Novo Processo"
           onMouseEnter={() => setHoverCta(true)}
           onMouseLeave={() => setHoverCta(false)}
           style={{
@@ -107,7 +135,7 @@ export default function Header() {
             background: hoverCta ? "var(--action-primary-hover)" : "var(--action-primary)",
             color: "var(--color-surface)",
             borderRadius: "var(--radius-md)",
-            paddingInline: 16,
+            paddingInline: 12,
             height: 36,
             fontSize: 13,
             fontWeight: 600,
@@ -117,7 +145,8 @@ export default function Header() {
           }}
         >
           <IconPlus size={14} strokeWidth={2.5} />
-          Novo Processo
+          {/* Rótulo some no celular — fica só o ícone */}
+          <span className="gd-hide-xs">Novo Processo</span>
         </Link>
       )}
     </header>

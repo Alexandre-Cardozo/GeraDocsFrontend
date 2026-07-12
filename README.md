@@ -63,6 +63,7 @@ docs/decisions.md       # decisões de arquitetura desta fase
 - **DS via barrel**: componentes do DS importados de `@/components/ds` (regra de lint). Antes de mexer em UI, consulte o `readme.md` do DS e o `.prompt.md` do componente.
 - **Conteúdo pt-BR**: Title Case em títulos, imperativos em ações, referências legais literais ("Art. 75, II, Lei 14.133/21"), IDs/valores em monospace, vocabulário de status fixo.
 - **Zero emoji**: ícones de linha estilo Lucide em `components/ds/icons.tsx`.
+- **Responsivo mobile-first**: layouts que variam por viewport usam as classes `gd-*` de `app/globals.css` (breakpoints 480/640/768/1024). Sidebar vira drawer abaixo de 1024px; tabelas largas rolam dentro de `.gd-table-wrap`; nunca deixe a página estourar horizontalmente.
 
 ## Como plugar o backend depois
 

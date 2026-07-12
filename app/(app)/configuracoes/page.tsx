@@ -109,7 +109,7 @@ export default function Configuracoes() {
   }
 
   return (
-    <div style={{ padding: 28, maxWidth: "var(--content-max-settings)" }}>
+    <div className="gd-page" style={{ maxWidth: "var(--content-max-settings)" }}>
       <div style={{ marginBottom: 24 }}>
         <h2
           style={{
@@ -129,8 +129,8 @@ export default function Configuracoes() {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 2, marginBottom: 28, borderBottom: "var(--border-default)" }}>
+      {/* Tabs — roláveis horizontalmente em telas estreitas */}
+      <div className="gd-tabs" style={{ marginBottom: 28 }}>
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -148,6 +148,8 @@ export default function Configuracoes() {
               borderBottom: activeTab === t.key ? "var(--border-royal-2)" : "var(--border-transparent-2)",
               marginBottom: -1,
               transition: "var(--transition-fast)",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             {t.label}
@@ -366,8 +368,8 @@ export default function Configuracoes() {
           title="Secretarias do Órgão"
           desc="As secretarias cadastradas aqui aparecem como opções de Secretaria Requisitante na criação de novos processos."
         >
-          <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 220 }}>
               <Input
                 value={novaSecretaria}
                 onChange={(e) => setNovaSecretaria(e.target.value)}
@@ -574,7 +576,8 @@ export default function Configuracoes() {
               Convidar Servidor
             </Button>
           </div>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div className="gd-table-wrap">
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
             <thead>
               <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
                 {["Servidor", "Cargo", "Perfil de Acesso", "Último Acesso", ""].map((h, i) => (
@@ -629,6 +632,7 @@ export default function Configuracoes() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

@@ -112,19 +112,9 @@ export default function EditorETP() {
   }
 
   return (
-    <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
-      {/* Rail de seções — 280px */}
-      <div
-        style={{
-          width: "var(--section-rail-width)",
-          minWidth: "var(--section-rail-width)",
-          background: "var(--color-surface)",
-          borderRight: "var(--border-default)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
+    <div className="gd-split">
+      {/* Rail de seções — 280px no laptop; faixa horizontal rolável no celular */}
+      <div className="gd-etp-rail">
         <div style={{ paddingTop: 18, paddingInline: 18, paddingBottom: 14, borderBottom: "var(--border-soft)" }}>
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-muted)" }}>{processo.data.id}</div>
@@ -140,7 +130,7 @@ export default function EditorETP() {
           />
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: 10 }}>
+        <div className="gd-etp-list">
           {lista.map((s) => {
             const cfg = statusRail[s.status]
             const isActive = activeSection === s.id
@@ -148,12 +138,12 @@ export default function EditorETP() {
               <button
                 key={s.id}
                 type="button"
+                className="gd-etp-item"
                 onClick={() => setActiveSection(s.id)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  width: "100%",
                   padding: 10,
                   borderRadius: "var(--radius-md)",
                   border: isActive ? "var(--border-tint-royal)" : "var(--border-transparent)",
@@ -217,14 +207,15 @@ export default function EditorETP() {
             background: "var(--color-surface)",
             borderBottom: "var(--border-default)",
             paddingBlock: 14,
-            paddingInline: 24,
+            paddingInline: 16,
             display: "flex",
             alignItems: "center",
-            gap: 16,
+            gap: 12,
             flexShrink: 0,
+            flexWrap: "wrap",
           }}
         >
-          <div style={{ flex: 1 }}>
+          <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 220, minWidth: 0 }}>
             <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>
               Seção {active?.id} de {lista.length} · {active?.incisoArt18}
             </div>
@@ -254,7 +245,7 @@ export default function EditorETP() {
         </div>
 
         {/* Conteúdo */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
+        <div className="gd-split-content" style={{ flex: 1, overflowY: "auto" }}>
           {active && (active.id === "4" || active.id === "5") ? (
             <EstimativasSecao rascunho={rascunho} setRascunho={setRascunho} />
           ) : active ? (
@@ -358,6 +349,7 @@ export default function EditorETP() {
                   display: "flex",
                   alignItems: "flex-start",
                   gap: 16,
+                  flexWrap: "wrap",
                 }}
               >
                 <span
@@ -553,7 +545,7 @@ export default function EditorETP() {
           )}
 
           {/* Navegação entre seções */}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, gap: 10, flexWrap: "wrap" }}>
             <Button
               variant="secondary"
               disabled={activeSection === "1"}
@@ -605,7 +597,7 @@ function EstimativasSecao({
         title="Estimativa das Quantidades"
         hint="Informe as quantidades estimadas com base no histórico de consumo, demanda projetada ou levantamentos realizados pela área técnica."
       >
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+        <div className="gd-form-grid-3">
           <FormField label="Quantidade Estimada" required>
             <Input value={qty} onChange={(e) => setQty(e.target.value)} />
           </FormField>
@@ -644,7 +636,7 @@ function EstimativasSecao({
         title="Estimativa do Valor"
         hint="Baseie-se em pesquisas de mercado, contratos anteriores ou painel de preços do governo federal."
       >
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="gd-form-grid-2">
           <FormField label="Valor Unitário Estimado (R$)" required>
             <Input prefix="R$" value={valorUnit} onChange={(e) => setValorUnit(e.target.value)} />
           </FormField>

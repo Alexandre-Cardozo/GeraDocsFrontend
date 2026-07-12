@@ -97,6 +97,14 @@ export const IconBuilding = makeIcon("IconBuilding", (
   <path d="M3 21h18M9 8h1M9 12h1M9 16h1M14 8h1M14 12h1M14 16h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
 ))
 
+export const IconMenu = makeIcon("IconMenu", (
+  <>
+    <line x1="4" y1="6" x2="20" y2="6" />
+    <line x1="4" y1="12" x2="20" y2="12" />
+    <line x1="4" y1="18" x2="20" y2="18" />
+  </>
+))
+
 export const IconChevronDown = makeIcon("IconChevronDown", <polyline points="6 9 12 15 18 9" />)
 export const IconChevronRight = makeIcon("IconChevronRight", <polyline points="9 18 15 12 9 6" />)
 

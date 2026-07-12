@@ -126,8 +126,8 @@ export default function NovoProcesso() {
   }
 
   return (
-    <div style={{ padding: 28, maxWidth: "var(--content-max-wizard)" }}>
-      <div style={{ marginBottom: 36 }}>
+    <div className="gd-page" style={{ maxWidth: "var(--content-max-wizard)" }}>
+      <div style={{ marginBottom: 32 }}>
         <StepIndicator steps={["Modalidade", "Identificação", "Documentos"]} current={step} />
       </div>
 
@@ -272,7 +272,7 @@ export default function NovoProcesso() {
 
             {!dfdOrObjeto && <ValidationMsg type="error" msg="Preencha ao menos o DFD ou o Objeto da Contratação para continuar." />}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div className="gd-form-grid-2">
               <FormField label="Valor de Referência Estimado">
                 <Input value={valorRef} onChange={(e) => setValorRef(e.target.value)} placeholder="R$ 0,00" />
               </FormField>
@@ -439,7 +439,7 @@ export default function NovoProcesso() {
       )}
 
       {/* Ações */}
-      <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
+      <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
         {step > 1 && (
           <Button variant="secondary" size="lg" onClick={() => setStep((s) => s - 1)}>
             Voltar
