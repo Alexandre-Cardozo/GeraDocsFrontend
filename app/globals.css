@@ -404,8 +404,11 @@ textarea:focus-visible {
   flex-direction: column;
 }
 
-/* Rail do ETP: faixa horizontal rolável no celular, coluna 280px no laptop */
-.gd-etp-rail {
+/* Rail dos layouts split (seções do ETP, lista de Aprovações): faixa empilhada
+   no celular, coluna de largura fixa no laptop. Mecânica única — só a largura
+   difere por view. */
+.gd-etp-rail,
+.gd-approvals-rail {
   width: 100%;
   background: var(--color-surface);
   border-bottom: var(--border-default);
@@ -423,17 +426,6 @@ textarea:focus-visible {
 }
 .gd-etp-item {
   flex: 0 0 240px;
-}
-
-/* Lista de Aprovações */
-.gd-approvals-rail {
-  width: 100%;
-  background: var(--color-surface);
-  border-bottom: var(--border-default);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex-shrink: 0;
 }
 
 /* Área de conteúdo dos layouts split */
@@ -585,11 +577,18 @@ textarea:focus-visible {
   .gd-split-content {
     padding: 24px;
   }
+  .gd-etp-rail,
+  .gd-approvals-rail {
+    border-bottom: none;
+    border-right: var(--border-default);
+  }
   .gd-etp-rail {
     width: var(--section-rail-width);
     min-width: var(--section-rail-width);
-    border-bottom: none;
-    border-right: var(--border-default);
+  }
+  .gd-approvals-rail {
+    width: var(--rail-approvals);
+    min-width: var(--rail-approvals);
   }
   .gd-etp-list {
     display: block;
@@ -599,12 +598,6 @@ textarea:focus-visible {
   }
   .gd-etp-item {
     width: 100%;
-  }
-  .gd-approvals-rail {
-    width: var(--rail-approvals);
-    min-width: var(--rail-approvals);
-    border-bottom: none;
-    border-right: var(--border-default);
   }
 }
 
@@ -650,5 +643,17 @@ textarea:focus-visible {
 @media (min-width: 1024px) {
   .gd-header {
     padding-inline: 28px;
+  }
+}
+
+/* ── Acessibilidade: respeita a preferência por movimento reduzido ────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

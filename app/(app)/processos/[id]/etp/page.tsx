@@ -1,9 +1,9 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRef, useState } from "react"
 
-import { Button, FileUpload, FormField, InfoBanner, Input, ProgressBar, SectionBlock, Select, Textarea, ValidationMsg } from "@/components/ds"
+import { Button, ChoiceCard, FileUpload, FormField, InfoBanner, Input, ProgressBar, SectionBlock, Select, Textarea, ValidationMsg } from "@/components/ds"
 import {
   IconCheck,
   IconCheckCircle,
@@ -13,7 +13,7 @@ import {
   IconSave,
   IconSparkles,
 } from "@/components/ds/icons"
-import { ErrorState, LoadingState } from "@/components/estados"
+import { ErrorState, InlineSpinner, LoadingState } from "@/components/estados"
 import { useToast } from "@/components/providers"
 import { useAtualizarSecaoETP, useGerarSecaoETP, useProcesso, useSecoesETP } from "@/lib/api/hooks"
 import { formatBRL } from "@/lib/format"
@@ -47,6 +47,12 @@ export default function EditorETP() {
   const [activeSection, setActiveSection] = useState("1")
   const [rascunho, setRascunho] = useState("")
   const [saved, setSaved] = useState(false)
+  // Espelho da seção ativa para callbacks assíncronos (evita closure stale).
+  const secaoAtivaRef = useRef("1")
+  const trocarSecao = (id: string) => {
+    secaoAtivaRef.current = id
+    setActiveSection(id)
+  }
 
   // Painel de ATA (seção 6 — Soluções Disponíveis no Mercado)
   const [showATAPanel, setShowATAPanel] = useState(false)
@@ -57,12 +63,12 @@ export default function EditorETP() {
   const lista = secoes.data ?? []
   const active: SecaoETP | undefined = lista.find((s) => s.id === activeSection)
 
-  // Ajusta o rascunho local quando a seção ativa muda ou o conteúdo salvo/gerado
-  // chega do servidor (padrão "adjusting state when a prop changes" do React).
-  const [chaveSincronizada, setChaveSincronizada] = useState("")
-  const chaveAtiva = `${activeSection}:${active?.conteudo ?? ""}`
-  if (secoes.isSuccess && chaveAtiva !== chaveSincronizada) {
-    setChaveSincronizada(chaveAtiva)
+  // Ressincroniza o rascunho SÓ na troca de seção (padrão "adjusting state when
+  // a prop changes"). Nunca por mudança de conteúdo vinda do servidor — o refetch
+  // pós-salvamento não pode sobrescrever o que o usuário digitou nesse intervalo.
+  const [secaoSincronizada, setSecaoSincronizada] = useState<string | null>(null)
+  if (secoes.isSuccess && activeSection !== secaoSincronizada) {
+    setSecaoSincronizada(activeSection)
     setRascunho(active?.conteudo ?? "")
   }
 
@@ -80,7 +86,7 @@ export default function EditorETP() {
           if (avancar) {
             const idx = lista.findIndex((s) => s.id === activeSection)
             const proxima = lista[idx + 1]
-            if (proxima) setActiveSection(proxima.id)
+            if (proxima) trocarSecao(proxima.id)
           }
         },
       }
@@ -89,7 +95,14 @@ export default function EditorETP() {
 
   const handleGerarIA = () => {
     if (!active) return
-    gerar.mutate(active.id)
+    const secaoId = active.id
+    gerar.mutate(secaoId, {
+      onSuccess: (secaoGerada) => {
+        // Preenche o editor com o texto gerado apenas se a seção ainda é a ativa —
+        // se o usuário navegou durante a geração, não sobrescreve o rascunho da outra.
+        if (secaoAtivaRef.current === secaoId) setRascunho(secaoGerada.conteudo)
+      },
+    })
   }
 
   if (processo.isPending || secoes.isPending) {
@@ -97,7 +110,7 @@ export default function EditorETP() {
   }
   if (processo.isError || secoes.isError) {
     return (
-      <div style={{ padding: 28 }}>
+      <div className="gd-page">
         <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
           <ErrorState
             message={processo.error?.message ?? secoes.error?.message}
@@ -139,7 +152,7 @@ export default function EditorETP() {
                 key={s.id}
                 type="button"
                 className="gd-etp-item"
-                onClick={() => setActiveSection(s.id)}
+                onClick={() => trocarSecao(s.id)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -303,34 +316,7 @@ export default function EditorETP() {
                   ) : (
                     <ValidationMsg type="ok" msg="Texto suficiente para fundamentar a seção." />
                   )}
-                  {gerar.isPending && (
-                    <div
-                      style={{
-                        background: "var(--tint-royal-bg)",
-                        borderRadius: "var(--radius-md)",
-                        paddingBlock: 12,
-                        paddingInline: 16,
-                        display: "flex",
-                        gap: 10,
-                        alignItems: "center",
-                      }}
-                    >
-                      <span
-                        className="gd-spinner"
-                        style={{
-                          width: 16,
-                          height: 16,
-                          border: "var(--border-tint-royal-2)",
-                          borderTopColor: "var(--color-royal)",
-                          borderRadius: "var(--radius-full)",
-                          display: "inline-block",
-                        }}
-                      />
-                      <span style={{ fontSize: 13, color: "var(--color-royal-hover)" }}>
-                        Gerando conteúdo da seção... aguarde.
-                      </span>
-                    </div>
-                  )}
+                  {gerar.isPending && <InlineSpinner label="Gerando conteúdo da seção... aguarde." />}
                 </div>
               )}
             </SectionBlock>
@@ -400,47 +386,14 @@ export default function EditorETP() {
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
                     {modosATA.map((opt) => (
-                      <button
+                      <ChoiceCard
                         key={opt.key}
-                        type="button"
+                        size="small"
+                        selected={ataMode === opt.key}
                         onClick={() => setATAMode(opt.key)}
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 12,
-                          paddingBlock: 12,
-                          paddingInline: 16,
-                          borderRadius: "var(--radius-xl)",
-                          border: ataMode === opt.key ? "var(--border-selected)" : "var(--border-default)",
-                          background: ataMode === opt.key ? "var(--tint-royal-bg)" : "var(--color-ice)",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          transition: "var(--transition-fast)",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: "var(--radius-full)",
-                            border: `2px solid ${ataMode === opt.key ? "var(--color-royal)" : "var(--color-text-faint)"}`,
-                            background: ataMode === opt.key ? "var(--color-royal)" : "transparent",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                            marginTop: 2,
-                          }}
-                        >
-                          {ataMode === opt.key && <span style={{ width: 6, height: 6, borderRadius: "var(--radius-full)", background: "var(--color-surface)" }} />}
-                        </span>
-                        <span style={{ display: "block" }}>
-                          <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)" }}>
-                            {opt.label}
-                          </span>
-                          <span style={{ display: "block", fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{opt.desc}</span>
-                        </span>
-                      </button>
+                        title={opt.label}
+                        desc={opt.desc}
+                      />
                     ))}
                   </div>
 
@@ -471,30 +424,8 @@ export default function EditorETP() {
                             </div>
                           )}
                           {ataReview === "loading" && (
-                            <div
-                              style={{
-                                background: "var(--tint-royal-bg)",
-                                borderRadius: "var(--radius-md)",
-                                paddingBlock: 12,
-                                paddingInline: 16,
-                                display: "flex",
-                                gap: 10,
-                                alignItems: "center",
-                                marginTop: 10,
-                              }}
-                            >
-                              <span
-                                className="gd-spinner"
-                                style={{
-                                  width: 16,
-                                  height: 16,
-                                  border: "var(--border-tint-royal-2)",
-                                  borderTopColor: "var(--color-royal)",
-                                  borderRadius: "var(--radius-full)",
-                                  display: "inline-block",
-                                }}
-                              />
-                              <span style={{ fontSize: 13, color: "var(--color-royal-hover)" }}>Analisando ATA... aguarde.</span>
+                            <div style={{ marginTop: 10 }}>
+                              <InlineSpinner label="Analisando ATA... aguarde." />
                             </div>
                           )}
                           {ataReview === "done" && (
@@ -552,7 +483,7 @@ export default function EditorETP() {
               onClick={() => {
                 const idx = lista.findIndex((s) => s.id === activeSection)
                 const anterior = lista[idx - 1]
-                if (anterior) setActiveSection(anterior.id)
+                if (anterior) trocarSecao(anterior.id)
               }}
               style={{ opacity: activeSection === "1" ? 0.4 : 1 }}
             >
@@ -590,6 +521,11 @@ function EstimativasSecao({
 }) {
   const [qty, setQty] = useState("150")
   const [valorUnit, setValorUnit] = useState("3.233,33")
+
+  // Total derivado dos campos ao lado (quantidade × valor unitário).
+  const qtyNumero = Number.parseFloat(qty.replace(/\./g, "").replace(",", ".")) || 0
+  const valorUnitNumero = Number.parseFloat(valorUnit.replace(/\./g, "").replace(",", ".")) || 0
+  const valorTotal = qtyNumero * valorUnitNumero
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -657,7 +593,7 @@ function EstimativasSecao({
                 fontFamily: "var(--font-mono)",
               }}
             >
-              {formatBRL(485000)}
+              {formatBRL(valorTotal)}
             </div>
           </FormField>
         </div>

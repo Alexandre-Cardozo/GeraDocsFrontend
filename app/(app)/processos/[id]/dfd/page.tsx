@@ -16,7 +16,8 @@ import {
   IconX,
   IconXCircle,
 } from "@/components/ds/icons"
-import { LoadingState } from "@/components/estados"
+import { ErrorState, LoadingState } from "@/components/estados"
+import { useToast } from "@/components/providers"
 import { useAnalisarDFD, useParecerDFD, useProcesso } from "@/lib/api/hooks"
 import type { AchadoDFD } from "@/lib/types"
 
@@ -40,6 +41,7 @@ function severidadeCfg(achado: AchadoDFD) {
 export default function VerificacaoDFD() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
+  const showToast = useToast()
   const processoId = params.id
 
   const processo = useProcesso(processoId)
@@ -64,6 +66,13 @@ export default function VerificacaoDFD() {
     setProgress(0)
     analisar.mutate(dfdFile, {
       onSuccess: () => setReenviando(false),
+      onError: (erro) => {
+        // Falha na análise: interrompe a animação e volta ao upload com aviso.
+        if (intervalo.current) clearInterval(intervalo.current)
+        setAnalisando(false)
+        setProgress(0)
+        showToast(`Não foi possível analisar o DFD: ${erro.message}. Tente novamente.`)
+      },
     })
     intervalo.current = setInterval(() => {
       setProgress((p) => {
@@ -85,6 +94,15 @@ export default function VerificacaoDFD() {
     return (
       <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
         <LoadingState label="Carregando processo..." />
+      </div>
+    )
+  }
+  if (processo.isError) {
+    return (
+      <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
+        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
+          <ErrorState message={processo.error.message} onRetry={() => void processo.refetch()} />
+        </div>
       </div>
     )
   }

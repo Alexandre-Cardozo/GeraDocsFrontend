@@ -15,20 +15,9 @@ import {
   IconSearch,
 } from "@/components/ds/icons"
 import { ErrorState, SkeletonRows } from "@/components/estados"
+import { Th } from "@/components/tabela"
 import { useEstatisticas, useFilaAprovacoes, useProcessos, useUsuarioAtual } from "@/lib/api/hooks"
 import { formatBRL, formatData } from "@/lib/format"
-
-const th = {
-  paddingBlock: 10,
-  paddingInline: 16,
-  textAlign: "left" as const,
-  fontSize: 11,
-  color: "var(--color-text-muted)",
-  fontWeight: 600,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase" as const,
-  borderBottom: "var(--border-soft)",
-}
 
 export default function Dashboard() {
   const router = useRouter()
@@ -174,9 +163,9 @@ export default function Dashboard() {
               <thead>
                 <tr style={{ background: "var(--color-ice)" }}>
                   {["Processo", "Secretaria", "Valor Est.", "Status", "Data"].map((h) => (
-                    <th key={h} style={th}>
+                    <Th key={h} style={{ borderBottom: "var(--border-soft)" }}>
                       {h}
-                    </th>
+                    </Th>
                   ))}
                 </tr>
               </thead>

@@ -6,8 +6,10 @@ import { useState } from "react"
 import { DocPill } from "@/components/ds"
 import { IconCalendar, IconDatabase, IconDownload, IconEye, IconFileText, IconPlus } from "@/components/ds/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/estados"
+import { Th } from "@/components/tabela"
 import { useToast } from "@/components/providers"
 import { useDocumentos } from "@/lib/api/hooks"
+import { formatDataHora } from "@/lib/format"
 import type { TipoDocumento } from "@/lib/types"
 
 const tiposDoc: Record<TipoDocumento, { bg: string; color: string }> = {
@@ -15,23 +17,6 @@ const tiposDoc: Record<TipoDocumento, { bg: string; color: string }> = {
   TR: { bg: "var(--doc-tr-bg)", color: "var(--doc-tr)" },
   "Cotação": { bg: "var(--doc-cotacao-bg)", color: "var(--doc-cotacao)" },
   Mapa: { bg: "var(--doc-mapa-bg)", color: "var(--doc-mapa)" },
-}
-
-const th = {
-  paddingBlock: 10,
-  paddingInline: 16,
-  textAlign: "left" as const,
-  fontSize: 11,
-  color: "var(--color-text-muted)",
-  fontWeight: 600,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase" as const,
-}
-
-function formatGeradoEm(iso: string): string {
-  const [data, hora] = iso.split("T")
-  const [ano, mes, dia] = (data ?? "").split("-")
-  return `${dia}/${mes}/${ano} — ${(hora ?? "").slice(0, 5)}`
 }
 
 export default function Documentos() {
@@ -140,9 +125,9 @@ export default function Documentos() {
             <thead>
               <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
                 {["Documento", "Processo", "Tipo", "Formato", "Gerado em", "Tamanho", "Status", ""].map((h, i) => (
-                  <th key={h === "" ? `vazio-${i}` : h} style={th}>
+                  <Th key={h === "" ? `vazio-${i}` : h}>
                     {h}
-                  </th>
+                  </Th>
                 ))}
               </tr>
             </thead>
@@ -167,7 +152,7 @@ export default function Documentos() {
                     </td>
                     <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)" }}>{doc.formato}</td>
                     <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
-                      {formatGeradoEm(doc.geradoEm)}
+                      {formatDataHora(doc.geradoEm)}
                     </td>
                     <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)" }}>
                       {doc.tamanho}

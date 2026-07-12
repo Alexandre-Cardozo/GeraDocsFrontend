@@ -46,6 +46,38 @@ export function SkeletonRows({ rows = 5, height = 44 }: { rows?: number; height?
   )
 }
 
+/** Feedback inline de operação em andamento (ex.: geração/análise pela IA). */
+export function InlineSpinner({ label }: { label: string }) {
+  return (
+    <div
+      role="status"
+      style={{
+        background: "var(--tint-royal-bg)",
+        borderRadius: "var(--radius-md)",
+        paddingBlock: 12,
+        paddingInline: 16,
+        display: "flex",
+        gap: 10,
+        alignItems: "center",
+      }}
+    >
+      <span
+        className="gd-spinner"
+        style={{
+          width: 16,
+          height: 16,
+          border: "var(--border-tint-royal-2)",
+          borderTopColor: "var(--color-royal)",
+          borderRadius: "var(--radius-full)",
+          display: "inline-block",
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ fontSize: 13, color: "var(--color-royal-hover)" }}>{label}</span>
+    </div>
+  )
+}
+
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
   return (
     <div style={{ padding: 60, textAlign: "center", color: "var(--color-text-muted)" }}>

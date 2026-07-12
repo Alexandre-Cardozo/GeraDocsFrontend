@@ -72,6 +72,20 @@ A partir desta fase o app é compatível com celulares, tablets e laptops (pedid
 
 Verificação: screenshots via Chrome headless em 375 (via harness de iframe — o headless impõe janela mínima de 500px), 768 e 1366 px em todas as rotas.
 
-## 10. Protótipo preservado
+## 10. Tailwind CSS — avaliado e não adotado nesta fase
+
+O app **não usa Tailwind**. Avaliação (jul/2026), a pedido do produto:
+
+- **Contra, agora**: o DS LAHHM/GeraDocs é distribuído como componentes com estilos inline + tokens `var(--...)` — este app segue o padrão do DS à risca, e o lint de aderência (hex/px cru proibidos em TSX) é o enforcement disso. Utilitários Tailwind (`p-4`, `text-slate-500`) codificam valores fora dos tokens do DS e passariam por fora do lint; valores arbitrários (`bg-[#2563EB]`) o violariam. Migrar agora = reescrever as 8 telas + 20 componentes sem ganho visual, com risco de regressão pixel-perfect e retooling do enforcement.
+- **A favor, no futuro**: Tailwind v4 permite mapear os tokens do DS via `@theme` (gerando utilitários que resolvem para os mesmos `var(--...)`), o que manteria a fonte única de verdade. Se a equipe crescer e preferir utility-first, a adoção correta é: v4 + `@theme` importando os tokens de `globals.css` + regra de lint proibindo valores arbitrários `[...]` — em uma fase própria, tela a tela.
+- **shadcn/ui** (skill instalada): depende de Tailwind e traria componentes Radix com estética própria — conflita com a regra da fase de que "os componentes vêm do DS" e com o sistema flat. Não adotar.
+
+**Decisão: manter tokens + inline styles + camada `gd-*`.** Revisitar só se a equipe padronizar utility-first em outros produtos LAHHM.
+
+## 11. Auditoria com skills instaladas (jul/2026)
+
+Revisão multi-ângulo (skill code-review) usando as skills do repo (`.agents/skills/`) como critérios — `vercel-react-best-practices`, `web-design-guidelines`, `frontend-design`. Correções aplicadas: IDs de aprovações desalinhados com processos nas fixtures (contaminação cruzada de status), race do rascunho do ETP com refetch pós-salvamento (ressincroniza só na troca de seção + ref para callbacks), status "Completo" mantido ao esvaziar seção, página do DFD sem tratamento de erro/id inexistente, "Valor Total Estimado" fixo → derivado de quantidade × valor unitário, comentário de Aprovações apagado por onSuccess tardio, reseed do formulário de Configurações com o tenant canônico pós-mutação, `import "client-only"` no mock (impede vazamento de estado entre requests se algum RSC importar), `prefers-reduced-motion`, e deduplicações: `SettingsCard`→`SectionBlock` do DS, opções de ATA→`ChoiceCard`, `Th` compartilhado (4 páginas), `InlineSpinner` compartilhado, `formatDataHora` em lib/format. Pendências registradas (não bloqueiam a fase): título do Header por contexto de rota em vez de regex, associação programática label↔input no FormField.
+
+## 12. Protótipo preservado
 
 O protótipo Vite original foi mantido em `prototype/` como referência visual durante a migração e **removido do repositório** após a conclusão das 8 telas (permanece disponível no histórico do git, commit `131c240`). A especificação visual vigente é o design system em `design_system/` (renomeado de `LAHHM___GeraDocs_Design_System/`).

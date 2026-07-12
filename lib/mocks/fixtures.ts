@@ -112,7 +112,7 @@ export const processos: Processo[] = [
     objeto: "Sistema de Gestão de RH",
     secretaria: "Secretaria de Adm.",
     modalidade: "Inexigibilidade",
-    status: "em_revisao",
+    status: "aguardando",
     valorEstimado: 750000,
     etpStatus: "Completo",
     trStatus: "Em revisão",
@@ -356,7 +356,7 @@ export const aprovacoes: ItemAprovacao[] = [
     ],
   },
   {
-    processoId: "PROC-2024-083",
+    processoId: "PROC-2024-084",
     objeto: "Sistema de Gestão de RH",
     tipo: "ETP + TR",
     secretaria: "Secretaria de Adm.",
@@ -405,7 +405,7 @@ export const aprovacoes: ItemAprovacao[] = [
     ],
   },
   {
-    processoId: "PROC-2024-081",
+    processoId: "PROC-2024-083",
     objeto: "Reforma Escola Municipal Centro",
     tipo: "ETP",
     secretaria: "Secretaria de Educação",

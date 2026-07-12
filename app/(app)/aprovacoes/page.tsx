@@ -47,11 +47,14 @@ export default function Aprovacoes() {
       return
     }
     setErroComentario(false)
+    // Limpa o campo já no clique (o comentário vai junto na mutação) — limpar no
+    // onSuccess apagaria um parecer que o usuário começou a digitar para OUTRO
+    // item selecionado durante a mutação.
+    setComment("")
     decidir.mutate(
       { processoId: active.processoId, decisao, comentario: comment.trim() },
       {
         onSuccess: () => {
-          setComment("")
           showToast(
             decisao === "aprovar"
               ? "Processo aprovado — decisão registrada na trilha de auditoria."
@@ -66,14 +69,14 @@ export default function Aprovacoes() {
 
   if (fila.isPending) {
     return (
-      <div style={{ padding: 28 }}>
+      <div className="gd-page">
         <SkeletonRows rows={6} />
       </div>
     )
   }
   if (fila.isError) {
     return (
-      <div style={{ padding: 28 }}>
+      <div className="gd-page">
         <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
           <ErrorState onRetry={() => void fila.refetch()} />
         </div>

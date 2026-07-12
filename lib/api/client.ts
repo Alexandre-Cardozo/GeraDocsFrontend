@@ -1,3 +1,8 @@
+// Guarda explícita: o "banco" em memória abaixo é estado mutável de módulo e só
+// pode viver no browser. Se algum RSC importar isto (ex.: prefetch no servidor),
+// o build falha em vez de vazar estado entre requests/usuários.
+import "client-only"
+
 import {
   aprovacoes as aprovacoesFixture,
   documentos as documentosFixture,
@@ -181,7 +186,9 @@ export async function atualizarSecaoETP(input: AtualizarSecaoInput): Promise<Sec
   const secao = secoes.find((s) => s.id === input.secaoId)
   if (!secao) throw new Error(`Seção ${input.secaoId} não encontrada`)
   secao.conteudo = input.conteudo
-  secao.status = input.status ?? (input.conteudo.trim() ? "Completo" : secao.status)
+  // Esvaziar uma seção antes concluída volta o status para "Não iniciado" —
+  // senão o rail e o percentual do ETP contariam seção vazia como completa.
+  secao.status = input.status ?? (input.conteudo.trim() ? "Completo" : "Não iniciado")
   return clone(secao)
 }
 

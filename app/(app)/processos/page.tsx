@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Button, DocPill, FilterTabs, SearchInput, StatusBadge, Tag } from "@/components/ds"
 import { IconChevronRight, IconDownload, IconFilter } from "@/components/ds/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/estados"
+import { Th } from "@/components/tabela"
 import { useToast } from "@/components/providers"
 import { useProcessos } from "@/lib/api/hooks"
 import { formatBRL } from "@/lib/format"
@@ -20,18 +21,6 @@ const statusFilters = [
   { key: "concluido", label: "Concluído" },
   { key: "rejeitado", label: "Rejeitado" },
 ]
-
-const th = {
-  paddingBlock: 11,
-  paddingInline: 16,
-  textAlign: "left" as const,
-  fontSize: 11,
-  color: "var(--color-text-muted)",
-  fontWeight: 600,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase" as const,
-  whiteSpace: "nowrap" as const,
-}
 
 export default function Processos() {
   const router = useRouter()
@@ -102,9 +91,9 @@ export default function Processos() {
             <thead>
               <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
                 {["Processo / Objeto", "Secretaria", "Modalidade", "Valor Est.", "ETP", "TR", "Responsável", "Status", ""].map((h, i) => (
-                  <th key={h === "" ? `vazio-${i}` : h} style={th}>
+                  <Th key={h === "" ? `vazio-${i}` : h}>
                     {h}
-                  </th>
+                  </Th>
                 ))}
               </tr>
             </thead>

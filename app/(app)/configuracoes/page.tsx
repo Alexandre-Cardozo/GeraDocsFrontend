@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useState } from "react"
 
-import { Button, FileUpload, FormField, InfoBanner, Input, Select, Tag, Textarea, Toggle } from "@/components/ds"
+import { Button, FileUpload, FormField, InfoBanner, Input, SectionBlock, Select, Tag, Textarea, Toggle } from "@/components/ds"
 import { IconCheck, IconFile, IconImage, IconPlus, IconTrash } from "@/components/ds/icons"
 import { ErrorState, LoadingState } from "@/components/estados"
+import { Th } from "@/components/tabela"
 import { useToast } from "@/components/providers"
 import { useAtualizarConfigTenant, useConfigTenant } from "@/lib/api/hooks"
 import type { Secretaria } from "@/lib/types"
@@ -16,29 +17,6 @@ const tabs = [
   { key: "pca", label: "PCA — Plano de Contratações" },
   { key: "usuarios", label: "Usuários e Permissões" },
 ]
-
-const th = {
-  paddingBlock: 10,
-  paddingInline: 16,
-  textAlign: "left" as const,
-  fontSize: 11,
-  color: "var(--color-text-muted)",
-  fontWeight: 600,
-  letterSpacing: "var(--tracking-caps)",
-  textTransform: "uppercase" as const,
-}
-
-function SettingsCard({ title, desc, children }: { title: string; desc: string; children: ReactNode }) {
-  return (
-    <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", paddingBlock: 20, paddingInline: 22 }}>
-      <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 4 }}>
-        {title}
-      </h3>
-      <p style={{ margin: 0, marginBottom: 16, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>{desc}</p>
-      <div style={{ borderTop: "var(--border-soft)", paddingTop: 16 }}>{children}</div>
-    </div>
-  )
-}
 
 export default function Configuracoes() {
   const showToast = useToast()
@@ -73,14 +51,14 @@ export default function Configuracoes() {
 
   if (tenant.isPending) {
     return (
-      <div style={{ padding: 28, maxWidth: "var(--content-max-settings)" }}>
+      <div className="gd-page" style={{ maxWidth: "var(--content-max-settings)" }}>
         <LoadingState label="Carregando configurações..." />
       </div>
     )
   }
   if (tenant.isError) {
     return (
-      <div style={{ padding: 28, maxWidth: "var(--content-max-settings)" }}>
+      <div className="gd-page" style={{ maxWidth: "var(--content-max-settings)" }}>
         <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
           <ErrorState onRetry={() => void tenant.refetch()} />
         </div>
@@ -89,7 +67,20 @@ export default function Configuracoes() {
   }
 
   const salvarTenant = (patch: Parameters<typeof atualizar.mutate>[0], msg: string) => {
-    atualizar.mutate(patch, { onSuccess: () => showToast(msg) })
+    atualizar.mutate(patch, {
+      onSuccess: (tenantAtualizado) => {
+        // Realinha o formulário com o estado canônico devolvido pela API — na
+        // integração real o backend pode normalizar valores (trim, ids, contagens).
+        setLogoFile(tenantAtualizado.logoArquivo)
+        setTimbrado(tenantAtualizado.timbrado)
+        setCabecalho(tenantAtualizado.cabecalho)
+        setRodape(tenantAtualizado.rodape)
+        setSecretarias(tenantAtualizado.secretarias)
+        setPcaFile(tenantAtualizado.pca.arquivo)
+        setPcaYear(tenantAtualizado.pca.ano)
+        showToast(msg)
+      },
+    })
   }
 
   const addSecretaria = () => {
@@ -160,9 +151,9 @@ export default function Configuracoes() {
       {/* ── Identidade Visual ── */}
       {activeTab === "identidade" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <SettingsCard
+          <SectionBlock
             title="Logotipo / Brasão da Prefeitura"
-            desc="O logotipo será inserido no cabeçalho dos documentos timbrados. Formatos aceitos: PNG, SVG, JPG (fundo transparente recomendado)."
+            hint="O logotipo será inserido no cabeçalho dos documentos timbrados. Formatos aceitos: PNG, SVG, JPG (fundo transparente recomendado)."
           >
             {logoFile ? (
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -226,11 +217,11 @@ export default function Configuracoes() {
                 accept=".png,.svg,.jpg,.jpeg"
               />
             )}
-          </SettingsCard>
+          </SectionBlock>
 
-          <SettingsCard
+          <SectionBlock
             title="Documentos Timbrados"
-            desc="Quando ativado, todos os documentos gerados incluirão o brasão, o cabeçalho e o rodapé configurados. Caso desativado, os documentos serão gerados sem timbre."
+            hint="Quando ativado, todos os documentos gerados incluirão o brasão, o cabeçalho e o rodapé configurados. Caso desativado, os documentos serão gerados sem timbre."
           >
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <Toggle checked={timbrado} onChange={setTimbrado} label="Documentos timbrados" />
@@ -251,7 +242,7 @@ export default function Configuracoes() {
                 Nenhum logotipo configurado. O cabeçalho será gerado apenas com o texto institucional.
               </InfoBanner>
             )}
-          </SettingsCard>
+          </SectionBlock>
 
           <div style={{ display: "flex", gap: 10 }}>
             <Button
@@ -267,9 +258,9 @@ export default function Configuracoes() {
       {/* ── Cabeçalho e Rodapé ── */}
       {activeTab === "cabecalho" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <SettingsCard
+          <SectionBlock
             title="Cabeçalho dos Documentos"
-            desc="Texto exibido no topo de cada página dos documentos gerados. Use quebras de linha para organizar as informações. Variáveis disponíveis: {processo}, {data}, {secretaria}."
+            hint="Texto exibido no topo de cada página dos documentos gerados. Use quebras de linha para organizar as informações. Variáveis disponíveis: {processo}, {data}, {secretaria}."
           >
             <Textarea value={cabecalho} onChange={(e) => setCabecalho(e.target.value)} rows={4} />
             <div
@@ -314,11 +305,11 @@ export default function Configuracoes() {
                 </div>
               </div>
             </div>
-          </SettingsCard>
+          </SectionBlock>
 
-          <SettingsCard
+          <SectionBlock
             title="Rodapé dos Documentos"
-            desc="Texto exibido na parte inferior de cada página. Variáveis disponíveis: {processo}, {data}, {numero}, {pagina}."
+            hint="Texto exibido na parte inferior de cada página. Variáveis disponíveis: {processo}, {data}, {numero}, {pagina}."
           >
             <Textarea value={rodape} onChange={(e) => setRodape(e.target.value)} rows={3} />
             <div
@@ -349,7 +340,7 @@ export default function Configuracoes() {
                 </div>
               </div>
             </div>
-          </SettingsCard>
+          </SectionBlock>
 
           <div style={{ display: "flex", gap: 10 }}>
             <Button
@@ -364,9 +355,9 @@ export default function Configuracoes() {
 
       {/* ── Secretarias (CRUD local) ── */}
       {activeTab === "secretarias" && (
-        <SettingsCard
+        <SectionBlock
           title="Secretarias do Órgão"
-          desc="As secretarias cadastradas aqui aparecem como opções de Secretaria Requisitante na criação de novos processos."
+          hint="As secretarias cadastradas aqui aparecem como opções de Secretaria Requisitante na criação de novos processos."
         >
           <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
             <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 220 }}>
@@ -430,7 +421,7 @@ export default function Configuracoes() {
               </div>
             ))}
           </div>
-        </SettingsCard>
+        </SectionBlock>
       )}
 
       {/* ── PCA ── */}
@@ -440,9 +431,9 @@ export default function Configuracoes() {
             O <strong>Plano de Contratações Anual (PCA)</strong> é utilizado pelo modelo de IA para validar se o processo em elaboração está previsto no planejamento vigente, sugerindo o item correspondente e auxiliando no preenchimento do ETP.
           </InfoBanner>
 
-          <SettingsCard
+          <SectionBlock
             title="PCA do Ano Vigente"
-            desc="Anexe o PCA aprovado para o ano corrente. Formatos aceitos: PDF, XLSX, DOCX. O arquivo será utilizado como referência durante a geração dos documentos."
+            hint="Anexe o PCA aprovado para o ano corrente. Formatos aceitos: PDF, XLSX, DOCX. O arquivo será utilizado como referência durante a geração dos documentos."
           >
             <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
               <FormField label="Ano de Referência">
@@ -538,7 +529,7 @@ export default function Configuracoes() {
                 accept=".pdf,.xlsx,.docx"
               />
             )}
-          </SettingsCard>
+          </SectionBlock>
 
           <div style={{ display: "flex", gap: 10 }}>
             <Button
@@ -581,9 +572,9 @@ export default function Configuracoes() {
             <thead>
               <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
                 {["Servidor", "Cargo", "Perfil de Acesso", "Último Acesso", ""].map((h, i) => (
-                  <th key={h === "" ? `vazio-${i}` : h} style={th}>
+                  <Th key={h === "" ? `vazio-${i}` : h}>
                     {h}
-                  </th>
+                  </Th>
                 ))}
               </tr>
             </thead>

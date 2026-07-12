@@ -16,3 +16,8 @@ export function formatData(iso: string): string {
   const [ano, mes, dia] = iso.slice(0, 10).split("-")
   return `${dia}/${mes}/${ano}`
 }
+
+/** ISO "2024-07-03T16:42:00" → "03/07/2024 — 16:42". */
+export function formatDataHora(iso: string): string {
+  return `${formatData(iso)} — ${iso.slice(11, 16)}`
+}
