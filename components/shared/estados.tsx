@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react"
 
-import { Button } from "@/components/ds"
-import { IconSearch, IconXCircle } from "@/components/ds/icons"
+import { Button } from "@/components/ui"
+import { IconSearch, IconXCircle } from "@/components/ui/icons"
 
 /** Estados compartilhados de carregamento / erro / vazio das telas. */
 

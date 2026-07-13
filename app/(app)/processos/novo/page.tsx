@@ -16,8 +16,8 @@ import {
   Textarea,
   Toggle,
   ValidationMsg,
-} from "@/components/ds"
-import { IconBuilding, IconCart, IconCheck, IconClipboard, IconFile, IconLock, IconZap } from "@/components/ds/icons"
+} from "@/components/ui"
+import { IconBuilding, IconCart, IconCheck, IconClipboard, IconFile, IconLock, IconZap } from "@/components/ui/icons"
 import { useConfigTenant, useCriarProcesso, useProximoNumeroProcesso } from "@/lib/api/hooks"
 import type { Modalidade, ModoATA } from "@/lib/types"
 

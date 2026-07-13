@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
-import { Button, ProgressBar } from "@/components/ds"
+import { Button, ProgressBar } from "@/components/ui"
 import {
   IconCheck,
   IconChevronRight,
@@ -15,9 +15,9 @@ import {
   IconUpload,
   IconX,
   IconXCircle,
-} from "@/components/ds/icons"
-import { ErrorState, LoadingState } from "@/components/estados"
-import { useToast } from "@/components/providers"
+} from "@/components/ui/icons"
+import { ErrorState, LoadingState } from "@/components/shared/estados"
+import { useToast } from "@/components/shared/providers"
 import { useAnalisarDFD, useParecerDFD, useProcesso } from "@/lib/api/hooks"
 import type { AchadoDFD } from "@/lib/types"
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { ErrorState } from "@/components/estados"
+import { ErrorState } from "@/components/shared/estados"
 
 export default function ErroApp({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (

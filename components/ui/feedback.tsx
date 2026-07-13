@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react"
 
-import { IconInfo } from "@/components/ds/icons"
+import { IconInfo } from "@/components/ui/icons"
 import type { StatusDocumento, StatusProcesso } from "@/lib/types"
 
 /** Badge de status de processo com ponto colorido — vocabulário fixo. */

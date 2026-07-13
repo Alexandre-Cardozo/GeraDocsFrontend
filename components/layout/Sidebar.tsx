@@ -13,7 +13,7 @@ import {
   IconFileText,
   IconMoreVertical,
   IconSettings,
-} from "@/components/ds/icons";
+} from "@/components/ui/icons";
 import { useFilaAprovacoes, useUsuarioAtual } from "@/lib/api/hooks";
 
 interface NavItem {

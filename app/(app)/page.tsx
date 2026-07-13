@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { StatCard, StatusBadge, Tag } from "@/components/ds"
+import { StatCard, StatusBadge, Tag } from "@/components/ui"
 import {
   IconCheckCircle,
   IconClipboardList,
@@ -13,9 +13,9 @@ import {
   IconFileText,
   IconPlus,
   IconSearch,
-} from "@/components/ds/icons"
-import { ErrorState, SkeletonRows } from "@/components/estados"
-import { Th } from "@/components/tabela"
+} from "@/components/ui/icons"
+import { ErrorState, SkeletonRows } from "@/components/shared/estados"
+import { Th } from "@/components/shared/tabela"
 import { useEstatisticas, useFilaAprovacoes, useProcessos, useUsuarioAtual } from "@/lib/api/hooks"
 import { formatBRL, formatData } from "@/lib/format"
 

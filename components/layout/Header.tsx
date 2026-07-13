@@ -4,8 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 
-import { SearchInput } from "@/components/ds"
-import { IconBell, IconMenu, IconPlus } from "@/components/ds/icons"
+import { SearchInput } from "@/components/ui"
+import { IconBell, IconMenu, IconPlus } from "@/components/ui/icons"
 
 /** Título do header por rota (equivalente ao viewTitles do protótipo). */
 function tituloDaRota(pathname: string): string {

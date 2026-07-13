@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 
-import { Button, FileUpload, FormField, InfoBanner, Input, SectionBlock, Select, Tag, Textarea, Toggle } from "@/components/ds"
-import { IconCheck, IconFile, IconImage, IconPlus, IconTrash } from "@/components/ds/icons"
-import { ErrorState, LoadingState } from "@/components/estados"
-import { Th } from "@/components/tabela"
-import { useToast } from "@/components/providers"
+import { Button, FileUpload, FormField, InfoBanner, Input, SectionBlock, Select, Tag, Textarea, Toggle } from "@/components/ui"
+import { IconCheck, IconFile, IconImage, IconPlus, IconTrash } from "@/components/ui/icons"
+import { ErrorState, LoadingState } from "@/components/shared/estados"
+import { Th } from "@/components/shared/tabela"
+import { useToast } from "@/components/shared/providers"
 import { useAtualizarConfigTenant, useConfigTenant } from "@/lib/api/hooks"
 import type { Secretaria } from "@/lib/types"
 

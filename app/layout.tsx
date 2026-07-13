@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google"
 import type { ReactNode } from "react"
 
-import { Providers } from "@/components/providers"
+import { Providers } from "@/components/shared/providers"
 
 import "./globals.css"
 

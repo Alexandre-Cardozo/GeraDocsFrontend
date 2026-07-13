@@ -2,7 +2,7 @@
 
 import type { ChangeEvent, CSSProperties, ReactNode, SelectHTMLAttributes } from "react"
 
-import { IconCheck, IconFile, IconSearch, IconUpload, IconX } from "@/components/ds/icons"
+import { IconCheck, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
 
 const controleBase: CSSProperties = {
   width: "100%",

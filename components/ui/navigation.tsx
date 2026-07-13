@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import { IconCheck } from "@/components/ds/icons"
+import { IconCheck } from "@/components/ui/icons"
 
 /** Bloco branco de seção do ETP: título 15/700, frase de orientação, divisor suave. */
 export function SectionBlock({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {

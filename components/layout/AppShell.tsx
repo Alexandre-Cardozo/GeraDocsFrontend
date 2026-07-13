@@ -2,8 +2,8 @@
 
 import { useState, type ReactNode } from "react"
 
-import Header from "@/components/chrome/Header"
-import Sidebar from "@/components/chrome/Sidebar"
+import Header from "@/components/layout/Header"
+import Sidebar from "@/components/layout/Sidebar"
 
 /**
  * Shell autenticado responsivo: no laptop (≥1024px) a sidebar é fixa de 240px;

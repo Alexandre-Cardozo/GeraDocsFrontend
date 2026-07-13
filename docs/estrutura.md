@@ -1,0 +1,164 @@
+# Estrutura do Projeto — GeraDocs Frontend
+
+Este documento é a referência oficial de organização do código. Ele define **o padrão adotado**, explica **a função de cada diretório** e diz **onde colocar código novo**. Toda contribuição deve seguir esta estrutura.
+
+## O padrão adotado
+
+O projeto segue o padrão **"App Router + camadas"**, a convenção dominante em projetos Next.js atuais (é a estrutura que `create-next-app`, a documentação oficial da Vercel e ecossistemas como o shadcn/ui usam):
+
+1. **`app/` define as rotas** — cada pasta é um segmento de URL (roteamento por sistema de arquivos). Aqui vivem apenas páginas e layouts; nada de lógica de negócio.
+2. **`components/` define a interface reutilizável** — dividida por papel: primitivos do design system (`ui/`), moldura da aplicação (`layout/`) e apoios compartilhados (`shared/`).
+3. **`lib/` define dados e domínio** — tipos, cliente de API, hooks de dados e formatação. Nenhum JSX aqui.
+
+A regra de ouro que amarra as camadas: **páginas consomem componentes e hooks; componentes não conhecem rotas nem API; `lib/` não conhece React** (exceto os hooks de `lib/api/hooks.ts`, que são a ponte oficial entre dados e telas).
+
+## Árvore comentada
+
+```
+GeraDocs/
+├── app/                          # ROTAS (Next.js App Router) — cada pasta = um segmento de URL
+│   ├── layout.tsx                # Layout raiz: fontes (next/font), metadata, Providers
+│   ├── globals.css               # Tokens do design system + reset + focus ring + classes responsivas gd-*
+│   ├── not-found.tsx             # Página 404
+│   └── (app)/                    # Route group do shell autenticado (parênteses = não vira URL)
+│       ├── layout.tsx            # Monta o AppShell (sidebar + header) em volta de todas as telas
+│       ├── error.tsx             # Error boundary das telas
+│       ├── page.tsx              # Dashboard ................................. rota  /
+│       ├── processos/
+│       │   ├── page.tsx          # Lista de processos ........................ rota  /processos
+│       │   ├── novo/page.tsx     # Wizard de novo processo ................... rota  /processos/novo
+│       │   └── [id]/             # Segmento dinâmico ([id] = número do processo)
+│       │       ├── dfd/page.tsx  # Verificação do DFD pela IA ................ rota  /processos/PROC-2024-089/dfd
+│       │       └── etp/page.tsx  # Editor de ETP (12 seções) ................. rota  /processos/PROC-2024-089/etp
+│       ├── aprovacoes/page.tsx   # Fila de aprovações + trilha de auditoria .. rota  /aprovacoes
+│       ├── documentos/page.tsx   # Repositório de documentos gerados ......... rota  /documentos
+│       └── configuracoes/page.tsx# Configurações do órgão (tenant) ........... rota  /configuracoes
+│
+├── components/                   # INTERFACE REUTILIZÁVEL (sem lógica de negócio, sem fetch)
+│   ├── ui/                       # Design System LAHHM/GeraDocs portado para React (primitivos)
+│   │   ├── index.ts              # Barrel — IMPORTE SEMPRE DAQUI: import { Button } from "@/components/ui"
+│   │   ├── actions.tsx           # Button, Toggle
+│   │   ├── forms.tsx             # Input, Textarea, Select, FormField, FileUpload, ChoiceCard, SearchInput, FilterTabs
+│   │   ├── feedback.tsx          # StatusBadge, DocPill, Tag, StatCard, ProgressBar, ValidationMsg, InfoBanner
+│   │   ├── navigation.tsx        # SectionBlock, StepIndicator
+│   │   └── icons.tsx             # Ícones de linha estilo Lucide (zero emoji na interface)
+│   ├── layout/                   # Moldura da aplicação (o "esqueleto" comum a todas as telas)
+│   │   ├── AppShell.tsx          # Casca responsiva: sidebar fixa no laptop, drawer no celular
+│   │   ├── Sidebar.tsx           # Navegação lateral navy 240px com wordmark GeraDocs
+│   │   └── Header.tsx            # Barra superior 60px: título da rota, busca, hambúrguer, CTA
+│   └── shared/                   # Componentes de apoio usados por várias telas (não são do DS)
+│       ├── providers.tsx         # QueryClientProvider (TanStack Query) + Toast global
+│       ├── estados.tsx           # LoadingState, SkeletonRows, ErrorState, EmptyState, InlineSpinner
+│       └── tabela.tsx            # Th — cabeçalho de tabela padronizado
+│
+├── lib/                          # DADOS E DOMÍNIO (TypeScript puro; nenhum componente aqui)
+│   ├── types.ts                  # Modelo de domínio congelado: Processo, SecaoETP, AchadoDFD,
+│   │                             #   TransicaoAprovacao, Tenant, papéis, vocabulários de status
+│   ├── format.ts                 # Formatação pt-BR: formatBRL, formatData, formatDataHora
+│   ├── api/
+│   │   ├── client.ts             # Cliente de API — hoje resolve contra mocks em memória com latência
+│   │   │                         #   simulada; as assinaturas espelham o futuro cliente OpenAPI (Spring)
+│   │   └── hooks.ts              # Hooks TanStack Query (useProcessos, useCriarProcesso, ...) —
+│   │                             #   ÚNICA porta de entrada de dados para as telas
+│   └── mocks/
+│       └── fixtures.ts           # Dados de exemplo — PROIBIDO importar em componentes/páginas
+│
+├── design_system/                # Design System fonte (LAHHM · GeraDocs) — NORMATIVO, não editável
+│   ├── readme.md                 # Regras visuais (leia antes de qualquer tarefa de UI)
+│   ├── tokens/                   # colors.css, typography.css, layout.css (origem dos tokens)
+│   └── components/*/*.prompt.md  # Especificação de cada componente
+│
+├── docs/                         # Documentação do projeto
+│   ├── estrutura.md              # Este arquivo
+│   └── decisions.md              # Registro de decisões de arquitetura (ADR curto)
+│
+├── .agents/skills/               # Skills instaladas para agentes de IA (não é código do app)
+├── .github/workflows/ci.yml     # CI: lint + lint de aderência + type-check + build
+├── eslint.config.mjs             # ESLint (config Next) + regras de aderência ao DS (hex/px proibidos)
+├── .oxlintrc.json                # Lint de aderência derivado do DS (imports só via barrel)
+└── AGENTS.md / CLAUDE.md         # Instruções para agentes de IA que trabalham no repo
+```
+
+## Função de cada diretório, em detalhe
+
+### `app/` — Rotas
+
+No App Router do Next.js, **a estrutura de pastas É o mapa de URLs**. Convenções de nome que o framework impõe (não são escolha nossa):
+
+| Convenção | Significado |
+|---|---|
+| `page.tsx` | O conteúdo da rota (a "tela") |
+| `layout.tsx` | Moldura que envolve as rotas filhas |
+| `(app)/` | *Route group*: agrupa rotas sob um mesmo layout **sem** criar segmento na URL — por isso o Dashboard é `/` e não `/app` |
+| `[id]/` | Segmento dinâmico: `processos/[id]/etp` casa com `/processos/PROC-2024-089/etp` |
+| `error.tsx`, `not-found.tsx` | Telas de erro e 404 |
+
+**Regra**: uma página deve ser fina — composição de componentes + chamadas de hooks. Se um trecho de JSX se repete em duas páginas, ele desce para `components/`.
+
+### `components/ui/` — Design System (primitivos)
+
+É o Design System LAHHM/GeraDocs (`design_system/`, a fonte normativa) portado para React com tokens `var(--...)`. `ui` é o nome consagrado no ecossistema para "primitivos do design system" (mesma convenção do shadcn/ui e dos templates da Vercel). Botões, campos, badges — peças pequenas, sem estado de negócio, que só recebem props.
+
+**Regras**:
+- Importe **sempre pelo barrel**: `import { Button, FormField } from "@/components/ui"` — o lint proíbe importar dos módulos internos (`actions.tsx` etc.). Exceção: ícones, que podem vir de `@/components/ui/icons`.
+- Componente novo aqui só se estiver no DS (`design_system/components/*.prompt.md`) ou for aprovado como extensão; registre em `docs/decisions.md`.
+- Zero hex/px cru — tokens em `app/globals.css` (o lint falha o build se violar).
+
+### `components/layout/` — Moldura da aplicação
+
+Tudo que forma a "casca" constante em volta do conteúdo: sidebar de navegação, header e o `AppShell` que os orquestra (incluindo o comportamento responsivo de virar drawer no celular). Se um dia existir um rodapé global ou uma barra de contexto, é aqui que entra.
+
+### `components/shared/` — Apoios compartilhados
+
+Componentes reutilizáveis que **não são primitivos do DS** nem moldura: estados de carregamento/erro/vazio, o cabeçalho de tabela `Th`, e os providers globais (TanStack Query, Toast). Critério de entrada: usado por **2+ telas** e sem regra de negócio. Se for específico de uma tela só, fica na própria página; se for um padrão visual do DS, vai para `ui/`.
+
+### `lib/` — Dados e domínio
+
+TypeScript puro, testável sem browser:
+
+- **`types.ts`** — o contrato do domínio (congelado nesta fase). Toda entidade que a UI exibe está tipada aqui, com os vocabulários fixos de status.
+- **`api/client.ts`** — as funções de acesso a dados. Hoje operam sobre um banco em memória (mocks com latência simulada); na integração, **só os corpos** destas funções trocam por HTTP — assinaturas e tipos ficam.
+- **`api/hooks.ts`** — envelopa o client em hooks do TanStack Query com cache e invalidação. **É a única forma de uma tela obter dados.**
+- **`mocks/fixtures.ts`** — os dados de exemplo. Importado **apenas** por `api/client.ts`; nunca por componente (o objetivo é que apagar esta pasta, na integração, não quebre nenhuma tela).
+- **`format.ts`** — formatação pt-BR de moeda e datas (IDs e valores em monospace com formato exato).
+
+### `design_system/`, `docs/`, `.agents/`
+
+- **`design_system/`** — o pacote fonte do DS (tokens, especificações `.prompt.md`, guidelines). É **normativo e somente-leitura**: em conflito entre qualquer código e ele, ele vence.
+- **`docs/`** — este arquivo e o `decisions.md` (o "diário" de decisões de arquitetura, com o porquê de cada escolha).
+- **`.agents/skills/`** — skills para agentes de IA (Claude etc.); não participa do build.
+
+## Onde colocar meu código? (fluxo de decisão)
+
+1. **É uma tela nova?** → `app/(app)/<segmento>/page.tsx`. Adicione o item na `Sidebar` e o título no `Header`.
+2. **É um pedaço visual reutilizável?**
+   - Está especificado no DS? → `components/ui/` (+ export no `index.ts`).
+   - É moldura da aplicação? → `components/layout/`.
+   - É apoio genérico (estado, tabela, provider)? → `components/shared/`.
+   - Usado por uma tela só? → dentro do próprio `page.tsx`, como função local.
+3. **É dado/lógica?**
+   - Nova entidade ou campo? → `lib/types.ts`.
+   - Novo acesso a dados? → função em `lib/api/client.ts` **+** hook em `lib/api/hooks.ts` (as telas usam só o hook).
+   - Dado de exemplo? → `lib/mocks/fixtures.ts`.
+   - Formatação? → `lib/format.ts`.
+4. **É estilo?**
+   - Valor pontual → número JS ou token `var(--...)` inline.
+   - Novo token/cor → bloco de extensões em `app/globals.css` (único lugar com hex).
+   - Layout que muda por tamanho de tela → classe `gd-*` em `app/globals.css` (media queries não funcionam em estilo inline).
+
+## Convenções de nomenclatura
+
+| Item | Padrão | Exemplo |
+|---|---|---|
+| Pastas de rota | kebab-case, pt-BR, plural para coleções | `processos/`, `aprovacoes/` |
+| Componentes | PascalCase (arquivo = componente principal quando exclusivo) | `AppShell.tsx`, `Sidebar.tsx` |
+| Módulos agrupadores | minúsculo, pelo papel | `forms.tsx`, `estados.tsx` |
+| Hooks | `use` + Entidade em pt-BR | `useProcessos`, `useCriarProcesso` |
+| Tipos | PascalCase pt-BR | `Processo`, `SecaoETP`, `ItemAprovacao` |
+| Classes CSS globais | prefixo `gd-` (GeraDocs) kebab-case | `gd-page`, `gd-table-wrap` |
+| Tokens CSS | `--categoria-nome` | `--color-royal`, `--radius-card` |
+| Alias de import | `@/` = raiz do repo | `@/components/ui`, `@/lib/types` |
+
+## Histórico: por que `chrome` e `ds` foram renomeados
+
+A estrutura original usava dois jargões de área: **`chrome`** (termo clássico de UI para a "moldura" fixa da aplicação — barras, menus; o navegador Google Chrome pegou o nome daí) e **`ds`** (abreviação de *design system*). Corretos tecnicamente, mas nada autoexplicativos — foram renomeados em jul/2026 para **`layout/`** e **`ui/`**, os nomes que o ecossistema React/Next.js de fato usa, junto com a criação de **`shared/`** para os apoios avulsos que viviam soltos em `components/`.

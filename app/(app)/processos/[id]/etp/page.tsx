@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 
-import { Button, ChoiceCard, FileUpload, FormField, InfoBanner, Input, ProgressBar, SectionBlock, Select, Textarea, ValidationMsg } from "@/components/ds"
+import { Button, ChoiceCard, FileUpload, FormField, InfoBanner, Input, ProgressBar, SectionBlock, Select, Textarea, ValidationMsg } from "@/components/ui"
 import {
   IconCheck,
   IconCheckCircle,
@@ -12,9 +12,9 @@ import {
   IconHelp,
   IconSave,
   IconSparkles,
-} from "@/components/ds/icons"
-import { ErrorState, InlineSpinner, LoadingState } from "@/components/estados"
-import { useToast } from "@/components/providers"
+} from "@/components/ui/icons"
+import { ErrorState, InlineSpinner, LoadingState } from "@/components/shared/estados"
+import { useToast } from "@/components/shared/providers"
 import { useAtualizarSecaoETP, useGerarSecaoETP, useProcesso, useSecoesETP } from "@/lib/api/hooks"
 import { formatBRL } from "@/lib/format"
 import type { ModoATA, SecaoETP, StatusDocumento } from "@/lib/types"

@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react"
 
-import { IconInfo } from "@/components/ds/icons"
+import { IconInfo } from "@/components/ui/icons"
 
 /* ── TanStack Query ────────────────────────────────────────────────────────── */
 

@@ -26,43 +26,40 @@ npm run check      # tudo acima
 
 ## Estrutura
 
+> Documentação completa da organização de pastas, com o porquê de cada diretório e o fluxo "onde colocar meu código": **[docs/estrutura.md](docs/estrutura.md)**.
+
 ```
-app/
+app/                    # ROTAS (App Router) — cada pasta = um segmento de URL
   layout.tsx            # fonts (next/font), metadata, Providers (Query + Toast)
   globals.css           # tokens do DS + extensões + reset + focus ring + classes gd-*
   not-found.tsx         # 404
   (app)/                # shell autenticado: Sidebar 240px navy + Header 60px
-    layout.tsx
     page.tsx            # Dashboard                       /
-    processos/page.tsx  # Lista                           /processos
-    processos/novo/     # Wizard                          /processos/novo
-    processos/[id]/dfd/ # Verificação do DFD pela IA      /processos/PROC-2024-089/dfd
-    processos/[id]/etp/ # Editor de ETP (12 seções)       /processos/PROC-2024-089/etp
+    processos/          # Lista, wizard (novo/), DFD e ETP ([id]/dfd, [id]/etp)
     aprovacoes/         # Fila + trilha de auditoria      /aprovacoes
     documentos/         # Repositório de documentos       /documentos
     configuracoes/      # Tenant, secretarias, PCA        /configuracoes
-components/
-  ds/                   # Design System em TSX — importe SEMPRE de "@/components/ds"
-  chrome/               # Sidebar, Header
-  providers.tsx         # QueryClientProvider + Toast
-  estados.tsx           # LoadingState, SkeletonRows, ErrorState, EmptyState
-lib/
+components/             # INTERFACE REUTILIZÁVEL
+  ui/                   # Design System em TSX — importe SEMPRE de "@/components/ui"
+  layout/               # Moldura da aplicação: AppShell, Sidebar, Header
+  shared/               # Apoios: providers (Query+Toast), estados (loading/erro/vazio), tabela
+lib/                    # DADOS E DOMÍNIO (TypeScript puro)
   types.ts              # modelo de domínio congelado (Processo, SecaoETP, ...)
-  format.ts             # formatBRL ("R$ 485.000,00"), formatData ("05/07/2024")
+  format.ts             # formatBRL ("R$ 485.000,00"), formatData, formatDataHora
   mocks/fixtures.ts     # dados — nunca importar em componentes
   api/client.ts         # client mock (assinaturas = futuro cliente OpenAPI)
   api/hooks.ts          # hooks TanStack Query (única porta das views)
-design_system/          # DS fonte (tokens, .prompt.md, guidelines)
-docs/decisions.md       # decisões de arquitetura desta fase
+design_system/          # DS fonte (tokens, .prompt.md, guidelines) — normativo
+docs/                   # estrutura.md (organização) e decisions.md (decisões)
 ```
 
 ## Convenções
 
 - **Tokens sempre**: nenhum hex ou `"NNpx"` cru em TSX — o ESLint falha o build. Cores/bordas/fontes via `var(--token)` (tokens em `app/globals.css`); dimensões pontuais como números JS.
 - **Dados só via hooks**: views nunca importam `lib/mocks`; tudo passa por `lib/api/hooks.ts`, com loading/erro/empty tratados.
-- **DS via barrel**: componentes do DS importados de `@/components/ds` (regra de lint). Antes de mexer em UI, consulte o `readme.md` do DS e o `.prompt.md` do componente.
+- **DS via barrel**: componentes do DS importados de `@/components/ui` (regra de lint). Antes de mexer em UI, consulte o `readme.md` do DS e o `.prompt.md` do componente.
 - **Conteúdo pt-BR**: Title Case em títulos, imperativos em ações, referências legais literais ("Art. 75, II, Lei 14.133/21"), IDs/valores em monospace, vocabulário de status fixo.
-- **Zero emoji**: ícones de linha estilo Lucide em `components/ds/icons.tsx`.
+- **Zero emoji**: ícones de linha estilo Lucide em `components/ui/icons.tsx`.
 - **Responsivo mobile-first**: layouts que variam por viewport usam as classes `gd-*` de `app/globals.css` (breakpoints 480/640/768/1024). Sidebar vira drawer abaixo de 1024px; tabelas largas rolam dentro de `.gd-table-wrap`; nunca deixe a página estourar horizontalmente.
 
 ## Como plugar o backend depois

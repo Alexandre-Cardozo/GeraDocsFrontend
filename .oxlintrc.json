@@ -16,12 +16,12 @@
         "patterns": [
           {
             "group": [
-              "@/components/ds/actions",
-              "@/components/ds/feedback",
-              "@/components/ds/forms",
-              "@/components/ds/navigation"
+              "@/components/ui/actions",
+              "@/components/ui/feedback",
+              "@/components/ui/forms",
+              "@/components/ui/navigation"
             ],
-            "message": "Import design-system components from '@/components/ds', not component internals."
+            "message": "Import design-system components from '@/components/ui', not component internals."
           }
         ]
       }
@@ -30,7 +30,7 @@
   "overrides": [
     {
       "files": [
-        "components/ds/**"
+        "components/ui/**"
       ],
       "rules": {
         "no-restricted-imports": "off"

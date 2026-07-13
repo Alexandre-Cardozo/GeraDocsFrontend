@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { Button, StatusBadge, Tag, Textarea, ValidationMsg } from "@/components/ds"
+import { Button, StatusBadge, Tag, Textarea, ValidationMsg } from "@/components/ui"
 import {
   IconCalendar,
   IconCheck,
@@ -12,9 +12,9 @@ import {
   IconHelp,
   IconUser,
   IconX,
-} from "@/components/ds/icons"
-import { EmptyState, ErrorState, SkeletonRows } from "@/components/estados"
-import { useToast } from "@/components/providers"
+} from "@/components/ui/icons"
+import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
+import { useToast } from "@/components/shared/providers"
 import { useDecidirAprovacao, useFilaAprovacoes } from "@/lib/api/hooks"
 import { formatBRL, formatData } from "@/lib/format"
 import { PAPEL_LABEL, STATUS_PROCESSO_LABEL, type DecisaoAprovacao, type ItemAprovacao } from "@/lib/types"
