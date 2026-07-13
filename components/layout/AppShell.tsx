@@ -14,14 +14,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [sidebarAberta, setSidebarAberta] = useState(false)
 
   return (
-    <div style={{ display: "flex", height: "100dvh", overflow: "hidden", background: "var(--surface-app)" }}>
+    <div className="flex h-dvh overflow-hidden bg-ice">
       <Sidebar aberta={sidebarAberta} onNavigate={() => setSidebarAberta(false)} />
       {sidebarAberta && (
-        <div className="gd-sidebar-backdrop" onClick={() => setSidebarAberta(false)} aria-hidden />
+        <div
+          className="fixed inset-0 z-55 bg-navy/50 lg:hidden"
+          onClick={() => setSidebarAberta(false)}
+          aria-hidden
+        />
       )}
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header onMenuClick={() => setSidebarAberta(true)} />
-        <main style={{ flex: 1, overflowY: "auto", padding: 0 }}>{children}</main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   )

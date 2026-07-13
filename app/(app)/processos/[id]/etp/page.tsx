@@ -19,12 +19,13 @@ import { useAtualizarSecaoETP, useGerarSecaoETP, useProcesso, useSecoesETP } fro
 import { formatBRL } from "@/lib/format"
 import type { ModoATA, SecaoETP, StatusDocumento } from "@/lib/types"
 
-const statusRail: Record<StatusDocumento, { dot: string; chip: string; fg: string }> = {
-  "Completo": { dot: "var(--color-success)", chip: "var(--tint-success-bg)", fg: "var(--tint-success-fg)" },
-  "Em andamento": { dot: "var(--status-waiting-dot)", chip: "var(--tint-royal-bg)", fg: "var(--color-royal-hover)" },
-  "Em revisão": { dot: "var(--color-warning)", chip: "var(--tint-warning-chip-bg)", fg: "var(--tint-warning-fg)" },
-  "Rejeitado": { dot: "var(--color-danger)", chip: "var(--tint-danger-bg)", fg: "var(--tint-danger-fg)" },
-  "Não iniciado": { dot: "var(--color-text-muted)", chip: "var(--color-border-soft)", fg: "var(--color-slate-strong)" },
+/** Classes de cor do rail por status da seção. */
+const statusRail: Record<StatusDocumento, { dot: string; chip: string }> = {
+  "Completo": { dot: "bg-success", chip: "bg-tint-success-bg text-tint-success-fg" },
+  "Em andamento": { dot: "bg-status-waiting-dot", chip: "bg-tint-royal-bg text-royal-hover" },
+  "Em revisão": { dot: "bg-warning", chip: "bg-tint-warning-chip-bg text-tint-warning-fg" },
+  "Rejeitado": { dot: "bg-danger", chip: "bg-tint-danger-bg text-tint-danger-fg" },
+  "Não iniciado": { dot: "bg-text-muted", chip: "bg-border-soft text-slate-strong" },
 }
 
 const modosATA: Array<{ key: ModoATA; label: string; desc: string }> = [
@@ -110,8 +111,8 @@ export default function EditorETP() {
   }
   if (processo.isError || secoes.isError) {
     return (
-      <div className="gd-page">
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
+      <div className="p-4 sm:p-5 lg:p-7">
+        <div className="rounded-card border border-border bg-surface">
           <ErrorState
             message={processo.error?.message ?? secoes.error?.message}
             onRetry={() => {
@@ -125,16 +126,14 @@ export default function EditorETP() {
   }
 
   return (
-    <div className="gd-split">
+    <div className="flex flex-col lg:h-full lg:flex-row lg:overflow-hidden">
       {/* Rail de seções — 280px no laptop; faixa horizontal rolável no celular */}
-      <div className="gd-etp-rail">
-        <div style={{ paddingTop: 18, paddingInline: 18, paddingBottom: 14, borderBottom: "var(--border-soft)" }}>
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-muted)" }}>{processo.data.id}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-body)", marginTop: 2, lineHeight: 1.3 }}>
-              {processo.data.objeto}
-            </div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 3 }}>{processo.data.secretaria}</div>
+      <div className="flex w-full shrink-0 flex-col overflow-hidden border-b border-border bg-surface lg:w-70 lg:min-w-70 lg:border-r lg:border-b-0">
+        <div className="border-b border-border-soft px-4.5 pt-4.5 pb-3.5">
+          <div className="mb-3.5">
+            <div className="font-mono text-xs text-text-muted">{processo.data.id}</div>
+            <div className="mt-0.5 text-base leading-snug font-bold text-text-1">{processo.data.objeto}</div>
+            <div className="mt-0.75 text-xs text-text-3">{processo.data.secretaria}</div>
           </div>
           <ProgressBar
             percent={progress}
@@ -143,7 +142,7 @@ export default function EditorETP() {
           />
         </div>
 
-        <div className="gd-etp-list">
+        <div className="flex gap-1.5 overflow-x-auto p-2.5 lg:block lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto">
           {lista.map((s) => {
             const cfg = statusRail[s.status]
             const isActive = activeSection === s.id
@@ -151,61 +150,31 @@ export default function EditorETP() {
               <button
                 key={s.id}
                 type="button"
-                className="gd-etp-item"
                 onClick={() => trocarSecao(s.id)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: 10,
-                  borderRadius: "var(--radius-md)",
-                  border: isActive ? "var(--border-tint-royal)" : "var(--border-transparent)",
-                  background: isActive ? "var(--tint-royal-bg)" : "transparent",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  marginBottom: 2,
-                  transition: "all 0.1s",
-                }}
+                className={`mb-0.5 flex w-60 shrink-0 cursor-pointer items-center gap-2.5 rounded-md p-2.5 text-left transition-colors lg:w-full ${
+                  isActive ? "border border-tint-royal-border bg-tint-royal-bg" : "border border-transparent bg-transparent"
+                }`}
               >
                 <span
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: "var(--radius-sm)",
-                    background: cfg.chip,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: cfg.fg,
-                    fontFamily: "var(--font-mono)",
-                  }}
+                  className={`flex size-5.5 shrink-0 items-center justify-center rounded-sm font-mono text-2xs font-bold ${cfg.chip}`}
                 >
                   {s.status === "Completo" ? (
-                    <span style={{ display: "flex", color: cfg.dot }}>
+                    <span className="flex text-success">
                       <IconCheck size={11} strokeWidth={3} />
                     </span>
                   ) : (
                     s.id
                   )}
                 </span>
-                <span style={{ flex: 1, minWidth: 0, display: "block" }}>
+                <span className="block min-w-0 flex-1">
                   <span
-                    style={{
-                      display: "block",
-                      fontSize: 12,
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? "var(--color-royal-hover)" : "var(--text-label)",
-                      lineHeight: 1.3,
-                    }}
+                    className={`block text-sm leading-snug ${isActive ? "font-semibold text-royal-hover" : "font-medium text-text-2"}`}
                   >
                     {s.titulo}
-                    {!s.obrigatoria && <span style={{ fontSize: 10, color: "var(--color-text-muted)", marginLeft: 5 }}>Opt.</span>}
+                    {!s.obrigatoria && <span className="ml-1.25 text-2xs text-text-muted">Opt.</span>}
                   </span>
                 </span>
-                <span style={{ width: 6, height: 6, borderRadius: "var(--radius-full)", background: cfg.dot, flexShrink: 0 }} />
+                <span className={`size-1.5 shrink-0 rounded-full ${cfg.dot}`} />
               </button>
             )
           })}
@@ -213,30 +182,16 @@ export default function EditorETP() {
       </div>
 
       {/* Área do formulário */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--surface-app)" }}>
+      <div className="flex flex-1 flex-col overflow-hidden bg-ice">
         {/* Toolbar */}
-        <div
-          style={{
-            background: "var(--color-surface)",
-            borderBottom: "var(--border-default)",
-            paddingBlock: 14,
-            paddingInline: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexShrink: 0,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 220, minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginBottom: 2 }}>
+        <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border bg-surface px-4 py-3.5">
+          <div className="min-w-0 flex-[1_1_220px]">
+            <div className="mb-0.5 text-xs text-text-muted">
               Seção {active?.id} de {lista.length} · {active?.incisoArt18}
             </div>
-            <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 700, color: "var(--text-body)" }}>
-              {active?.titulo}
-            </h2>
+            <h2 className="m-0 font-display text-panel font-bold text-text-1">{active?.titulo}</h2>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex gap-2">
             <Button
               variant="secondary"
               size="sm"
@@ -258,31 +213,20 @@ export default function EditorETP() {
         </div>
 
         {/* Conteúdo */}
-        <div className="gd-split-content" style={{ flex: 1, overflowY: "auto" }}>
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
           {active && (active.id === "4" || active.id === "5") ? (
             <EstimativasSecao rascunho={rascunho} setRascunho={setRascunho} />
           ) : active ? (
             <SectionBlock title={active.titulo} hint={active.hint}>
               {active.status === "Completo" && rascunho === active.conteudo && active.conteudo !== "" ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  <div
-                    style={{
-                      background: "var(--tint-success-bg)",
-                      border: "var(--border-tint-success)",
-                      borderRadius: "var(--radius-xl)",
-                      paddingBlock: 16,
-                      paddingInline: 18,
-                      display: "flex",
-                      gap: 12,
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <span style={{ flexShrink: 0, marginTop: 1, display: "flex", color: "var(--color-success)" }}>
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex items-start gap-3 rounded-xl border border-tint-success-border bg-tint-success-bg px-4.5 py-4">
+                    <span className="mt-px flex shrink-0 text-success">
                       <IconCheckCircle size={18} strokeWidth={2.5} />
                     </span>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--tint-success-fg)" }}>Seção Concluída</div>
-                      <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: "var(--tint-success-fg-soft)" }}>
+                      <div className="text-md font-bold text-tint-success-fg">Seção Concluída</div>
+                      <p className="m-0 mt-1 text-base text-tint-success-fg-soft">
                         Esta seção foi preenchida e validada. Edite o conteúdo abaixo para revisar.
                       </p>
                     </div>
@@ -291,7 +235,7 @@ export default function EditorETP() {
                   <ValidationMsg type="ok" msg="Texto suficiente para fundamentar a seção." />
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div className="flex flex-col gap-3">
                   <Textarea
                     value={rascunho}
                     onChange={(e) => setRascunho(e.target.value)}
@@ -299,7 +243,7 @@ export default function EditorETP() {
                     placeholder="Preencha o conteúdo desta seção..."
                   />
                   {rascunho.trim() === "" ? (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                    <div className="flex flex-wrap items-center gap-3">
                       <Button
                         variant="dark"
                         size="sm"
@@ -309,7 +253,7 @@ export default function EditorETP() {
                       >
                         {gerar.isPending ? "Gerando com IA..." : "Gerar com IA"}
                       </Button>
-                      <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+                      <span className="text-sm text-text-muted">
                         A IA redige a seção com base no DFD, no PCA e nos dados do processo.
                       </span>
                     </div>
@@ -324,40 +268,16 @@ export default function EditorETP() {
 
           {/* Banner de ATA — seção 6 (Soluções Disponíveis no Mercado) */}
           {activeSection === "6" && (
-            <div style={{ marginTop: 20 }}>
-              <div
-                className="gd-on-dark"
-                style={{
-                  background: "var(--gradient-panel)",
-                  borderRadius: "var(--radius-card)",
-                  paddingBlock: 18,
-                  paddingInline: 20,
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 16,
-                  flexWrap: "wrap",
-                }}
-              >
-                <span
-                  style={{
-                    width: 36,
-                    height: 36,
-                    background: "var(--on-dark-electric-chip)",
-                    borderRadius: "var(--radius-lg)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    color: "var(--color-electric)",
-                  }}
-                >
+            <div className="mt-5">
+              <div className="on-dark flex flex-wrap items-start gap-4 rounded-card px-5 py-4.5 gradient-panel">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-on-dark-electric-chip text-electric">
                   <IconFileText size={18} />
                 </span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--on-dark-text)", fontFamily: "var(--font-display)", marginBottom: 4 }}>
+                <div className="flex-1">
+                  <div className="mb-1 font-display text-md font-bold text-on-dark">
                     A solução proposta é Adesão de ATA?
                   </div>
-                  <p style={{ margin: 0, fontSize: 13, color: "var(--on-dark-text-65)" }}>
+                  <p className="m-0 text-base text-on-dark-65">
                     Se o ETP concluir que a solução mais vantajosa é a Adesão de Ata de Registro de Preços, configure a ATA aqui para que o modelo possa validar ou encontrar opções adequadas.
                   </p>
                 </div>
@@ -367,24 +287,13 @@ export default function EditorETP() {
               </div>
 
               {showATAPanel && (
-                <div
-                  style={{
-                    background: "var(--surface-card)",
-                    border: "var(--border-default)",
-                    borderRadius: "var(--radius-card)",
-                    paddingBlock: 20,
-                    paddingInline: 22,
-                    marginTop: 10,
-                  }}
-                >
-                  <h4 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 4 }}>
+                <div className="mt-2.5 rounded-card border border-border bg-surface px-5.5 py-5">
+                  <h4 className="m-0 mb-1 font-display text-md font-bold text-text-1">
                     Gestão da Ata de Registro de Preços
                   </h4>
-                  <p style={{ margin: 0, marginBottom: 16, fontSize: 13, color: "var(--text-secondary)" }}>
-                    Escolha como deseja proceder com a ATA para este processo.
-                  </p>
+                  <p className="m-0 mb-4 text-base text-text-3">Escolha como deseja proceder com a ATA para este processo.</p>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                  <div className="mb-4 flex flex-col gap-2">
                     {modosATA.map((opt) => (
                       <ChoiceCard
                         key={opt.key}
@@ -398,7 +307,7 @@ export default function EditorETP() {
                   </div>
 
                   {(ataMode === "anexar" || ataMode === "combinado") && (
-                    <div style={{ marginBottom: 16 }}>
+                    <div className="mb-4">
                       <FormField label="Anexar ATA" required>
                         <div>
                           <FileUpload
@@ -411,7 +320,7 @@ export default function EditorETP() {
                             accept=".pdf,.docx"
                           />
                           {ataFile && ataReview === null && (
-                            <div style={{ marginTop: 10 }}>
+                            <div className="mt-2.5">
                               <Button
                                 size="sm"
                                 onClick={() => {
@@ -424,30 +333,19 @@ export default function EditorETP() {
                             </div>
                           )}
                           {ataReview === "loading" && (
-                            <div style={{ marginTop: 10 }}>
+                            <div className="mt-2.5">
                               <InlineSpinner label="Analisando ATA... aguarde." />
                             </div>
                           )}
                           {ataReview === "done" && (
-                            <div
-                              style={{
-                                background: "var(--tint-success-bg)",
-                                border: "var(--border-tint-success)",
-                                borderRadius: "var(--radius-xl)",
-                                paddingBlock: 14,
-                                paddingInline: 16,
-                                marginTop: 10,
-                              }}
-                            >
-                              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-                                <span style={{ display: "flex", color: "var(--color-success)" }}>
+                            <div className="mt-2.5 rounded-xl border border-tint-success-border bg-tint-success-bg px-4 py-3.5">
+                              <div className="mb-2 flex items-center gap-2">
+                                <span className="flex text-success">
                                   <IconCheckCircle size={16} strokeWidth={2.5} />
                                 </span>
-                                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--tint-success-fg)" }}>
-                                  Parecer da IA — ATA Válida
-                                </span>
+                                <span className="text-base font-bold text-tint-success-fg">Parecer da IA — ATA Válida</span>
                               </div>
-                              <p style={{ margin: 0, fontSize: 12, color: "var(--tint-success-fg-soft)", lineHeight: 1.6 }}>
+                              <p className="m-0 text-sm leading-[1.6] text-tint-success-fg-soft">
                                 A ATA analisada está vigente, com objeto compatível ao ETP e dentro dos limites legais para adesão (Art. 86 da Lei 14.133/21). Prazo de vigência: 30/11/2025. Órgão gerenciador: Governo do Estado de São Paulo. Nenhuma irregularidade identificada.
                               </p>
                             </div>
@@ -464,7 +362,7 @@ export default function EditorETP() {
                   )}
 
                   {ataMode !== "" && (
-                    <div style={{ marginTop: 14 }}>
+                    <div className="mt-3.5">
                       <Button variant="dark" onClick={() => showToast("Configuração da ATA registrada no processo.")}>
                         Confirmar configuração da ATA
                       </Button>
@@ -476,7 +374,7 @@ export default function EditorETP() {
           )}
 
           {/* Navegação entre seções */}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24, gap: 10, flexWrap: "wrap" }}>
+          <div className="mt-6 flex flex-wrap justify-between gap-2.5">
             <Button
               variant="secondary"
               disabled={activeSection === "1"}
@@ -485,11 +383,11 @@ export default function EditorETP() {
                 const anterior = lista[idx - 1]
                 if (anterior) trocarSecao(anterior.id)
               }}
-              style={{ opacity: activeSection === "1" ? 0.4 : 1 }}
+              className={activeSection === "1" ? "opacity-40" : ""}
             >
               ← Seção Anterior
             </Button>
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className="flex gap-2.5">
               {activeSection === lista[lista.length - 1]?.id ? (
                 <Button
                   variant="success"
@@ -528,12 +426,12 @@ function EstimativasSecao({
   const valorTotal = qtyNumero * valorUnitNumero
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="flex flex-col gap-5">
       <SectionBlock
         title="Estimativa das Quantidades"
         hint="Informe as quantidades estimadas com base no histórico de consumo, demanda projetada ou levantamentos realizados pela área técnica."
       >
-        <div className="gd-form-grid-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FormField label="Quantidade Estimada" required>
             <Input value={qty} onChange={(e) => setQty(e.target.value)} />
           </FormField>
@@ -556,7 +454,7 @@ function EstimativasSecao({
           </FormField>
         </div>
 
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <FormField label="Memória de Cálculo" hint="Descreva a metodologia utilizada para estimar as quantidades">
             <Textarea
               value={rascunho}
@@ -572,45 +470,26 @@ function EstimativasSecao({
         title="Estimativa do Valor"
         hint="Baseie-se em pesquisas de mercado, contratos anteriores ou painel de preços do governo federal."
       >
-        <div className="gd-form-grid-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField label="Valor Unitário Estimado (R$)" required>
             <Input prefix="R$" value={valorUnit} onChange={(e) => setValorUnit(e.target.value)} />
           </FormField>
           <FormField label="Valor Total Estimado (R$)">
-            <div
-              style={{
-                width: "100%",
-                paddingBlock: 10,
-                paddingInline: 13,
-                border: "var(--border-default)",
-                borderRadius: "var(--radius-md)",
-                fontSize: 14,
-                background: "var(--color-ice)",
-                display: "flex",
-                alignItems: "center",
-                color: "var(--color-petroleum)",
-                fontWeight: 700,
-                fontFamily: "var(--font-mono)",
-              }}
-            >
+            <div className="flex w-full items-center rounded-md border border-border bg-ice px-3.25 py-2.5 font-mono text-md font-bold text-petroleum">
               {formatBRL(valorTotal)}
             </div>
           </FormField>
         </div>
-        <div style={{ marginTop: 16 }}>
+        <div className="mt-4">
           <FormField label="Fonte de Pesquisa de Preços" required>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="flex flex-col gap-2">
               {[
                 "Painel de Preços do Governo Federal (paineldeprecos.economia.gov.br)",
                 "Contratos similares celebrados por outros entes",
                 "Cotações com fornecedores",
               ].map((opt) => (
-                <label key={opt} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, color: "var(--text-label)" }}>
-                  <input
-                    type="checkbox"
-                    defaultChecked={opt.includes("Painel")}
-                    style={{ width: 15, height: 15, accentColor: "var(--color-royal)" }}
-                  />
+                <label key={opt} className="flex cursor-pointer items-center gap-2.5 text-base text-text-2">
+                  <input type="checkbox" defaultChecked={opt.includes("Painel")} className="size-3.75 accent-royal" />
                   {opt}
                 </label>
               ))}

@@ -18,7 +18,7 @@ A regra de ouro que amarra as camadas: **páginas consomem componentes e hooks; 
 GeraDocs/
 ├── app/                          # ROTAS (Next.js App Router) — cada pasta = um segmento de URL
 │   ├── layout.tsx                # Layout raiz: fontes (next/font), metadata, Providers
-│   ├── globals.css               # Tokens do design system + reset + focus ring + classes responsivas gd-*
+│   ├── globals.css               # Tailwind v4 + @theme (tokens do DS = utilities) + base (focus ring/scrollbar)
 │   ├── not-found.tsx             # Página 404
 │   └── (app)/                    # Route group do shell autenticado (parênteses = não vira URL)
 │       ├── layout.tsx            # Monta o AppShell (sidebar + header) em volta de todas as telas
@@ -97,12 +97,12 @@ No App Router do Next.js, **a estrutura de pastas É o mapa de URLs**. Convenç�
 
 ### `components/ui/` — Design System (primitivos)
 
-É o Design System LAHHM/GeraDocs (`design_system/`, a fonte normativa) portado para React com tokens `var(--...)`. `ui` é o nome consagrado no ecossistema para "primitivos do design system" (mesma convenção do shadcn/ui e dos templates da Vercel). Botões, campos, badges — peças pequenas, sem estado de negócio, que só recebem props.
+É o Design System LAHHM/GeraDocs (`design_system/`, a fonte normativa) portado para React, estilizado com **Tailwind utility-first** sobre os tokens do DS. `ui` é o nome consagrado no ecossistema para "primitivos do design system" (mesma convenção do shadcn/ui e dos templates da Vercel). Botões, campos, badges — peças pequenas, sem estado de negócio, que só recebem props.
 
 **Regras**:
 - Importe **sempre pelo barrel**: `import { Button, FormField } from "@/components/ui"` — o lint proíbe importar dos módulos internos (`actions.tsx` etc.). Exceção: ícones, que podem vir de `@/components/ui/icons`.
 - Componente novo aqui só se estiver no DS (`design_system/components/*.prompt.md`) ou for aprovado como extensão; registre em `docs/decisions.md`.
-- Zero hex/px cru — tokens em `app/globals.css` (o lint falha o build se violar).
+- Estilização por classes utilitárias de token (`bg-royal`, `text-lg`); zero cor hex/arbitrária. Detalhes em **[docs/estilizacao.md](estilizacao.md)** (o lint falha o build se violar).
 
 ### `components/layout/` — Moldura da aplicação
 
@@ -141,10 +141,11 @@ TypeScript puro, testável sem browser:
    - Novo acesso a dados? → função em `lib/api/client.ts` **+** hook em `lib/api/hooks.ts` (as telas usam só o hook).
    - Dado de exemplo? → `lib/mocks/fixtures.ts`.
    - Formatação? → `lib/format.ts`.
-4. **É estilo?**
-   - Valor pontual → número JS ou token `var(--...)` inline.
-   - Novo token/cor → bloco de extensões em `app/globals.css` (único lugar com hex).
-   - Layout que muda por tamanho de tela → classe `gd-*` em `app/globals.css` (media queries não funcionam em estilo inline).
+4. **É estilo?** (guia completo em [docs/estilizacao.md](estilizacao.md))
+   - Estilizar um elemento → classes utilitárias de token no `className` (`bg-royal`, `rounded-card`).
+   - Novo token/cor/raio → bloco `@theme` de `app/globals.css` (único lugar com hex).
+   - Estilo global (focus ring, scrollbar) → `@layer base` de `app/globals.css`.
+   - Layout que muda por tamanho de tela → variantes responsivas (`xs:`/`sm:`/`md:`/`lg:`) no próprio `className`.
 
 ## Convenções de nomenclatura
 

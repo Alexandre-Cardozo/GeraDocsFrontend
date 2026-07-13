@@ -12,11 +12,12 @@ import { useDocumentos } from "@/lib/api/hooks"
 import { formatDataHora } from "@/lib/format"
 import type { TipoDocumento } from "@/lib/types"
 
-const tiposDoc: Record<TipoDocumento, { bg: string; color: string }> = {
-  ETP: { bg: "var(--doc-etp-bg)", color: "var(--doc-etp)" },
-  TR: { bg: "var(--doc-tr-bg)", color: "var(--doc-tr)" },
-  "Cotação": { bg: "var(--doc-cotacao-bg)", color: "var(--doc-cotacao)" },
-  Mapa: { bg: "var(--doc-mapa-bg)", color: "var(--doc-mapa)" },
+/** Classes de cor por tipo de documento (tokens doc-* do DS). */
+const tiposDoc: Record<TipoDocumento, string> = {
+  ETP: "bg-doc-etp-bg text-doc-etp",
+  TR: "bg-doc-tr-bg text-doc-tr",
+  "Cotação": "bg-doc-cotacao-bg text-doc-cotacao",
+  Mapa: "bg-doc-mapa-bg text-doc-mapa",
 }
 
 export default function Documentos() {
@@ -33,60 +34,25 @@ export default function Documentos() {
   ]
 
   return (
-    <div className="gd-page">
+    <div className="p-4 sm:p-5 lg:p-7">
       {/* Cards de resumo — ícones de linha, sem emoji (correção 3.3.2) */}
-      <div className="gd-grid-3" style={{ marginBottom: 24, maxWidth: 700 }}>
+      <div className="mb-6 grid max-w-175 grid-cols-1 gap-3 xs:grid-cols-3">
         {resumo.map((s) => (
-          <div
-            key={s.label}
-            style={{
-              background: "var(--surface-card)",
-              border: "var(--border-default)",
-              borderRadius: "var(--radius-card)",
-              paddingBlock: 16,
-              paddingInline: 18,
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-            }}
-          >
-            <span style={{ display: "flex", color: "var(--color-royal)" }}>{s.icon}</span>
+          <div key={s.label} className="flex items-center gap-3.5 rounded-card border border-border bg-surface px-4.5 py-4">
+            <span className="flex text-royal">{s.icon}</span>
             <div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 800,
-                  color: "var(--text-body)",
-                  fontFamily: "var(--font-display)",
-                  letterSpacing: "var(--tracking-stat-sm)",
-                }}
-              >
-                {s.value}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{s.label}</div>
+              <div className="font-display text-2xl font-extrabold tracking-stat-sm text-text-1">{s.value}</div>
+              <div className="text-sm text-text-3">{s.label}</div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Tabela */}
-      <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
-        <div
-          style={{
-            paddingBlock: 16,
-            paddingInline: 20,
-            borderBottom: "var(--border-soft)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 10,
-          }}
-        >
-          <h3 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)" }}>
-            Documentos Gerados
-          </h3>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="overflow-hidden rounded-card border border-border bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border-soft px-5 py-4">
+          <h3 className="m-0 font-display text-lg font-bold text-text-1">Documentos Gerados</h3>
+          <div className="flex flex-wrap gap-2">
             {(Object.keys(tiposDoc) as TipoDocumento[]).map((f) => {
               const ativo = filtroTipo === f
               return (
@@ -95,18 +61,9 @@ export default function Documentos() {
                   type="button"
                   aria-pressed={ativo}
                   onClick={() => setFiltroTipo(ativo ? null : f)}
-                  style={{
-                    paddingBlock: 5,
-                    paddingInline: 12,
-                    borderRadius: "var(--radius-sm)",
-                    border: ativo ? "var(--border-royal)" : "var(--border-default)",
-                    background: ativo ? "var(--tint-royal-bg)" : "var(--color-ice)",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: ativo ? "var(--color-royal)" : "var(--text-secondary)",
-                    cursor: "pointer",
-                    transition: "var(--transition-fast)",
-                  }}
+                  className={`cursor-pointer rounded-sm px-3 py-1.25 text-sm font-semibold transition-colors ${
+                    ativo ? "border border-royal bg-tint-royal-bg text-royal" : "border border-border bg-ice text-text-3"
+                  }`}
                 >
                   {f}
                 </button>
@@ -120,65 +77,45 @@ export default function Documentos() {
         {documentos.isSuccess && docs.length === 0 && <EmptyState message="Nenhum documento encontrado para o filtro selecionado" />}
 
         {documentos.isSuccess && docs.length > 0 && (
-          <div className="gd-table-wrap">
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 820 }}>
-            <thead>
-              <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
-                {["Documento", "Processo", "Tipo", "Formato", "Gerado em", "Tamanho", "Status", ""].map((h, i) => (
-                  <Th key={h === "" ? `vazio-${i}` : h}>
-                    {h}
-                  </Th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {docs.map((doc, i) => {
-                const tc = tiposDoc[doc.tipo]
-                return (
-                  <tr key={doc.id} className="gd-row" style={{ borderBottom: i < docs.length - 1 ? "var(--border-row)" : "none" }}>
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)" }}>{doc.titulo}</div>
-                      <div style={{ fontSize: 11, color: "var(--color-text-muted)", fontFamily: "var(--font-mono)", marginTop: 2 }}>
-                        {doc.id}
-                      </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-ice">
+                  {["Documento", "Processo", "Tipo", "Formato", "Gerado em", "Tamanho", "Status", ""].map((h, i) => (
+                    <Th key={h === "" ? `vazio-${i}` : h}>{h}</Th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {docs.map((doc, i) => (
+                  <tr key={doc.id} className={`transition-colors hover:bg-ice ${i < docs.length - 1 ? "border-b border-ice" : ""}`}>
+                    <td className="px-4 py-3.25">
+                      <div className="text-base font-semibold text-text-1">{doc.titulo}</div>
+                      <div className="mt-0.5 font-mono text-xs text-text-muted">{doc.id}</div>
                     </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-royal)", fontWeight: 600 }}>
-                        {doc.processoId}
-                      </span>
+                    <td className="px-4 py-3.25">
+                      <span className="font-mono text-xs font-semibold text-royal">{doc.processoId}</span>
                     </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <DocPill status={doc.tipo} bg={tc.bg} color={tc.color} />
+                    <td className="px-4 py-3.25">
+                      <DocPill status={doc.tipo} classes={tiposDoc[doc.tipo]} />
                     </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)" }}>{doc.formato}</td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
-                      {formatDataHora(doc.geradoEm)}
+                    <td className="px-4 py-3.25 text-sm text-text-3">{doc.formato}</td>
+                    <td className="px-4 py-3.25 text-sm whitespace-nowrap text-text-3">{formatDataHora(doc.geradoEm)}</td>
+                    <td className="px-4 py-3.25 font-mono text-sm text-text-muted">{doc.tamanho}</td>
+                    <td className="px-4 py-3.25">
+                      <DocPill
+                        status={doc.status === "final" ? "Final" : "Rascunho"}
+                        classes={doc.status === "final" ? "bg-tint-success-bg text-tint-success-fg" : "bg-border-soft text-slate-strong"}
+                      />
                     </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)" }}>
-                      {doc.tamanho}
-                    </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <DocPill status={doc.status === "final" ? "Final" : "Rascunho"} bg={doc.status === "final" ? "var(--tint-success-bg)" : "var(--color-border-soft)"} color={doc.status === "final" ? "var(--tint-success-fg)" : "var(--color-slate-strong)"} />
-                    </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <div style={{ display: "flex", gap: 6 }}>
+                    <td className="px-4 py-3.25">
+                      <div className="flex gap-1.5">
                         <button
                           type="button"
                           title="Download DOCX/PDF"
                           aria-label={`Baixar ${doc.titulo}`}
                           onClick={() => showToast("Exportação DOCX/PDF com timbre disponível na integração com o backend.")}
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: "var(--radius-sm)",
-                            border: "var(--border-default)",
-                            background: "var(--color-ice)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            color: "var(--color-royal)",
-                          }}
+                          className="flex size-7 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-royal"
                         >
                           <IconDownload size={13} strokeWidth={2.5} />
                         </button>
@@ -187,71 +124,31 @@ export default function Documentos() {
                           title="Visualizar"
                           aria-label={`Visualizar ${doc.titulo}`}
                           onClick={() => showToast("Pré-visualização disponível na integração com o backend.")}
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: "var(--radius-sm)",
-                            border: "var(--border-default)",
-                            background: "var(--color-ice)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            color: "var(--text-secondary)",
-                          }}
+                          className="flex size-7 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-text-3"
                         >
                           <IconEye size={13} strokeWidth={2.5} />
                         </button>
                       </div>
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
 
       {/* CTA gerar novo documento */}
-      <div
-        className="gd-on-dark"
-        style={{
-          marginTop: 20,
-          background: "var(--gradient-hero)",
-          borderRadius: "var(--radius-card)",
-          paddingBlock: 24,
-          paddingInline: 28,
-          display: "flex",
-          alignItems: "center",
-          gap: 20,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 260 }}>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800, color: "var(--on-dark-text)", margin: 0, marginBottom: 6 }}>
-            Gerar Novo Documento
-          </h3>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--on-dark-text-60)" }}>
+      <div className="on-dark mt-5 flex flex-wrap items-center gap-5 rounded-card px-7 py-6 gradient-hero">
+        <div className="flex-[1_1_260px]">
+          <h3 className="m-0 mb-1.5 font-display text-md font-extrabold text-on-dark">Gerar Novo Documento</h3>
+          <p className="m-0 text-base text-on-dark-60">
             Selecione um processo com ETP ou TR concluído para gerar o documento final em DOCX e PDF.
           </p>
         </div>
         <Link
           href="/processos"
-          style={{
-            paddingBlock: 11,
-            paddingInline: 24,
-            background: "var(--action-primary)",
-            borderRadius: "var(--radius-lg)",
-            fontSize: 14,
-            fontWeight: 700,
-            color: "var(--color-surface)",
-            whiteSpace: "nowrap",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            textDecoration: "none",
-          }}
+          className="flex items-center gap-2 rounded-lg bg-royal px-6 py-2.75 text-md font-bold whitespace-nowrap text-surface no-underline"
         >
           <IconPlus size={14} strokeWidth={2.5} />
           Selecionar Processo

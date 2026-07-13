@@ -45,8 +45,11 @@ export function Providers({ children }: { children: ReactNode }) {
       <ToastContext.Provider value={value}>
         {children}
         {toast && (
-          <div className="gd-toast" role="status">
-            <span style={{ display: "flex", color: "var(--color-electric)" }}>
+          <div
+            role="status"
+            className="fixed right-6 bottom-6 z-100 flex items-center gap-2.5 rounded-xl border border-on-dark-border bg-navy px-4.5 py-3 text-base font-medium text-on-dark max-xs:right-4 max-xs:bottom-4 max-xs:left-4"
+          >
+            <span className="flex text-electric">
               <IconInfo size={16} />
             </span>
             {toast}

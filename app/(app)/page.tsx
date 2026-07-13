@@ -30,41 +30,18 @@ export default function Dashboard() {
   const pendentes = (aprovacoes.data ?? []).filter((a) => a.status === "aguardando")
 
   return (
-    <div className="gd-page" style={{ maxWidth: "var(--content-max)" }}>
+    <div className="max-w-content p-4 sm:p-5 lg:p-7">
       {/* Saudação */}
-      <div className="gd-page-header">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3 lg:mb-7">
         <div>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>
-            Segunda-feira, 07 de julho de 2024
-          </p>
-          <h2
-            style={{
-              margin: 0,
-              fontFamily: "var(--font-display)",
-              fontSize: "var(--text-3xl)",
-              fontWeight: 800,
-              color: "var(--text-body)",
-              letterSpacing: "var(--tracking-tight)",
-            }}
-          >
+          <p className="m-0 mb-1 text-base text-text-3">Segunda-feira, 07 de julho de 2024</p>
+          <h2 className="m-0 font-display text-3xl font-extrabold tracking-tight text-text-1">
             Bom dia, {usuario?.primeiroNome ?? "..."}
           </h2>
         </div>
         <Link
           href="/processos/novo"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "var(--action-primary)",
-            color: "var(--color-surface)",
-            borderRadius: "var(--radius-xl)",
-            paddingBlock: 11,
-            paddingInline: 20,
-            fontSize: 14,
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
+          className="flex items-center gap-2 rounded-xl bg-royal px-5 py-2.75 text-md font-semibold text-surface no-underline transition-colors hover:bg-royal-hover"
         >
           <IconPlus size={15} strokeWidth={2.5} />
           Novo Processo de Contratação
@@ -73,23 +50,14 @@ export default function Dashboard() {
 
       {/* Stats */}
       {estatisticas.isError ? (
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", marginBottom: 24 }}>
+        <div className="mb-6 rounded-card border border-border bg-surface">
           <ErrorState onRetry={() => void estatisticas.refetch()} />
         </div>
       ) : (
-        <div className="gd-stats-grid">
+        <div className="mb-5 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:mb-6 lg:grid-cols-4 lg:gap-4">
           {estatisticas.isPending ? (
             Array.from({ length: 4 }, (_, i) => (
-              <div
-                key={i}
-                aria-hidden
-                style={{
-                  background: "var(--surface-card)",
-                  border: "var(--border-default)",
-                  borderRadius: "var(--radius-card)",
-                  height: 130,
-                }}
-              />
+              <div key={i} aria-hidden className="h-[130px] rounded-card border border-border bg-surface" />
             ))
           ) : (
             <>
@@ -99,8 +67,7 @@ export default function Dashboard() {
                 sub={`+${estatisticas.data.processosNovosMes} este mês`}
                 trend="up"
                 icon={<IconFile size={20} />}
-                color="var(--color-royal)"
-                bg="var(--tint-royal-bg)"
+                iconClasses="bg-tint-royal-bg text-royal"
               />
               <StatCard
                 label="Aguardando Aprovação"
@@ -108,8 +75,7 @@ export default function Dashboard() {
                 sub={`${estatisticas.data.aguardandoUrgentes} com urgência`}
                 trend="warn"
                 icon={<IconClock size={20} />}
-                color="var(--color-warning-strong)"
-                bg="var(--tint-warning-bg)"
+                iconClasses="bg-tint-warning-bg text-warning-strong"
               />
               <StatCard
                 label="Documentos Gerados"
@@ -117,8 +83,7 @@ export default function Dashboard() {
                 sub={`${estatisticas.data.documentosSemana} esta semana`}
                 trend="up"
                 icon={<IconDownload size={20} />}
-                color="var(--color-teal)"
-                bg="var(--doc-tr-bg)"
+                iconClasses="bg-doc-tr-bg text-teal"
               />
               <StatCard
                 label="ETPs Concluídos"
@@ -126,31 +91,19 @@ export default function Dashboard() {
                 sub={`Taxa de conclusão: ${estatisticas.data.taxaConclusao}%`}
                 trend="up"
                 icon={<IconCheckCircle size={20} />}
-                color="var(--color-green)"
-                bg="var(--status-done-bg)"
+                iconClasses="bg-status-done-bg text-green"
               />
             </>
           )}
         </div>
       )}
 
-      <div className="gd-dash-grid">
+      <div className="grid grid-cols-1 gap-4 min-[1080px]:grid-cols-[1fr_340px] min-[1080px]:gap-5">
         {/* Processos recentes */}
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
-          <div
-            style={{
-              paddingBlock: 18,
-              paddingInline: 20,
-              borderBottom: "var(--border-soft)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <h3 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)" }}>
-              Processos Recentes
-            </h3>
-            <Link href="/processos" style={{ fontSize: 13, color: "var(--color-royal)", fontWeight: 600 }}>
+        <div className="overflow-hidden rounded-card border border-border bg-surface">
+          <div className="flex items-center justify-between border-b border-border-soft px-5 py-4.5">
+            <h3 className="m-0 font-display text-lg font-bold text-text-1">Processos Recentes</h3>
+            <Link href="/processos" className="text-base font-semibold text-royal no-underline hover:text-royal-hover">
               Ver todos →
             </Link>
           </div>
@@ -158,153 +111,82 @@ export default function Dashboard() {
           {processos.isPending && <SkeletonRows rows={5} />}
           {processos.isError && <ErrorState onRetry={() => void processos.refetch()} />}
           {processos.isSuccess && (
-            <div className="gd-table-wrap">
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
-              <thead>
-                <tr style={{ background: "var(--color-ice)" }}>
-                  {["Processo", "Secretaria", "Valor Est.", "Status", "Data"].map((h) => (
-                    <Th key={h} style={{ borderBottom: "var(--border-soft)" }}>
-                      {h}
-                    </Th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {recentes.map((p, i) => (
-                  <tr
-                    key={p.id}
-                    className="gd-row"
-                    onClick={() => router.push(`/processos/${p.id}/etp`)}
-                    style={{ borderBottom: i < recentes.length - 1 ? "var(--border-row)" : "none" }}
-                  >
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)" }}>{p.objeto}</div>
-                      <div style={{ fontSize: 11, color: "var(--color-text-muted)", fontFamily: "var(--font-mono)", marginTop: 2 }}>
-                        {p.id}
-                      </div>
-                    </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)" }}>{p.secretaria}</td>
-                    <td
-                      style={{
-                        paddingBlock: 13,
-                        paddingInline: 16,
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "var(--color-petroleum)",
-                        fontFamily: "var(--font-mono)",
-                      }}
-                    >
-                      {formatBRL(p.valorEstimado)}
-                    </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                      <StatusBadge status={p.status} size="sm" />
-                    </td>
-                    <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--color-text-muted)" }}>
-                      {formatData(p.atualizadoEm)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] border-collapse">
+                <thead>
+                  <tr className="bg-ice">
+                    {["Processo", "Secretaria", "Valor Est.", "Status", "Data"].map((h) => (
+                      <Th key={h} className="border-b border-border-soft">
+                        {h}
+                      </Th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentes.map((p, i) => (
+                    <tr
+                      key={p.id}
+                      onClick={() => router.push(`/processos/${p.id}/etp`)}
+                      className={`cursor-pointer transition-colors hover:bg-ice ${i < recentes.length - 1 ? "border-b border-ice" : ""}`}
+                    >
+                      <td className="px-4 py-3.25">
+                        <div className="text-base font-semibold text-text-1">{p.objeto}</div>
+                        <div className="mt-0.5 font-mono text-xs text-text-muted">{p.id}</div>
+                      </td>
+                      <td className="px-4 py-3.25 text-sm text-text-3">{p.secretaria}</td>
+                      <td className="px-4 py-3.25 font-mono text-base font-semibold text-petroleum">
+                        {formatBRL(p.valorEstimado)}
+                      </td>
+                      <td className="px-4 py-3.25">
+                        <StatusBadge status={p.status} size="sm" />
+                      </td>
+                      <td className="px-4 py-3.25 text-sm text-text-muted">{formatData(p.atualizadoEm)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
 
         {/* Coluna direita */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
           {/* Pendentes de aprovação */}
-          <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
-            <div
-              style={{
-                padding: 18,
-                borderBottom: "var(--border-soft)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <h3 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)" }}>
-                Pendentes de Aprovação
-              </h3>
-              <span
-                style={{
-                  background: "var(--tint-danger-bg)",
-                  color: "var(--color-danger)",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  borderRadius: "var(--radius-full)",
-                  paddingBlock: 2,
-                  paddingInline: 8,
-                }}
-              >
+          <div className="overflow-hidden rounded-card border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border-soft p-4.5">
+              <h3 className="m-0 font-display text-lg font-bold text-text-1">Pendentes de Aprovação</h3>
+              <span className="rounded-full bg-tint-danger-bg px-2 py-0.5 text-xs font-bold text-danger">
                 {aprovacoes.isSuccess ? pendentes.length : "…"}
               </span>
             </div>
             {aprovacoes.isPending && <SkeletonRows rows={3} height={36} />}
             {aprovacoes.isError && <ErrorState onRetry={() => void aprovacoes.refetch()} />}
             {aprovacoes.isSuccess && (
-              <div style={{ paddingBlock: 8 }}>
+              <div className="py-2">
                 {pendentes.map((item) => (
                   <div
                     key={item.processoId}
-                    className="gd-row"
                     onClick={() => router.push("/aprovacoes")}
-                    style={{ paddingBlock: 12, paddingInline: 18, display: "flex", alignItems: "flex-start", gap: 10 }}
+                    className="flex cursor-pointer items-start gap-2.5 px-4.5 py-3 transition-colors hover:bg-ice"
                   >
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        background: "var(--tint-royal-bg)",
-                        borderRadius: "var(--radius-md)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        marginTop: 2,
-                      }}
-                    >
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "var(--color-royal)", fontFamily: "var(--font-mono)" }}>
+                    <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-tint-royal-bg">
+                      <span className="font-mono text-2xs font-bold text-royal">
                         {item.tipo === "ETP + TR" ? "ETP" : item.tipo}
                       </span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "var(--text-body)",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {item.objeto}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--color-text-muted)", fontFamily: "var(--font-mono)", marginTop: 2 }}>
-                        {item.processoId}
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-base font-semibold text-text-1">{item.objeto}</div>
+                      <div className="mt-0.5 font-mono text-xs text-text-muted">{item.processoId}</div>
                     </div>
                     {item.urgente && <Tag tone="warning">Urgente</Tag>}
                   </div>
                 ))}
               </div>
             )}
-            <div style={{ paddingBlock: 12, paddingInline: 18, borderTop: "var(--border-soft)" }}>
+            <div className="border-t border-border-soft px-4.5 py-3">
               <Link
                 href="/aprovacoes"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  paddingBlock: 9,
-                  background: "var(--tint-royal-bg)",
-                  color: "var(--color-royal)",
-                  borderRadius: "var(--radius-md)",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  textAlign: "center",
-                  textDecoration: "none",
-                }}
+                className="block w-full rounded-md bg-tint-royal-bg py-2.25 text-center text-base font-semibold text-royal no-underline"
               >
                 Ver todas as aprovações
               </Link>
@@ -312,10 +194,8 @@ export default function Dashboard() {
           </div>
 
           {/* Ações rápidas — ícones de linha, sem emoji (correção 3.3.2) */}
-          <div className="gd-on-dark" style={{ background: "var(--color-navy)", borderRadius: "var(--radius-card)", paddingBlock: 20, paddingInline: 18 }}>
-            <h3 style={{ margin: 0, marginBottom: 14, fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--on-dark-text)" }}>
-              Ações Rápidas
-            </h3>
+          <div className="on-dark rounded-card bg-navy px-4.5 py-5">
+            <h3 className="m-0 mb-3.5 font-display text-md font-bold text-on-dark">Ações Rápidas</h3>
             {[
               { label: "Novo ETP", desc: "Estudo Técnico Preliminar", icon: <IconClipboardList size={18} /> },
               { label: "Novo TR", desc: "Termo de Referência", icon: <IconFileText size={18} /> },
@@ -324,27 +204,13 @@ export default function Dashboard() {
               <button
                 key={a.label}
                 type="button"
-                className="gd-dark-row"
                 onClick={() => router.push("/processos/novo")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                  paddingBlock: 10,
-                  paddingInline: 12,
-                  background: "var(--on-dark-fill)",
-                  border: "var(--border-on-dark-soft)",
-                  borderRadius: "var(--radius-lg)",
-                  cursor: "pointer",
-                  marginBottom: 8,
-                  textAlign: "left",
-                }}
+                className="mb-2 flex w-full cursor-pointer items-center gap-2.5 rounded-lg border border-on-dark-border bg-on-dark-fill px-3 py-2.5 text-left transition-colors hover:bg-on-dark-fill-hover"
               >
-                <span style={{ display: "flex", color: "var(--color-electric)" }}>{a.icon}</span>
-                <span style={{ display: "block" }}>
-                  <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--on-dark-text)" }}>{a.label}</span>
-                  <span style={{ display: "block", fontSize: 11, color: "var(--on-dark-text-40)" }}>{a.desc}</span>
+                <span className="flex text-electric">{a.icon}</span>
+                <span className="block">
+                  <span className="block text-base font-semibold text-on-dark">{a.label}</span>
+                  <span className="block text-xs text-on-dark-40">{a.desc}</span>
                 </span>
               </button>
             ))}

@@ -18,6 +18,9 @@ const tabs = [
   { key: "usuarios", label: "Usuários e Permissões" },
 ]
 
+/** Cores dos avatares de usuário (ciclo por índice). */
+const avatarCores = ["bg-royal", "bg-teal", "bg-violet", "bg-doc-mapa"]
+
 export default function Configuracoes() {
   const showToast = useToast()
   const tenant = useConfigTenant()
@@ -51,15 +54,15 @@ export default function Configuracoes() {
 
   if (tenant.isPending) {
     return (
-      <div className="gd-page" style={{ maxWidth: "var(--content-max-settings)" }}>
+      <div className="max-w-settings p-4 sm:p-5 lg:p-7">
         <LoadingState label="Carregando configurações..." />
       </div>
     )
   }
   if (tenant.isError) {
     return (
-      <div className="gd-page" style={{ maxWidth: "var(--content-max-settings)" }}>
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
+      <div className="max-w-settings p-4 sm:p-5 lg:p-7">
+        <div className="rounded-card border border-border bg-surface">
           <ErrorState onRetry={() => void tenant.refetch()} />
         </div>
       </div>
@@ -100,48 +103,26 @@ export default function Configuracoes() {
   }
 
   return (
-    <div className="gd-page" style={{ maxWidth: "var(--content-max-settings)" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h2
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "var(--text-2xl)",
-            fontWeight: 800,
-            color: "var(--text-body)",
-            margin: 0,
-            marginBottom: 4,
-            letterSpacing: "var(--tracking-tight)",
-          }}
-        >
+    <div className="max-w-settings p-4 sm:p-5 lg:p-7">
+      <div className="mb-6">
+        <h2 className="m-0 mb-1 font-display text-2xl font-extrabold tracking-tight text-text-1">
           Configurações da Prefeitura
         </h2>
-        <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)" }}>
+        <p className="m-0 text-md text-text-3">
           Personalize os documentos gerados e configure as informações institucionais do órgão.
         </p>
       </div>
 
       {/* Tabs — roláveis horizontalmente em telas estreitas */}
-      <div className="gd-tabs" style={{ marginBottom: 28 }}>
+      <div className="mb-7 flex overflow-x-auto border-b border-border">
         {tabs.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setActiveTab(t.key)}
-            style={{
-              paddingBlock: 9,
-              paddingInline: 18,
-              border: "none",
-              background: "transparent",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: activeTab === t.key ? 700 : 500,
-              color: activeTab === t.key ? "var(--color-royal)" : "var(--text-secondary)",
-              borderBottom: activeTab === t.key ? "var(--border-royal-2)" : "var(--border-transparent-2)",
-              marginBottom: -1,
-              transition: "var(--transition-fast)",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}
+            className={`-mb-px shrink-0 cursor-pointer border-b-2 border-transparent bg-transparent px-4.5 py-2.25 text-base whitespace-nowrap transition-colors ${
+              activeTab === t.key ? "border-b-royal font-bold text-royal" : "font-medium text-text-3"
+            }`}
           >
             {t.label}
           </button>
@@ -150,56 +131,31 @@ export default function Configuracoes() {
 
       {/* ── Identidade Visual ── */}
       {activeTab === "identidade" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
           <SectionBlock
             title="Logotipo / Brasão da Prefeitura"
             hint="O logotipo será inserido no cabeçalho dos documentos timbrados. Formatos aceitos: PNG, SVG, JPG (fundo transparente recomendado)."
           >
             {logoFile ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div
-                  style={{
-                    width: 80,
-                    height: 80,
-                    background: "var(--color-border-soft)",
-                    borderRadius: "var(--radius-xl)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "var(--border-default)",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
+              <div className="flex items-center gap-4">
+                <div className="flex size-20 items-center justify-center rounded-xl border border-border bg-border-soft text-text-muted">
                   <IconImage size={32} strokeWidth={1.5} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)" }}>{logoFile}</div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 2 }}>PNG · 340 × 340 px · 48 KB</div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                    <label style={{ cursor: "pointer" }}>
+                  <div className="text-base font-semibold text-text-1">{logoFile}</div>
+                  <div className="mt-0.5 text-sm text-text-muted">PNG · 340 × 340 px · 48 KB</div>
+                  <div className="mt-2.5 flex gap-2">
+                    <label className="cursor-pointer">
                       <input
                         type="file"
                         accept=".png,.svg,.jpg,.jpeg"
-                        style={{ display: "none" }}
+                        className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0]
                           if (f) setLogoFile(f.name)
                         }}
                       />
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "var(--color-royal)",
-                          paddingBlock: 5,
-                          paddingInline: 12,
-                          border: "var(--border-tint-royal)",
-                          borderRadius: "var(--radius-sm)",
-                          background: "var(--tint-royal-bg)",
-                          cursor: "pointer",
-                          display: "inline-block",
-                        }}
-                      >
+                      <span className="inline-block cursor-pointer rounded-sm border border-tint-royal-border bg-tint-royal-bg px-3 py-1.25 text-sm font-semibold text-royal">
                         Substituir
                       </span>
                     </label>
@@ -223,13 +179,13 @@ export default function Configuracoes() {
             title="Documentos Timbrados"
             hint="Quando ativado, todos os documentos gerados incluirão o brasão, o cabeçalho e o rodapé configurados. Caso desativado, os documentos serão gerados sem timbre."
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div className="flex items-center gap-3.5">
               <Toggle checked={timbrado} onChange={setTimbrado} label="Documentos timbrados" />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-label)" }}>
+                <div className="text-base font-semibold text-text-2">
                   {timbrado ? "Documentos timbrados ativados" : "Documentos sem timbre"}
                 </div>
-                <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 2 }}>
+                <div className="mt-0.5 text-sm text-text-muted">
                   {timbrado
                     ? "ETP, TR, Cotação e demais documentos incluirão o brasão e identificação do órgão."
                     : "Documentos serão gerados com cabeçalho e rodapé em branco."}
@@ -238,13 +194,13 @@ export default function Configuracoes() {
             </div>
 
             {timbrado && !logoFile && (
-              <InfoBanner tone="warning" style={{ marginTop: 14 }}>
+              <InfoBanner tone="warning" className="mt-3.5">
                 Nenhum logotipo configurado. O cabeçalho será gerado apenas com o texto institucional.
               </InfoBanner>
             )}
           </SectionBlock>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className="flex gap-2.5">
             <Button
               disabled={atualizar.isPending}
               onClick={() => salvarTenant({ logoArquivo: logoFile, timbrado }, "Configurações de identidade salvas com sucesso.")}
@@ -257,47 +213,23 @@ export default function Configuracoes() {
 
       {/* ── Cabeçalho e Rodapé ── */}
       {activeTab === "cabecalho" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
           <SectionBlock
             title="Cabeçalho dos Documentos"
             hint="Texto exibido no topo de cada página dos documentos gerados. Use quebras de linha para organizar as informações. Variáveis disponíveis: {processo}, {data}, {secretaria}."
           >
             <Textarea value={cabecalho} onChange={(e) => setCabecalho(e.target.value)} rows={4} />
-            <div
-              style={{
-                background: "var(--color-ice)",
-                border: "var(--border-default)",
-                borderRadius: "var(--radius-xl)",
-                paddingBlock: 16,
-                paddingInline: 20,
-                marginTop: 14,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--color-text-muted)",
-                  fontWeight: 600,
-                  letterSpacing: "var(--tracking-caps)",
-                  textTransform: "uppercase",
-                  marginBottom: 10,
-                }}
-              >
+            <div className="mt-3.5 rounded-xl border border-border bg-ice px-5 py-4">
+              <div className="mb-2.5 text-xs font-semibold tracking-caps text-text-muted uppercase">
                 Pré-visualização do Cabeçalho
               </div>
-              <div style={{ borderBottom: "var(--border-navy-2)", paddingBottom: 10, display: "flex", alignItems: "flex-start", gap: 16 }}>
-                {logoFile && <div style={{ width: 40, height: 40, background: "var(--color-border)", borderRadius: "var(--radius-sm)", flexShrink: 0 }} />}
-                <div style={{ flex: 1 }}>
+              <div className="flex items-start gap-4 border-b-2 border-navy pb-2.5">
+                {logoFile && <div className="size-10 shrink-0 rounded-sm bg-border" />}
+                <div className="flex-1">
                   {cabecalho.split("\n").map((line, i) => (
                     <div
                       key={i}
-                      style={{
-                        fontSize: i === 0 ? 13 : 11,
-                        fontWeight: i === 0 ? 700 : 500,
-                        color: "var(--text-body)",
-                        fontFamily: "var(--font-display)",
-                        lineHeight: 1.5,
-                      }}
+                      className={`font-display leading-normal text-text-1 ${i === 0 ? "text-base font-bold" : "text-xs font-medium"}`}
                     >
                       {line || " "}
                     </div>
@@ -312,37 +244,19 @@ export default function Configuracoes() {
             hint="Texto exibido na parte inferior de cada página. Variáveis disponíveis: {processo}, {data}, {numero}, {pagina}."
           >
             <Textarea value={rodape} onChange={(e) => setRodape(e.target.value)} rows={3} />
-            <div
-              style={{
-                background: "var(--color-ice)",
-                border: "var(--border-default)",
-                borderRadius: "var(--radius-xl)",
-                paddingBlock: 16,
-                paddingInline: 20,
-                marginTop: 14,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "var(--color-text-muted)",
-                  fontWeight: 600,
-                  letterSpacing: "var(--tracking-caps)",
-                  textTransform: "uppercase",
-                  marginBottom: 10,
-                }}
-              >
+            <div className="mt-3.5 rounded-xl border border-border bg-ice px-5 py-4">
+              <div className="mb-2.5 text-xs font-semibold tracking-caps text-text-muted uppercase">
                 Pré-visualização do Rodapé
               </div>
-              <div style={{ borderTop: "var(--border-faint)", paddingTop: 8 }}>
-                <div style={{ fontSize: 10, color: "var(--color-text-muted)", textAlign: "center", fontFamily: "var(--font-body)" }}>
+              <div className="border-t border-text-faint pt-2">
+                <div className="text-center font-body text-2xs text-text-muted">
                   {rodape.replace("{data}", "09/07/2025").replace("{numero}", "PROC-2024-090").replace("{pagina}", "1")}
                 </div>
               </div>
             </div>
           </SectionBlock>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className="flex gap-2.5">
             <Button
               disabled={atualizar.isPending}
               onClick={() => salvarTenant({ cabecalho, rodape }, "Cabeçalho e rodapé salvos com sucesso.")}
@@ -359,62 +273,30 @@ export default function Configuracoes() {
           title="Secretarias do Órgão"
           hint="As secretarias cadastradas aqui aparecem como opções de Secretaria Requisitante na criação de novos processos."
         >
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 220 }}>
+          <div className="mb-4 flex flex-wrap gap-2.5">
+            <div className="flex-[1_1_220px]">
               <Input
                 value={novaSecretaria}
                 onChange={(e) => setNovaSecretaria(e.target.value)}
                 placeholder="Ex: Secretaria de Cultura e Turismo"
               />
             </div>
-            <Button icon={<IconPlus size={14} strokeWidth={2.5} />} disabled={novaSecretaria.trim() === ""} onClick={addSecretaria} style={{ height: "var(--input-height)" }}>
+            <Button icon={<IconPlus size={14} strokeWidth={2.5} />} disabled={novaSecretaria.trim() === ""} onClick={addSecretaria} className="h-9.5">
               Adicionar Secretaria
             </Button>
           </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div className="flex flex-col">
             {secretarias.map((s, i) => (
-              <div
-                key={s.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  paddingBlock: 11,
-                  borderBottom: i < secretarias.length - 1 ? "var(--border-soft)" : "none",
-                }}
-              >
-                <span
-                  style={{
-                    width: 28,
-                    height: 28,
-                    background: "var(--tint-royal-bg)",
-                    borderRadius: "var(--radius-sm)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    color: "var(--color-royal)",
-                  }}
-                >
+              <div key={s.id} className={`flex items-center gap-3 py-2.75 ${i < secretarias.length - 1 ? "border-b border-border-soft" : ""}`}>
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-sm bg-tint-royal-bg text-royal">
                   <IconFile size={14} />
                 </span>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: "var(--text-body)" }}>{s.nome}</span>
+                <span className="flex-1 text-base font-medium text-text-1">{s.nome}</span>
                 <button
                   type="button"
                   aria-label={`Remover ${s.nome}`}
                   onClick={() => removeSecretaria(s.id)}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "var(--radius-sm)",
-                    border: "var(--border-default)",
-                    background: "var(--color-ice)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    color: "var(--text-secondary)",
-                  }}
+                  className="flex size-7 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-text-3"
                 >
                   <IconTrash size={13} />
                 </button>
@@ -426,7 +308,7 @@ export default function Configuracoes() {
 
       {/* ── PCA ── */}
       {activeTab === "pca" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-5">
           <InfoBanner tone="info">
             O <strong>Plano de Contratações Anual (PCA)</strong> é utilizado pelo modelo de IA para validar se o processo em elaboração está previsto no planejamento vigente, sugerindo o item correspondente e auxiliando no preenchimento do ETP.
           </InfoBanner>
@@ -435,9 +317,9 @@ export default function Configuracoes() {
             title="PCA do Ano Vigente"
             hint="Anexe o PCA aprovado para o ano corrente. Formatos aceitos: PDF, XLSX, DOCX. O arquivo será utilizado como referência durante a geração dos documentos."
           >
-            <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+            <div className="mb-4 flex gap-4">
               <FormField label="Ano de Referência">
-                <Select value={pcaYear} onChange={(e) => setPcaYear(e.target.value)} style={{ width: 120 }}>
+                <Select value={pcaYear} onChange={(e) => setPcaYear(e.target.value)} className="w-30">
                   {["2023", "2024", "2025", "2026"].map((y) => (
                     <option key={y}>{y}</option>
                   ))}
@@ -447,39 +329,13 @@ export default function Configuracoes() {
 
             {pcaFile ? (
               <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    background: "var(--color-ice)",
-                    border: "var(--border-default)",
-                    borderRadius: "var(--radius-xl)",
-                    paddingBlock: 12,
-                    paddingInline: 16,
-                    marginBottom: 12,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 36,
-                      height: 36,
-                      background: "var(--tint-royal-bg)",
-                      borderRadius: "var(--radius-md)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      color: "var(--color-royal)",
-                    }}
-                  >
+                <div className="mb-3 flex items-center gap-3 rounded-xl border border-border bg-ice px-4 py-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-tint-royal-bg text-royal">
                     <IconFile size={18} />
                   </span>
-                  <span style={{ flex: 1, display: "block" }}>
-                    <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-body)" }}>{pcaFile}</span>
-                    <span style={{ display: "block", fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
-                      PCA {pcaYear} · Importado em 09/07/2025
-                    </span>
+                  <span className="block flex-1">
+                    <span className="block text-base font-semibold text-text-1">{pcaFile}</span>
+                    <span className="mt-0.5 block text-xs text-text-muted">PCA {pcaYear} · Importado em 09/07/2025</span>
                   </span>
                   <Tag tone="success">Ativo</Tag>
                 </div>
@@ -488,31 +344,18 @@ export default function Configuracoes() {
                   <strong>PCA carregado com sucesso.</strong> {tenant.data.pca.itensIndexados} itens de contratação indexados. O modelo utilizará este PCA como referência nos processos de {pcaYear}.
                 </InfoBanner>
 
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <label style={{ cursor: "pointer" }}>
+                <div className="mt-3 flex gap-2">
+                  <label className="cursor-pointer">
                     <input
                       type="file"
                       accept=".pdf,.xlsx,.docx"
-                      style={{ display: "none" }}
+                      className="hidden"
                       onChange={(e) => {
                         const f = e.target.files?.[0]
                         if (f) setPcaFile(f.name)
                       }}
                     />
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "var(--color-royal)",
-                        paddingBlock: 6,
-                        paddingInline: 14,
-                        border: "var(--border-tint-royal)",
-                        borderRadius: 7,
-                        background: "var(--tint-royal-bg)",
-                        cursor: "pointer",
-                        display: "inline-block",
-                      }}
-                    >
+                    <span className="inline-block cursor-pointer rounded-[7px] border border-tint-royal-border bg-tint-royal-bg px-3.5 py-1.5 text-sm font-semibold text-royal">
                       Substituir arquivo
                     </span>
                   </label>
@@ -531,7 +374,7 @@ export default function Configuracoes() {
             )}
           </SectionBlock>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className="flex gap-2.5">
             <Button
               disabled={!pcaFile || atualizar.isPending}
               onClick={() =>
@@ -549,80 +392,55 @@ export default function Configuracoes() {
 
       {/* ── Usuários ── */}
       {activeTab === "usuarios" && (
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
-          <div
-            style={{
-              paddingBlock: 16,
-              paddingInline: 20,
-              borderBottom: "var(--border-soft)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <h3 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)" }}>
-              Servidores com Acesso
-            </h3>
+        <div className="overflow-hidden rounded-card border border-border bg-surface">
+          <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+            <h3 className="m-0 font-display text-lg font-bold text-text-1">Servidores com Acesso</h3>
             <Button size="sm" icon={<IconPlus size={13} strokeWidth={2.5} />} onClick={() => showToast("Convite de servidores disponível na integração com o backend.")}>
               Convidar Servidor
             </Button>
           </div>
-          <div className="gd-table-wrap">
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
-            <thead>
-              <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
-                {["Servidor", "Cargo", "Perfil de Acesso", "Último Acesso", ""].map((h, i) => (
-                  <Th key={h === "" ? `vazio-${i}` : h}>
-                    {h}
-                  </Th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {tenant.data.usuarios.map((u, idx) => (
-                <tr key={u.nome} style={{ borderBottom: "var(--border-row)" }}>
-                  <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: "var(--radius-full)",
-                          background: ["var(--color-royal)", "var(--color-teal)", "var(--color-violet)", "var(--doc-mapa)"][idx % 4],
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "var(--color-surface)",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {u.iniciais}
-                      </span>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)" }}>{u.nome}</span>
-                    </div>
-                  </td>
-                  <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)" }}>{u.cargo}</td>
-                  <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                    <Tag tone={u.perfil === "Administrador" ? "warning" : u.perfil === "Aprovador" ? "success" : "neutral"}>
-                      {u.perfil}
-                    </Tag>
-                  </td>
-                  <td style={{ paddingBlock: 13, paddingInline: 16, fontSize: 12, color: "var(--color-text-muted)" }}>{u.ultimoAcesso}</td>
-                  <td style={{ paddingBlock: 13, paddingInline: 16 }}>
-                    <button
-                      type="button"
-                      onClick={() => showToast("Edição de permissões disponível na integração com o backend.")}
-                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--text-secondary)" }}
-                    >
-                      Editar
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-ice">
+                  {["Servidor", "Cargo", "Perfil de Acesso", "Último Acesso", ""].map((h, i) => (
+                    <Th key={h === "" ? `vazio-${i}` : h}>{h}</Th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tenant.data.usuarios.map((u, idx) => (
+                  <tr key={u.nome} className="border-b border-ice">
+                    <td className="px-4 py-3.25">
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className={`flex size-7.5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-surface ${avatarCores[idx % 4]}`}
+                        >
+                          {u.iniciais}
+                        </span>
+                        <span className="text-base font-semibold text-text-1">{u.nome}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.25 text-sm text-text-3">{u.cargo}</td>
+                    <td className="px-4 py-3.25">
+                      <Tag tone={u.perfil === "Administrador" ? "warning" : u.perfil === "Aprovador" ? "success" : "neutral"}>
+                        {u.perfil}
+                      </Tag>
+                    </td>
+                    <td className="px-4 py-3.25 text-sm text-text-muted">{u.ultimoAcesso}</td>
+                    <td className="px-4 py-3.25">
+                      <button
+                        type="button"
+                        onClick={() => showToast("Edição de permissões disponível na integração com o backend.")}
+                        className="cursor-pointer border-0 bg-transparent text-sm text-text-3"
+                      >
+                        Editar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

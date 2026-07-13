@@ -7,8 +7,9 @@ Esta é a **Fase 1 (somente interface)**: a industrialização do protótipo Vit
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack) · **React 19** · **TypeScript strict**
+- **Tailwind CSS v4** utility-first — tokens do DS mapeados via `@theme` (fonte única de verdade); ver [docs/estilizacao.md](docs/estilizacao.md)
 - **TanStack Query 5** — dados via hooks, mocks com latência simulada
-- **Design System LAHHM/GeraDocs** — tokens CSS + componentes portados a TSX (sem bibliotecas de UI de terceiros)
+- **Design System LAHHM/GeraDocs** — componentes portados a TSX (sem bibliotecas de UI de terceiros)
 - Fontes via `next/font`: Plus Jakarta Sans (display), Inter (UI), JetBrains Mono (IDs/valores)
 
 ## Comandos
@@ -55,12 +56,12 @@ docs/                   # estrutura.md (organização) e decisions.md (decisões
 
 ## Convenções
 
-- **Tokens sempre**: nenhum hex ou `"NNpx"` cru em TSX — o ESLint falha o build. Cores/bordas/fontes via `var(--token)` (tokens em `app/globals.css`); dimensões pontuais como números JS.
+- **Tailwind sobre tokens**: estilo por classes de token (`bg-royal`, `text-lg`); nenhuma cor hex/arbitrária — o ESLint falha o build. Tokens no `@theme` de `app/globals.css`. Ver [docs/estilizacao.md](docs/estilizacao.md).
 - **Dados só via hooks**: views nunca importam `lib/mocks`; tudo passa por `lib/api/hooks.ts`, com loading/erro/empty tratados.
 - **DS via barrel**: componentes do DS importados de `@/components/ui` (regra de lint). Antes de mexer em UI, consulte o `readme.md` do DS e o `.prompt.md` do componente.
 - **Conteúdo pt-BR**: Title Case em títulos, imperativos em ações, referências legais literais ("Art. 75, II, Lei 14.133/21"), IDs/valores em monospace, vocabulário de status fixo.
 - **Zero emoji**: ícones de linha estilo Lucide em `components/ui/icons.tsx`.
-- **Responsivo mobile-first**: layouts que variam por viewport usam as classes `gd-*` de `app/globals.css` (breakpoints 480/640/768/1024). Sidebar vira drawer abaixo de 1024px; tabelas largas rolam dentro de `.gd-table-wrap`; nunca deixe a página estourar horizontalmente.
+- **Responsivo mobile-first**: variantes Tailwind `xs`(480)/`sm`(640)/`md`(768)/`lg`(1024) no `className`. Sidebar vira drawer abaixo de `lg`; tabelas largas rolam dentro de `overflow-x-auto` com `min-w-[...]`; nunca deixe a página estourar horizontalmente.
 
 ## Como plugar o backend depois
 

@@ -1,13 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   GeraDocs — Global styles
-   Tokens portados de LAHHM___GeraDocs_Design_System/tokens/{colors,typography,layout}.css.
-   Fontes carregadas via next/font (app/layout.tsx) — sem @import de Google Fonts.
-   Este é o ÚNICO lugar do app onde valores crus (hex/px) são permitidos;
-   todo o código TSX referencia tokens via var(--...).
+   GeraDocs — Tailwind CSS v4 (utility-first)
+
+   O bloco @theme abaixo é a FONTE ÚNICA DE VERDADE dos tokens do design system
+   LAHHM/GeraDocs (portados de design_system/tokens/*). Cada token vira ao mesmo
+   tempo uma CSS variable (var(--color-royal)) e utilities Tailwind (bg-royal,
+   text-royal, border-royal...). Valores crus (hex/px) só existem aqui.
+
+   Grade de espaçamento: 1 unidade = 0.25rem = 4px (padrão Tailwind); qualquer
+   px inteiro do protótipo é expresso em passos de 0.25 (13px = p-3.25).
    ═══════════════════════════════════════════════════════════════════════════ */
 
-:root {
-  /* ── Brand ──────────────────────────────────────────────────────────────── */
+@import "tailwindcss";
+
+/* Fontes injetadas pelo next/font (app/layout.tsx) — @theme inline para as
+   utilities referenciarem as variáveis de runtime. */
+@theme inline {
+  --font-display: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
+}
+
+@theme {
+  /* ── Breakpoints (mobile-first: 480 · 640 · 768 · 1024) ─────────────────── */
+  --breakpoint-xs: 480px;
+
+  /* ── Cores — brand ──────────────────────────────────────────────────────── */
   --color-navy: #071A3D;
   --color-petroleum: #0D3B66;
   --color-royal: #2563EB;
@@ -16,7 +33,7 @@
   --color-slate: #64748B;
   --color-ice: #F8FAFC;
 
-  /* ── Neutrals ───────────────────────────────────────────────────────────── */
+  /* ── Cores — neutros ────────────────────────────────────────────────────── */
   --color-surface: #FFFFFF;
   --color-border: #E2E8F0;
   --color-border-soft: #F1F5F9;
@@ -26,634 +43,229 @@
   --color-text-muted: #94A3B8;
   --color-text-faint: #CBD5E1;
 
-  /* ── Semantic ───────────────────────────────────────────────────────────── */
+  /* ── Cores — semânticas ─────────────────────────────────────────────────── */
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
   --color-info: #38BDF8;
 
-  /* ── Status tints (badge bg / fg / dot) ─────────────────────────────────── */
-  --status-draft-bg: #F1F5F9;      --status-draft-fg: #475569;      --status-draft-dot: #94A3B8;
-  --status-review-bg: #FEF3C7;     --status-review-fg: #92400E;     --status-review-dot: #F59E0B;
-  --status-waiting-bg: #EFF6FF;    --status-waiting-fg: #1D4ED8;    --status-waiting-dot: #3B82F6;
-  --status-approved-bg: #ECFDF5;   --status-approved-fg: #065F46;   --status-approved-dot: #10B981;
-  --status-rejected-bg: #FEF2F2;   --status-rejected-fg: #991B1B;   --status-rejected-dot: #EF4444;
-  --status-done-bg: #F0FDF4;       --status-done-fg: #15803D;       --status-done-dot: #22C55E;
+  /* ── Tints de status (badge bg / fg / dot) ──────────────────────────────── */
+  --color-status-draft-bg: #F1F5F9;
+  --color-status-draft-fg: #475569;
+  --color-status-draft-dot: #94A3B8;
+  --color-status-review-bg: #FEF3C7;
+  --color-status-review-fg: #92400E;
+  --color-status-review-dot: #F59E0B;
+  --color-status-waiting-bg: #EFF6FF;
+  --color-status-waiting-fg: #1D4ED8;
+  --color-status-waiting-dot: #3B82F6;
+  --color-status-approved-bg: #ECFDF5;
+  --color-status-approved-fg: #065F46;
+  --color-status-approved-dot: #10B981;
+  --color-status-rejected-bg: #FEF2F2;
+  --color-status-rejected-fg: #991B1B;
+  --color-status-rejected-dot: #EF4444;
+  --color-status-done-bg: #F0FDF4;
+  --color-status-done-fg: #15803D;
+  --color-status-done-dot: #22C55E;
 
-  /* ── Document accent tints ──────────────────────────────────────────────── */
-  --doc-etp: #2563EB;     --doc-etp-bg: #EFF6FF;
-  --doc-tr: #0D9488;      --doc-tr-bg: #F0FDFA;
-  --doc-cotacao: #7C3AED; --doc-cotacao-bg: #F5F3FF;
-  --doc-mapa: #B45309;    --doc-mapa-bg: #FFFBEB;
+  /* ── Acentos por tipo de documento ──────────────────────────────────────── */
+  --color-doc-etp: #2563EB;
+  --color-doc-etp-bg: #EFF6FF;
+  --color-doc-tr: #0D9488;
+  --color-doc-tr-bg: #F0FDFA;
+  --color-doc-cotacao: #7C3AED;
+  --color-doc-cotacao-bg: #F5F3FF;
+  --color-doc-mapa: #B45309;
+  --color-doc-mapa-bg: #FFFBEB;
 
-  /* ── Gradients (usos canônicos: chip da logo, avatar, progresso) ────────── */
-  --gradient-brand: linear-gradient(135deg, #2563EB, #38BDF8);
-  --gradient-user: linear-gradient(135deg, #0D3B66, #2563EB);
-  --gradient-progress: linear-gradient(90deg, #2563EB, #38BDF8);
-  --gradient-panel: linear-gradient(135deg, #1E3A5F 0%, #0D3B66 100%);
+  /* ── Tints derivados do protótipo ───────────────────────────────────────── */
+  --color-tint-royal-bg: #EFF6FF;
+  --color-tint-royal-border: #BFDBFE;
+  --color-tint-success-bg: #ECFDF5;
+  --color-tint-success-border: #A7F3D0;
+  --color-tint-success-fg: #065F46;
+  --color-tint-success-fg-soft: #047857;
+  --color-tint-warning-bg: #FFFBEB;
+  --color-tint-warning-border: #FDE68A;
+  --color-tint-warning-fg: #92400E;
+  --color-tint-warning-fg-strong: #B45309;
+  --color-tint-warning-chip-bg: #FEF3C7;
+  --color-tint-danger-bg: #FEF2F2;
+  --color-tint-danger-border: #FECACA;
+  --color-tint-danger-border-strong: #FCA5A5;
+  --color-tint-danger-fg: #991B1B;
+  --color-tint-danger-fg-strong: #B91C1C;
+  --color-tint-violet-bg: #F5F3FF;
+  --color-tint-violet-fg: #6D28D9;
+  --color-violet: #7C3AED;
+  --color-teal: #0D9488;
+  --color-green: #16A34A;
+  --color-warning-strong: #D97706;
+  --color-slate-strong: #475569;
+  --color-surface-upload: #FAFAFA;
 
-  /* ── Semantic aliases ───────────────────────────────────────────────────── */
-  --surface-app: var(--color-ice);
-  --surface-card: var(--color-surface);
-  --surface-sidebar: var(--color-navy);
-  --text-body: var(--color-text-1);
-  --text-secondary: var(--color-text-3);
-  --text-label: var(--color-text-2);
-  --action-primary: var(--color-royal);
-  --action-primary-hover: var(--color-royal-hover);
+  /* ── Superfícies sobre navy (sidebar, painéis escuros) ──────────────────── */
+  --color-on-dark: #FFFFFF;
+  --color-on-dark-65: rgba(255, 255, 255, 0.65);
+  --color-on-dark-60: rgba(255, 255, 255, 0.6);
+  --color-on-dark-55: rgba(255, 255, 255, 0.55);
+  --color-on-dark-45: rgba(255, 255, 255, 0.45);
+  --color-on-dark-40: rgba(255, 255, 255, 0.4);
+  --color-on-dark-35: rgba(255, 255, 255, 0.35);
+  --color-on-dark-30: rgba(255, 255, 255, 0.3);
+  --color-on-dark-20: rgba(255, 255, 255, 0.2);
+  --color-on-dark-fill: rgba(255, 255, 255, 0.06);
+  --color-on-dark-fill-hover: rgba(255, 255, 255, 0.1);
+  --color-on-dark-border: rgba(255, 255, 255, 0.08);
+  --color-on-dark-active: rgba(37, 99, 235, 0.18);
+  --color-on-dark-royal-chip: rgba(37, 99, 235, 0.4);
+  --color-on-dark-electric-chip: rgba(56, 189, 248, 0.15);
 
-  /* ── Typography ─────────────────────────────────────────────────────────── */
-  --font-display: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
-
+  /* ── Tipografia — escala fixa do DS (px verbatim do protótipo) ──────────── */
   --text-2xs: 10px;
   --text-xs: 11px;
   --text-sm: 12px;
-  --text-base: 13px;
+  --text-base: 13px;   /* corpo padrão do DS (sobrepõe o default do Tailwind) */
   --text-md: 14px;
   --text-lg: 15px;
   --text-xl: 17px;
   --text-2xl: 20px;
   --text-3xl: 22px;
   --text-stat: 30px;
+  /* Extensões pontuais do protótipo (títulos de painel do ETP/DFD e nota do parecer) */
+  --text-panel: 16px;
+  --text-score: 28px;
 
+  /* ── Letter-spacing ─────────────────────────────────────────────────────── */
   --tracking-tight: -0.5px;
   --tracking-heading: -0.3px;
   --tracking-caps: 0.5px;
   --tracking-caps-wide: 0.8px;
+  --tracking-stat: -1px;
+  --tracking-badge: 0.1px;
+  --tracking-display: -0.4px;
+  --tracking-stat-sm: -0.8px;
 
-  /* ── Radii ──────────────────────────────────────────────────────────────── */
+  /* ── Raios (verbatim do DS) ─────────────────────────────────────────────── */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 9px;
   --radius-xl: 10px;
   --radius-card: 12px;
-  --radius-full: 999px;
 
-  /* ── Spacing ────────────────────────────────────────────────────────────── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 28px;
+  /* ── Sombra (sistema flat — só o knob do toggle) ────────────────────────── */
+  --shadow-knob: 0 1px 3px rgba(0, 0, 0, 0.2);
 
-  /* ── Fixed chrome ───────────────────────────────────────────────────────── */
-  --sidebar-width: 240px;
-  --header-height: 60px;
-  --section-rail-width: 280px;
-  --control-height: 36px;
-  --input-height: 38px;
+  /* ── Larguras máximas de conteúdo (max-w-content, max-w-wizard...) ──────── */
+  --container-content: 1200px;
+  --container-wizard: 880px;
+  --container-review: 820px;
+  --container-settings: 900px;
+}
 
-  /* ── Borders ────────────────────────────────────────────────────────────── */
-  --border-default: 1px solid var(--color-border);
-  --border-soft: 1px solid var(--color-border-soft);
-  --border-selected: 2px solid var(--color-royal);
-  --border-dashed: 2px dashed #CBD5E1;
-  --border-on-dark: 1px solid rgba(255, 255, 255, 0.06);
-
-  /* ── Shadows (sistema flat — só o knob do toggle) ───────────────────────── */
-  --shadow-toggle-knob: 0 1px 3px rgba(0, 0, 0, 0.2);
-
-  /* ── Motion ─────────────────────────────────────────────────────────────── */
-  --transition-fast: all 0.15s;
-  --transition-bg: background 0.15s;
-  --transition-slow: all 0.2s;
-
-  /* ═══ Extensões do app (derivadas do protótipo; hex cru só aqui) ═══════════
-     Tints usados pelas views que não constam nos tokens de origem. */
-  --tint-royal-bg: #EFF6FF;
-  --tint-royal-border: #BFDBFE;
-  --tint-success-bg: #ECFDF5;
-  --tint-success-border: #A7F3D0;
-  --tint-success-fg: #065F46;
-  --tint-success-fg-soft: #047857;
-  --tint-warning-bg: #FFFBEB;
-  --tint-warning-border: #FDE68A;
-  --tint-warning-fg: #92400E;
-  --tint-warning-fg-strong: #B45309;
-  --tint-warning-chip-bg: #FEF3C7;
-  --tint-danger-bg: #FEF2F2;
-  --tint-danger-border: #FECACA;
-  --tint-danger-border-strong: #FCA5A5;
-  --tint-danger-fg: #991B1B;
-  --tint-danger-fg-strong: #B91C1C;
-  --tint-violet-bg: #F5F3FF;
-  --tint-violet-fg: #6D28D9;
-  --color-violet: #7C3AED;
-  --color-teal: #0D9488;
-  --color-green: #16A34A;
-  --color-warning-strong: #D97706;
-  --color-slate-strong: #475569;
-  --surface-upload: #FAFAFA;
+/* Gradientes — só nos usos canônicos do DS (chip da logo, avatar, progresso,
+   painel escuro, hero). Não são um namespace do Tailwind; viram utilities. */
+:root {
+  --gradient-brand: linear-gradient(135deg, #2563EB, #38BDF8);
+  --gradient-user: linear-gradient(135deg, #0D3B66, #2563EB);
+  --gradient-progress: linear-gradient(90deg, #2563EB, #38BDF8);
+  --gradient-panel: linear-gradient(135deg, #1E3A5F 0%, #0D3B66 100%);
   --gradient-hero: linear-gradient(135deg, #071A3D 0%, #0D3B66 100%);
-
-  /* Tracking complementar (protótipo) */
-  --tracking-stat: -1px;
-  --tracking-badge: 0.1px;
-  --tracking-display: -0.4px;
-  --tracking-stat-sm: -0.8px;
-
-  /* Superfícies sobre navy (sidebar, painéis escuros) */
-  --on-dark-text: #FFFFFF;
-  --on-dark-text-65: rgba(255, 255, 255, 0.65);
-  --on-dark-text-60: rgba(255, 255, 255, 0.6);
-  --on-dark-text-55: rgba(255, 255, 255, 0.55);
-  --on-dark-text-45: rgba(255, 255, 255, 0.45);
-  --on-dark-text-40: rgba(255, 255, 255, 0.4);
-  --on-dark-text-35: rgba(255, 255, 255, 0.35);
-  --on-dark-text-30: rgba(255, 255, 255, 0.3);
-  --on-dark-text-20: rgba(255, 255, 255, 0.2);
-  --on-dark-fill: rgba(255, 255, 255, 0.06);
-  --on-dark-fill-hover: rgba(255, 255, 255, 0.1);
-  --on-dark-border: rgba(255, 255, 255, 0.08);
-  --on-dark-active: rgba(37, 99, 235, 0.18);
-  --on-dark-royal-chip: rgba(37, 99, 235, 0.4);
-  --on-dark-electric-chip: rgba(56, 189, 248, 0.15);
-
-  /* Bordas compostas (derivadas do protótipo) */
-  --border-row: 1px solid var(--color-ice);
-  --border-transparent: 1px solid transparent;
-  --border-transparent-2: 2px solid transparent;
-  --border-transparent-3: 3px solid transparent;
-  --border-royal: 1px solid var(--color-royal);
-  --border-royal-2: 2px solid var(--color-royal);
-  --border-royal-3: 3px solid var(--color-royal);
-  --border-violet: 1px solid var(--color-violet);
-  --border-navy-2: 2px solid var(--color-navy);
-  --border-faint: 1px solid var(--color-text-faint);
-  --border-ice-2: 2px solid var(--color-ice);
-  --border-on-dark-soft: 1px solid var(--on-dark-border);
-  --border-tint-royal: 1px solid var(--tint-royal-border);
-  --border-tint-royal-2: 2px solid var(--tint-royal-border);
-  --border-tint-royal-3: 3px solid var(--tint-royal-border);
-  --border-tint-success: 1px solid var(--tint-success-border);
-  --border-tint-warning: 1px solid var(--tint-warning-border);
-  --border-tint-danger-2: 2px solid var(--tint-danger-border-strong);
-
-  /* Larguras de colunas/rails específicas de layout */
-  --rail-approvals: 340px;
-  --col-dash-side: 340px;
-
-  /* Larguras máximas de conteúdo */
-  --content-max: 1200px;
-  --content-max-wizard: 880px;
-  --content-max-review: 820px;
-  --content-max-settings: 900px;
 }
 
-/* ── Reset ─────────────────────────────────────────────────────────────────── */
-* {
-  box-sizing: border-box;
+@utility gradient-brand {
+  background-image: var(--gradient-brand);
+}
+@utility gradient-user {
+  background-image: var(--gradient-user);
+}
+@utility gradient-progress {
+  background-image: var(--gradient-progress);
+}
+@utility gradient-panel {
+  background-image: var(--gradient-panel);
+}
+@utility gradient-hero {
+  background-image: var(--gradient-hero);
 }
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--font-body);
-  background-color: var(--surface-app);
-  color: var(--text-body);
-  -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-}
-
-.mono {
-  font-family: var(--font-mono);
-}
-
-a {
-  color: var(--color-royal);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--color-royal-hover);
-}
-
-button, input, select, textarea {
-  font-family: var(--font-body);
-}
-
-/* ── Focus ring (correção de acessibilidade obrigatória — seção 3.3) ────────
-   O protótipo usava outline:none; aqui todo elemento interativo ganha anel
-   visível via :focus-visible, preservando a estética flat. */
-:focus {
-  outline: none;
-}
-:focus-visible {
-  outline: 2px solid var(--color-royal);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
-}
-/* Sobre superfícies navy o anel royal some — usa electric. */
-.gd-on-dark :focus-visible {
-  outline-color: var(--color-electric);
-}
-/* Inputs/áreas com borda própria: anel colado na borda. */
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--color-royal);
-  outline-offset: 0;
-  border-color: var(--color-royal);
-}
-
-/* ── Scrollbars finas (verbatim do protótipo) ──────────────────────────────── */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
-}
-
-/* ── Classes utilitárias com pseudo-estados (hover sem JS) ─────────────────── */
-
-/* Linha de tabela/lista clicável — hover para ice */
-.gd-row {
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.gd-row:hover {
-  background: var(--color-ice);
-}
-
-/* Item de navegação da sidebar (sobre navy) */
-.gd-nav-item {
-  transition: var(--transition-fast);
-}
-.gd-nav-item:hover:not(.gd-nav-item--active) {
-  background: var(--on-dark-fill);
-  color: var(--on-dark-text);
-}
-
-/* Linhas de ação rápida sobre navy */
-.gd-dark-row {
-  transition: var(--transition-bg);
-}
-.gd-dark-row:hover {
-  background: var(--on-dark-fill-hover) !important;
-}
-
-/* Barra ativa 3×20 electric à esquerda (item ativo da sidebar) */
-.gd-active-bar {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 20px;
-  background: var(--color-electric);
-  border-radius: 0 3px 3px 0;
-}
-
-/* Spinner funcional (1s linear) */
-@keyframes gd-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.gd-spinner {
-  animation: gd-spin 1s linear infinite;
-}
-
-/* ═══ Camada responsiva (mobile-first) ═══════════════════════════════════════
-   Base = celular; breakpoints: 480px · 640px (tablet) · 768px · 1024px (laptop).
-   Estilos inline não suportam media queries — todo layout que muda por
-   viewport vive nestas classes. */
-
-/* Padding de página: 16 → 20 → 28 */
-.gd-page {
-  padding: 16px;
-}
-
-/* Cabeçalho de página (saudação + CTA) — quebra em telas estreitas */
-.gd-page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-/* Grid de StatCards: 1 → 2 → 4 colunas */
-.gd-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-/* Dashboard: conteúdo + coluna lateral 340px só em telas largas */
-.gd-dash-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-/* Trio de cards (resumo de Documentos, contadores do parecer DFD) */
-.gd-grid-3 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-/* Cards de info do detalhe de Aprovações: 2 → 4 colunas */
-.gd-info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-/* Grids de formulário: 1 coluna no celular */
-.gd-form-grid-2,
-.gd-form-grid-3 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-/* Tabelas largas: rolagem horizontal dentro do card */
-.gd-table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Layout de dois painéis (ETP: rail + formulário · Aprovações: lista + detalhe):
-   empilha no celular, lado a lado com scroll interno no laptop */
-.gd-split {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Rail dos layouts split (seções do ETP, lista de Aprovações): faixa empilhada
-   no celular, coluna de largura fixa no laptop. Mecânica única — só a largura
-   difere por view. */
-.gd-etp-rail,
-.gd-approvals-rail {
-  width: 100%;
-  background: var(--color-surface);
-  border-bottom: var(--border-default);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.gd-etp-list {
-  display: flex;
-  gap: 6px;
-  padding: 10px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.gd-etp-item {
-  flex: 0 0 240px;
-}
-
-/* Área de conteúdo dos layouts split */
-.gd-split-content {
-  padding: 16px;
-}
-
-/* Botões de decisão (Aprovações): empilhados no celular */
-.gd-actions-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Tabs roláveis (Configurações) */
-.gd-tabs {
-  display: flex;
-  gap: 2px;
-  border-bottom: var(--border-default);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* StepIndicator do wizard: conectores curtos e só o rótulo ativo no celular */
-.gd-step-connector {
-  width: 16px;
-  height: 2px;
-  margin-inline: 8px;
-  transition: background 0.2s;
-}
-@media (max-width: 479px) {
-  .gd-step-label:not(.gd-step-label--active) {
-    display: none;
-  }
-}
-
-/* Visibilidade por viewport */
-.gd-only-mobile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.gd-hide-xs {
-  display: none;
-}
-.gd-hide-sm {
-  display: none;
-}
-
-/* Sidebar como drawer off-canvas abaixo de 1024px */
-.gd-sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 60;
-  transform: translateX(-100%);
-  transition: transform 0.2s ease;
-}
-.gd-sidebar--open {
-  transform: translateX(0);
-}
-.gd-sidebar-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(7, 26, 61, 0.5);
-  z-index: 55;
-}
-
-/* ── ≥480px ─────────────────────────────────────────────────────────────── */
-@media (min-width: 480px) {
-  .gd-stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .gd-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* ── ≥640px (tablet) ────────────────────────────────────────────────────── */
-@media (min-width: 640px) {
-  .gd-page {
-    padding: 20px;
-  }
-  .gd-form-grid-2 {
-    grid-template-columns: 1fr 1fr;
-  }
-  .gd-form-grid-3 {
-    grid-template-columns: 1fr 1fr;
-  }
-  .gd-step-connector {
-    width: 60px;
-    margin-inline: 12px;
-  }
-  .gd-hide-xs {
-    display: inline;
-  }
-}
-
-/* ── ≥768px ─────────────────────────────────────────────────────────────── */
-@media (min-width: 768px) {
-  .gd-info-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-  .gd-actions-stack {
-    flex-direction: row;
-    gap: 12px;
-  }
-  .gd-hide-sm {
-    display: block;
-  }
-}
-
-/* ── ≥1024px (laptop) ───────────────────────────────────────────────────── */
-@media (min-width: 1024px) {
-  .gd-page {
-    padding: 28px;
-  }
-  .gd-page-header {
-    margin-bottom: 28px;
-  }
-  .gd-stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .gd-form-grid-3 {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .gd-only-mobile {
-    display: none;
-  }
-
-  .gd-sidebar {
-    position: static;
-    transform: none;
-    transition: none;
-  }
-  .gd-sidebar-backdrop {
-    display: none;
-  }
-
-  .gd-split {
-    flex-direction: row;
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+@layer base {
+  html,
+  body {
     height: 100%;
-    overflow: hidden;
   }
-  .gd-split-content {
-    padding: 24px;
-  }
-  .gd-etp-rail,
-  .gd-approvals-rail {
-    border-bottom: none;
-    border-right: var(--border-default);
-  }
-  .gd-etp-rail {
-    width: var(--section-rail-width);
-    min-width: var(--section-rail-width);
-  }
-  .gd-approvals-rail {
-    width: var(--rail-approvals);
-    min-width: var(--rail-approvals);
-  }
-  .gd-etp-list {
-    display: block;
-    flex: 1;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  .gd-etp-item {
-    width: 100%;
-  }
-}
 
-/* ── ≥1080px: coluna lateral do dashboard ───────────────────────────────── */
-@media (min-width: 1080px) {
-  .gd-dash-grid {
-    grid-template-columns: 1fr var(--col-dash-side);
-    gap: 20px;
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-ice);
+    color: var(--color-text-1);
+    -webkit-font-smoothing: antialiased;
+    font-size: var(--text-base);
   }
-}
 
-/* Toast (mock de exportação e afins) */
-.gd-toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 100;
-  background: var(--color-navy);
-  color: var(--on-dark-text);
-  border-radius: var(--radius-xl);
-  padding: 12px 18px;
-  font-size: var(--text-base);
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: var(--border-on-dark);
-}
-
-/* Toast ocupa a largura no celular */
-@media (max-width: 480px) {
-  .gd-toast {
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
   }
-}
 
-/* Header: padding 16 no celular, 28 no laptop */
-.gd-header {
-  padding-inline: 16px;
-}
-@media (min-width: 1024px) {
-  .gd-header {
-    padding-inline: 28px;
+  a {
+    color: var(--color-royal);
   }
-}
 
-/* ── Acessibilidade: respeita a preferência por movimento reduzido ────────── */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  /* Focus ring global (correção de acessibilidade da fase — seção 3.3):
+     anel visível em todo elemento interativo via :focus-visible. */
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-royal);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+  /* Sobre superfícies navy o anel royal some — usa electric. */
+  .on-dark :focus-visible {
+    outline-color: var(--color-electric);
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-royal);
+    outline-offset: 0;
+    border-color: var(--color-royal);
+  }
+
+  /* Scrollbars finas (verbatim do protótipo) */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-text-faint);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+  }
+
+  /* Acessibilidade: respeita a preferência por movimento reduzido */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

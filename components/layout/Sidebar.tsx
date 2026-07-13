@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import type { ReactNode } from "react"
 
 import {
   IconBuilding,
@@ -13,16 +13,16 @@ import {
   IconFileText,
   IconMoreVertical,
   IconSettings,
-} from "@/components/ui/icons";
-import { useFilaAprovacoes, useUsuarioAtual } from "@/lib/api/hooks";
+} from "@/components/ui/icons"
+import { useFilaAprovacoes, useUsuarioAtual } from "@/lib/api/hooks"
 
 interface NavItem {
-  href: string;
-  label: string;
-  icon: ReactNode;
-  badge?: number;
+  href: string
+  label: string
+  icon: ReactNode
+  badge?: number
   /** Prefixos extras que mantêm o item ativo (ex.: /processos/... ). */
-  match?: (pathname: string) => boolean;
+  match?: (pathname: string) => boolean
 }
 
 function NavLink({
@@ -30,88 +30,41 @@ function NavLink({
   active,
   onNavigate,
 }: {
-  item: NavItem;
-  active: boolean;
-  onNavigate?: () => void;
+  item: NavItem
+  active: boolean
+  onNavigate?: () => void
 }) {
   return (
     <Link
       href={item.href}
       onClick={onNavigate}
-      className={`gd-nav-item${active ? " gd-nav-item--active" : ""}`}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        width: "100%",
-        paddingBlock: 9,
-        paddingInline: 10,
-        borderRadius: "var(--radius-md)",
-        background: active ? "var(--on-dark-active)" : "transparent",
-        color: active ? "var(--on-dark-text)" : "var(--on-dark-text-55)",
-        fontSize: 13,
-        fontWeight: active ? 600 : 500,
-        textAlign: "left",
-        position: "relative",
-        marginBottom: 2,
-        textDecoration: "none",
-      }}
+      className={`relative mb-0.5 flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.25 text-left text-base no-underline transition-colors ${
+        active
+          ? "bg-on-dark-active font-semibold text-on-dark"
+          : "font-medium text-on-dark-55 hover:bg-on-dark-fill hover:text-on-dark"
+      }`}
     >
-      {active && <span className="gd-active-bar" />}
-      <span
-        style={{
-          color: active ? "var(--color-electric)" : "inherit",
-          display: "flex",
-        }}
-      >
-        {item.icon}
-      </span>
-      <span style={{ flex: 1 }}>{item.label}</span>
+      {/* Barra ativa 3×20 electric à esquerda */}
+      {active && <span className="absolute top-1/2 left-0 h-5 w-0.75 -translate-y-1/2 rounded-r-[3px] bg-electric" />}
+      <span className={`flex ${active ? "text-electric" : "text-inherit"}`}>{item.icon}</span>
+      <span className="flex-1">{item.label}</span>
       {item.badge != null && item.badge > 0 && (
-        <span
-          style={{
-            background: "var(--color-danger)",
-            color: "var(--on-dark-text)",
-            fontSize: 10,
-            fontWeight: 700,
-            borderRadius: "var(--radius-full)",
-            paddingBlock: 1,
-            paddingInline: 6,
-            minWidth: 18,
-            textAlign: "center",
-          }}
-        >
+        <span className="min-w-4.5 rounded-full bg-danger px-1.5 py-px text-center text-2xs font-bold text-on-dark">
           {item.badge}
         </span>
       )}
     </Link>
-  );
+  )
 }
 
-function SectionLabel({
-  children,
-  top,
-}: {
-  children: ReactNode;
-  top?: boolean;
-}) {
+function SectionLabel({ children, top }: { children: ReactNode; top?: boolean }) {
   return (
     <div
-      style={{
-        fontSize: 10,
-        color: "var(--on-dark-text-30)",
-        fontWeight: 600,
-        letterSpacing: "var(--tracking-caps-wide)",
-        textTransform: "uppercase",
-        paddingBlock: 4,
-        paddingInline: 8,
-        marginBottom: 4,
-        marginTop: top ? 0 : 16,
-      }}
+      className={`mb-1 px-2 py-1 text-2xs font-semibold tracking-caps-wide text-on-dark-30 uppercase ${top ? "mt-0" : "mt-4"}`}
     >
       {children}
     </div>
-  );
+  )
 }
 
 export default function Sidebar({
@@ -119,14 +72,14 @@ export default function Sidebar({
   onNavigate,
 }: {
   /** Drawer aberto (só tem efeito abaixo de 1024px; no laptop a sidebar é fixa). */
-  aberta?: boolean;
-  onNavigate?: () => void;
+  aberta?: boolean
+  onNavigate?: () => void
 }) {
-  const pathname = usePathname();
-  const { data: usuario } = useUsuarioAtual();
-  const { data: fila } = useFilaAprovacoes();
+  const pathname = usePathname()
+  const { data: usuario } = useUsuarioAtual()
+  const { data: fila } = useFilaAprovacoes()
 
-  const pendentes = fila?.filter((a) => a.status === "aguardando").length;
+  const pendentes = fila?.filter((a) => a.status === "aguardando").length
 
   const navItems: NavItem[] = [
     {
@@ -154,7 +107,7 @@ export default function Sidebar({
       icon: <IconDownload size={18} />,
       match: (p) => p.startsWith("/documentos"),
     },
-  ];
+  ]
 
   const bottomItems: NavItem[] = [
     {
@@ -163,44 +116,18 @@ export default function Sidebar({
       icon: <IconSettings size={18} />,
       match: (p) => p.startsWith("/configuracoes"),
     },
-  ];
+  ]
 
   return (
     <aside
-      className={`gd-on-dark gd-sidebar${aberta ? " gd-sidebar--open" : ""}`}
-      style={{
-        width: "var(--sidebar-width)",
-        minWidth: "var(--sidebar-width)",
-        background: "var(--surface-sidebar)",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        overflow: "hidden",
-      }}
+      className={`on-dark fixed inset-y-0 left-0 z-60 flex h-full w-60 min-w-60 flex-col overflow-hidden bg-navy transition-transform duration-200 lg:static lg:translate-x-0 lg:transition-none ${
+        aberta ? "translate-x-0" : "-translate-x-full"
+      }`}
     >
       {/* Logo — wordmark GeraDocs (correção 3.3.1): chip gradiente 34px + texto */}
-      <div
-        style={{
-          paddingTop: 24,
-          paddingInline: 20,
-          paddingBottom: 20,
-          borderBottom: "var(--border-on-dark)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              background: "var(--gradient-brand)",
-              borderRadius: "var(--radius-md)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              color: "var(--on-dark-text)",
-            }}
-          >
+      <div className="border-b border-on-dark-border px-5 pt-6 pb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8.5 shrink-0 items-center justify-center rounded-md text-on-dark gradient-brand">
             <svg
               width="18"
               height="18"
@@ -218,116 +145,34 @@ export default function Sidebar({
             </svg>
           </div>
           <div>
-            <div
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                fontSize: 15,
-                color: "var(--on-dark-text)",
-                letterSpacing: "var(--tracking-heading)",
-              }}
-            >
-              GeraDocs
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--on-dark-text-40)",
-                fontWeight: 500,
-                letterSpacing: "var(--tracking-caps)",
-                textTransform: "uppercase",
-                marginTop: 1,
-              }}
-            >
-              LAHHM · Gov
-            </div>
+            <div className="font-display text-lg font-bold tracking-heading text-on-dark">GeraDocs</div>
+            <div className="mt-px text-2xs font-medium tracking-caps text-on-dark-40 uppercase">LAHHM · GOV</div>
           </div>
         </div>
       </div>
 
       {/* Órgão atual */}
-      <div
-        style={{
-          paddingBlock: 14,
-          paddingInline: 20,
-          borderBottom: "var(--border-on-dark)",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 10,
-            color: "var(--on-dark-text-35)",
-            fontWeight: 600,
-            letterSpacing: "var(--tracking-caps-wide)",
-            textTransform: "uppercase",
-            marginBottom: 6,
-          }}
-        >
-          Órgão Atual
-        </div>
+      <div className="border-b border-on-dark-border px-5 py-3.5">
+        <div className="mb-1.5 text-2xs font-semibold tracking-caps-wide text-on-dark-35 uppercase">Órgão Atual</div>
         <button
           type="button"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "var(--on-dark-fill)",
-            border: "none",
-            borderRadius: "var(--radius-md)",
-            paddingBlock: 8,
-            paddingInline: 10,
-            cursor: "pointer",
-            width: "100%",
-            textAlign: "left",
-          }}
+          className="flex w-full cursor-pointer items-center gap-2 rounded-md border-0 bg-on-dark-fill px-2.5 py-2 text-left"
         >
-          <span
-            style={{
-              width: 22,
-              height: 22,
-              background: "var(--on-dark-royal-chip)",
-              borderRadius: 5,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              color: "var(--color-electric)",
-            }}
-          >
+          <span className="flex size-5.5 shrink-0 items-center justify-center rounded-[5px] bg-on-dark-royal-chip text-electric">
             <IconBuilding size={12} strokeWidth={2.5} />
           </span>
-          <span style={{ flex: 1, minWidth: 0, display: "block" }}>
-            <span
-              style={{
-                display: "block",
-                fontSize: 12,
-                color: "var(--on-dark-text)",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              Pref. de São Paulo
-            </span>
-            <span
-              style={{
-                display: "block",
-                fontSize: 10,
-                color: "var(--on-dark-text-40)",
-              }}
-            >
-              Secretaria de Compras
-            </span>
+          <span className="block min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-on-dark">Pref. de São Paulo</span>
+            <span className="block text-2xs text-on-dark-40">Secretaria de Compras</span>
           </span>
-          <span style={{ display: "flex", color: "var(--on-dark-text-30)" }}>
+          <span className="flex text-on-dark-30">
             <IconChevronDown size={12} strokeWidth={2.5} />
           </span>
         </button>
       </div>
 
       {/* Navegação */}
-      <nav style={{ flex: 1, padding: 12, overflowY: "auto" }}>
+      <nav className="flex-1 overflow-y-auto p-3">
         <SectionLabel top>Principal</SectionLabel>
         {navItems.map((item) => (
           <NavLink
@@ -350,73 +195,22 @@ export default function Sidebar({
       </nav>
 
       {/* Usuário */}
-      <div
-        style={{
-          paddingBlock: 12,
-          paddingInline: 16,
-          borderTop: "var(--border-on-dark)",
-        }}
-      >
-        <button
-          type="button"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            cursor: "pointer",
-            background: "none",
-            border: "none",
-            width: "100%",
-            textAlign: "left",
-            padding: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: "var(--radius-full)",
-              background: "var(--gradient-user)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 13,
-              fontWeight: 700,
-              color: "var(--on-dark-text)",
-              flexShrink: 0,
-            }}
-          >
+      <div className="border-t border-on-dark-border px-4 py-3">
+        <button type="button" className="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent p-0 text-left">
+          <span className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-base font-bold text-on-dark gradient-user">
             {usuario?.iniciais ?? "—"}
           </span>
-          <span style={{ flex: 1, minWidth: 0, display: "block" }}>
-            <span
-              style={{
-                display: "block",
-                fontSize: 13,
-                color: "var(--on-dark-text)",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
+          <span className="block min-w-0 flex-1">
+            <span className="block truncate text-base font-semibold text-on-dark">
               {usuario?.nome ?? "Carregando..."}
             </span>
-            <span
-              style={{
-                display: "block",
-                fontSize: 11,
-                color: "var(--on-dark-text-40)",
-              }}
-            >
-              {usuario?.descricao ?? ""}
-            </span>
+            <span className="block text-xs text-on-dark-40">{usuario?.descricao ?? ""}</span>
           </span>
-          <span style={{ display: "flex", color: "var(--on-dark-text-30)" }}>
+          <span className="flex text-on-dark-30">
             <IconMoreVertical size={14} />
           </span>
         </button>
       </div>
     </aside>
-  );
+  )
 }

@@ -1,68 +1,45 @@
-import type { CSSProperties, ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import { IconInfo } from "@/components/ui/icons"
 import type { StatusDocumento, StatusProcesso } from "@/lib/types"
 
 /** Badge de status de processo com ponto colorido — vocabulário fixo. */
-const statusCfg: Record<StatusProcesso, { label: string; bg: string; color: string; dot: string }> = {
-  rascunho: { label: "Rascunho", bg: "var(--status-draft-bg)", color: "var(--status-draft-fg)", dot: "var(--status-draft-dot)" },
-  em_revisao: { label: "Em Revisão", bg: "var(--status-review-bg)", color: "var(--status-review-fg)", dot: "var(--status-review-dot)" },
-  aguardando: { label: "Aguardando", bg: "var(--status-waiting-bg)", color: "var(--status-waiting-fg)", dot: "var(--status-waiting-dot)" },
-  aprovado: { label: "Aprovado", bg: "var(--status-approved-bg)", color: "var(--status-approved-fg)", dot: "var(--status-approved-dot)" },
-  rejeitado: { label: "Rejeitado", bg: "var(--status-rejected-bg)", color: "var(--status-rejected-fg)", dot: "var(--status-rejected-dot)" },
-  concluido: { label: "Concluído", bg: "var(--status-done-bg)", color: "var(--status-done-fg)", dot: "var(--status-done-dot)" },
+const statusCfg: Record<StatusProcesso, { label: string; pill: string; dot: string }> = {
+  rascunho: { label: "Rascunho", pill: "bg-status-draft-bg text-status-draft-fg", dot: "bg-status-draft-dot" },
+  em_revisao: { label: "Em Revisão", pill: "bg-status-review-bg text-status-review-fg", dot: "bg-status-review-dot" },
+  aguardando: { label: "Aguardando", pill: "bg-status-waiting-bg text-status-waiting-fg", dot: "bg-status-waiting-dot" },
+  aprovado: { label: "Aprovado", pill: "bg-status-approved-bg text-status-approved-fg", dot: "bg-status-approved-dot" },
+  rejeitado: { label: "Rejeitado", pill: "bg-status-rejected-bg text-status-rejected-fg", dot: "bg-status-rejected-dot" },
+  concluido: { label: "Concluído", pill: "bg-status-done-bg text-status-done-fg", dot: "bg-status-done-dot" },
 }
 
 export function StatusBadge({ status, size = "md" }: { status: StatusProcesso; size?: "sm" | "md" }) {
   const c = statusCfg[status]
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        background: c.bg,
-        color: c.color,
-        borderRadius: "var(--radius-full)",
-        paddingBlock: size === "sm" ? 2 : 3,
-        paddingInline: size === "sm" ? 8 : 10,
-        fontSize: size === "sm" ? 11 : 12,
-        fontWeight: 600,
-        letterSpacing: "var(--tracking-badge)",
-        whiteSpace: "nowrap",
-      }}
+      className={`inline-flex items-center gap-1.25 rounded-full font-semibold tracking-badge whitespace-nowrap ${c.pill} ${
+        size === "sm" ? "px-2 py-0.5 text-xs" : "px-2.5 py-0.75 text-sm"
+      }`}
     >
-      <span style={{ width: 5, height: 5, borderRadius: "var(--radius-full)", background: c.dot, flexShrink: 0 }} />
+      <span className={`size-1.25 shrink-0 rounded-full ${c.dot}`} />
       {c.label}
     </span>
   )
 }
 
 /** Pill quadrada para estados de documento (colunas ETP/TR) — vocabulário fixo. */
-const docCfg: Record<StatusDocumento, { bg: string; color: string }> = {
-  "Completo": { bg: "var(--tint-success-bg)", color: "var(--tint-success-fg)" },
-  "Em andamento": { bg: "var(--tint-royal-bg)", color: "var(--color-royal-hover)" },
-  "Em revisão": { bg: "var(--tint-warning-chip-bg)", color: "var(--tint-warning-fg)" },
-  "Rejeitado": { bg: "var(--tint-danger-bg)", color: "var(--tint-danger-fg)" },
-  "Não iniciado": { bg: "var(--color-border-soft)", color: "var(--color-slate-strong)" },
+const docCfg: Record<StatusDocumento, string> = {
+  "Completo": "bg-tint-success-bg text-tint-success-fg",
+  "Em andamento": "bg-tint-royal-bg text-royal-hover",
+  "Em revisão": "bg-tint-warning-chip-bg text-tint-warning-fg",
+  "Rejeitado": "bg-tint-danger-bg text-tint-danger-fg",
+  "Não iniciado": "bg-border-soft text-slate-strong",
 }
 
-export function DocPill({ status, bg, color }: { status: string; bg?: string; color?: string }) {
-  const c = docCfg[status as StatusDocumento] ?? (bg && color ? { bg, color } : docCfg["Não iniciado"])
+export function DocPill({ status, classes }: { status: string; classes?: string }) {
+  const cor = classes ?? docCfg[status as StatusDocumento] ?? docCfg["Não iniciado"]
   return (
-    <span
-      style={{
-        fontSize: 11,
-        background: c.bg,
-        color: c.color,
-        borderRadius: "var(--radius-sm)",
-        paddingBlock: 2,
-        paddingInline: 8,
-        fontWeight: 600,
-        whiteSpace: "nowrap",
-        display: "inline-block",
-      }}
-    >
+    <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-semibold whitespace-nowrap ${cor}`}>
       {status}
     </span>
   )
@@ -70,30 +47,17 @@ export function DocPill({ status, bg, color }: { status: string; bg?: string; co
 
 /** Micro tag: Obrigatório / Opcional / Recomendado / Urgente etc. */
 const tagTones = {
-  info: { bg: "var(--tint-royal-bg)", color: "var(--color-royal-hover)" },
-  success: { bg: "var(--tint-success-bg)", color: "var(--tint-success-fg)" },
-  warning: { bg: "var(--tint-warning-chip-bg)", color: "var(--tint-warning-fg)" },
-  danger: { bg: "var(--tint-danger-bg)", color: "var(--tint-danger-fg)" },
-  violet: { bg: "var(--tint-violet-bg)", color: "var(--tint-violet-fg)" },
-  neutral: { bg: "var(--color-border-soft)", color: "var(--color-slate-strong)" },
+  info: "bg-tint-royal-bg text-royal-hover",
+  success: "bg-tint-success-bg text-tint-success-fg",
+  warning: "bg-tint-warning-chip-bg text-tint-warning-fg",
+  danger: "bg-tint-danger-bg text-tint-danger-fg",
+  violet: "bg-tint-violet-bg text-tint-violet-fg",
+  neutral: "bg-border-soft text-slate-strong",
 } as const
 
 export function Tag({ children, tone = "info" }: { children: ReactNode; tone?: keyof typeof tagTones }) {
-  const c = tagTones[tone]
   return (
-    <span
-      style={{
-        fontSize: 10,
-        background: c.bg,
-        color: c.color,
-        borderRadius: "var(--radius-sm)",
-        paddingBlock: 2,
-        paddingInline: 7,
-        fontWeight: 700,
-        whiteSpace: "nowrap",
-        display: "inline-block",
-      }}
-    >
+    <span className={`inline-block rounded-sm px-1.75 py-0.5 text-2xs font-bold whitespace-nowrap ${tagTones[tone]}`}>
       {children}
     </span>
   )
@@ -106,71 +70,33 @@ export function StatCard({
   sub,
   trend = "up",
   icon,
-  color = "var(--color-royal)",
-  bg = "var(--tint-royal-bg)",
+  iconClasses = "bg-tint-royal-bg text-royal",
 }: {
   label: string
   value: string
   sub?: string
   trend?: "up" | "warn"
   icon: ReactNode
-  color?: string
-  bg?: string
+  /** Classes de cor do chip do ícone (ex.: "bg-tint-warning-bg text-warning-strong"). */
+  iconClasses?: string
 }) {
   const warn = trend === "warn"
   return (
-    <div
-      style={{
-        background: "var(--surface-card)",
-        border: "var(--border-default)",
-        borderRadius: "var(--radius-card)",
-        padding: 20,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            background: bg,
-            borderRadius: "var(--radius-xl)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color,
-          }}
-        >
-          {icon}
-        </div>
+    <div className="rounded-card border border-border bg-surface p-5">
+      <div className="mb-3 flex items-start justify-between">
+        <div className={`flex size-10 items-center justify-center rounded-xl ${iconClasses}`}>{icon}</div>
         {sub && (
           <span
-            style={{
-              fontSize: 11,
-              color: warn ? "var(--color-warning-strong)" : "var(--color-green)",
-              background: warn ? "var(--tint-warning-bg)" : "var(--status-done-bg)",
-              borderRadius: "var(--radius-sm)",
-              paddingBlock: 2,
-              paddingInline: 7,
-              fontWeight: 600,
-            }}
+            className={`rounded-sm px-1.75 py-0.5 text-xs font-semibold ${
+              warn ? "bg-tint-warning-bg text-warning-strong" : "bg-status-done-bg text-green"
+            }`}
           >
             {warn ? "!" : "↑"} {sub}
           </span>
         )}
       </div>
-      <div
-        style={{
-          fontSize: "var(--text-stat)",
-          fontWeight: 800,
-          color: "var(--text-body)",
-          fontFamily: "var(--font-display)",
-          letterSpacing: "var(--tracking-stat)",
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </div>
-      <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4, fontWeight: 500 }}>{label}</div>
+      <div className="font-display text-stat leading-none font-extrabold tracking-stat text-text-1">{value}</div>
+      <div className="mt-1 text-base font-medium text-text-3">{label}</div>
     </div>
   )
 }
@@ -180,103 +106,72 @@ export function ProgressBar({
   percent,
   label,
   sub,
-  height = 6,
+  barClasses = "h-1.5",
   transition = "width 0.5s",
 }: {
   percent: number
   label?: string
   sub?: string
-  height?: number
+  /** Altura da trilha (ex.: "h-2" para a análise do DFD). */
+  barClasses?: string
   transition?: string
 }) {
   return (
     <div>
       {label != null && (
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-label)" }}>{label}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-royal)" }}>{Math.round(percent)}%</span>
+        <div className="mb-1.5 flex justify-between">
+          <span className="text-sm font-semibold text-text-2">{label}</span>
+          <span className="text-sm font-bold text-royal">{Math.round(percent)}%</span>
         </div>
       )}
-      <div style={{ height, background: "var(--color-border-soft)", borderRadius: "var(--radius-full)", overflow: "hidden" }}>
-        <div
-          style={{
-            width: `${percent}%`,
-            height: "100%",
-            background: "var(--gradient-progress)",
-            borderRadius: "var(--radius-full)",
-            transition,
-          }}
-        />
+      <div className={`overflow-hidden rounded-full bg-border-soft ${barClasses}`}>
+        <div className="h-full rounded-full gradient-progress" style={{ width: `${percent}%`, transition }} />
       </div>
-      {sub && <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 5 }}>{sub}</div>}
+      {sub && <div className="mt-1.25 text-xs text-text-muted">{sub}</div>}
     </div>
   )
 }
 
 /** Mensagem de validação inline sob campos. */
 const validationCfg = {
-  ok: { bg: "var(--tint-success-bg)", color: "var(--tint-success-fg)", icon: "✓" },
-  warn: { bg: "var(--tint-warning-bg)", color: "var(--tint-warning-fg)", icon: "!" },
-  error: { bg: "var(--tint-danger-bg)", color: "var(--tint-danger-fg)", icon: "✕" },
+  ok: { classes: "bg-tint-success-bg text-tint-success-fg", icon: "✓" },
+  warn: { classes: "bg-tint-warning-bg text-tint-warning-fg", icon: "!" },
+  error: { classes: "bg-tint-danger-bg text-tint-danger-fg", icon: "✕" },
 } as const
 
 export function ValidationMsg({ type = "ok", msg }: { type?: "ok" | "warn" | "error"; msg: string }) {
   const c = validationCfg[type]
   return (
-    <div
-      style={{
-        background: c.bg,
-        borderRadius: 7,
-        paddingBlock: 8,
-        paddingInline: 12,
-        marginTop: 10,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-      }}
-    >
-      <span style={{ color: c.color, fontWeight: 700, fontSize: 13 }}>{c.icon}</span>
-      <span style={{ fontSize: 12, color: c.color, fontWeight: 500 }}>{msg}</span>
+    <div className={`mt-2.5 flex items-center gap-2 rounded-[7px] px-3 py-2 ${c.classes}`}>
+      <span className="text-base font-bold">{c.icon}</span>
+      <span className="text-sm font-medium">{msg}</span>
     </div>
   )
 }
 
 /** Banner informativo com borda (azul/âmbar/vermelho/verde). */
 const bannerTones = {
-  info: { bg: "var(--tint-royal-bg)", border: "var(--tint-royal-border)", color: "var(--color-royal-hover)" },
-  warning: { bg: "var(--tint-warning-bg)", border: "var(--tint-warning-border)", color: "var(--tint-warning-fg)" },
-  danger: { bg: "var(--tint-danger-bg)", border: "var(--tint-danger-border)", color: "var(--tint-danger-fg)" },
-  success: { bg: "var(--tint-success-bg)", border: "var(--tint-success-border)", color: "var(--tint-success-fg)" },
+  info: "bg-tint-royal-bg border-tint-royal-border text-royal-hover",
+  warning: "bg-tint-warning-bg border-tint-warning-border text-tint-warning-fg",
+  danger: "bg-tint-danger-bg border-tint-danger-border text-tint-danger-fg",
+  success: "bg-tint-success-bg border-tint-success-border text-tint-success-fg",
 } as const
 
 export function InfoBanner({
   tone = "info",
   children,
   icon,
-  style,
+  className = "",
 }: {
   tone?: keyof typeof bannerTones
   children: ReactNode
   icon?: ReactNode
-  style?: CSSProperties
+  className?: string
 }) {
-  const c = bannerTones[tone]
   return (
-    <div
-      style={{
-        background: c.bg,
-        border: `1px solid ${c.border}`,
-        borderRadius: "var(--radius-xl)",
-        paddingBlock: 12,
-        paddingInline: 14,
-        display: "flex",
-        gap: 10,
-        alignItems: "flex-start",
-        ...style,
-      }}
-    >
-      <span style={{ flexShrink: 0, marginTop: 1, display: "flex", color: c.color }}>{icon ?? <IconInfo size={16} />}</span>
-      <div style={{ margin: 0, fontSize: 13, color: c.color, lineHeight: 1.5 }}>{children}</div>
+    <div className={`flex items-start gap-2.5 rounded-xl border px-3.5 py-3 ${bannerTones[tone]} ${className}`}>
+      <span className="mt-px flex shrink-0">{icon ?? <IconInfo size={16} />}</span>
+      <div className="text-base leading-normal">{children}</div>
     </div>
   )
 }

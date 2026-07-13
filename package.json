@@ -12,11 +12,13 @@
     "check": "npm run lint && npm run lint:ds && npm run typecheck"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
     "@tanstack/react-query": "^5.101.2",
     "client-only": "^0.0.1",
     "next": "^16.2.10",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@types/node": "^24.10.9",

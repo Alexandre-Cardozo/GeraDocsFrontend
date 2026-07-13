@@ -1,51 +1,31 @@
 "use client"
 
-import type { ChangeEvent, CSSProperties, ReactNode, SelectHTMLAttributes } from "react"
+import type { ChangeEvent, ReactNode, SelectHTMLAttributes } from "react"
 
 import { IconCheck, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
 
-const controleBase: CSSProperties = {
-  width: "100%",
-  paddingBlock: 10,
-  paddingInline: 13,
-  border: "var(--border-default)",
-  borderRadius: "var(--radius-md)",
-  fontSize: 14,
-  color: "var(--text-body)",
-  background: "var(--color-surface)",
-  fontFamily: "var(--font-body)",
-  boxSizing: "border-box",
-}
+/** Base compartilhada dos controles de formulário (input 14px, raio 8, borda). */
+const controleBase = "w-full rounded-md border border-border bg-surface px-3.25 py-2.5 font-body text-md text-text-1"
 
 export function Input({
   value,
   onChange,
   placeholder,
   prefix,
-  style,
+  className = "",
   id,
 }: {
   value?: string
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
   placeholder?: string
   prefix?: string
-  style?: CSSProperties
+  className?: string
   id?: string
 }) {
   if (prefix) {
     return (
-      <div style={{ position: "relative" }}>
-        <span
-          style={{
-            position: "absolute",
-            left: 12,
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontSize: 13,
-            color: "var(--text-secondary)",
-            fontWeight: 600,
-          }}
-        >
+      <div className="relative">
+        <span className="absolute top-1/2 left-3 -translate-y-1/2 text-base font-semibold text-text-3">
           {prefix}
         </span>
         <input
@@ -53,12 +33,14 @@ export function Input({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          style={{ ...controleBase, paddingLeft: 32, ...style }}
+          className={`${controleBase} pl-8 ${className}`}
         />
       </div>
     )
   }
-  return <input id={id} value={value} onChange={onChange} placeholder={placeholder} style={{ ...controleBase, ...style }} />
+  return (
+    <input id={id} value={value} onChange={onChange} placeholder={placeholder} className={`${controleBase} ${className}`} />
+  )
 }
 
 export function Textarea({
@@ -66,14 +48,14 @@ export function Textarea({
   onChange,
   placeholder,
   rows = 4,
-  style,
+  className = "",
   id,
 }: {
   value?: string
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void
   placeholder?: string
   rows?: number
-  style?: CSSProperties
+  className?: string
   id?: string
 }) {
   return (
@@ -83,18 +65,18 @@ export function Textarea({
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}
-      style={{ ...controleBase, resize: "vertical", lineHeight: 1.6, ...style }}
+      className={`${controleBase} resize-y leading-[1.6] ${className}`}
     />
   )
 }
 
 export function Select({
-  style,
+  className = "",
   children,
   ...rest
 }: SelectHTMLAttributes<HTMLSelectElement> & { children: ReactNode }) {
   return (
-    <select style={{ ...controleBase, ...style }} {...rest}>
+    <select className={`${controleBase} ${className}`} {...rest}>
       {children}
     </select>
   )
@@ -114,11 +96,11 @@ export function FormField({
 }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-label)", marginBottom: 6 }}>
+      <label className="mb-1.5 block text-base font-semibold text-text-2">
         {label}
-        {required && <span style={{ color: "var(--color-danger)", marginLeft: 4 }}>*</span>}
+        {required && <span className="ml-1 text-danger">*</span>}
       </label>
-      {hint && <p style={{ margin: 0, marginBottom: 8, fontSize: 12, color: "var(--color-text-muted)" }}>{hint}</p>}
+      {hint && <p className="mb-2 text-sm text-text-muted">{hint}</p>}
       {children}
     </div>
   )
@@ -138,27 +120,16 @@ export function FileUpload({
 }) {
   if (file) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          background: "var(--color-ice)",
-          border: "var(--border-default)",
-          borderRadius: "var(--radius-md)",
-          paddingBlock: 10,
-          paddingInline: 14,
-        }}
-      >
-        <span style={{ display: "flex", color: "var(--color-royal)" }}>
+      <div className="flex items-center gap-2.5 rounded-md border border-border bg-ice px-3.5 py-2.5">
+        <span className="flex text-royal">
           <IconFile size={16} />
         </span>
-        <span style={{ flex: 1, fontSize: 13, color: "var(--text-label)", fontWeight: 500 }}>{file}</span>
+        <span className="flex-1 text-base font-medium text-text-2">{file}</span>
         <button
           type="button"
           aria-label="Remover arquivo"
           onClick={() => onChange(null)}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: 2, display: "flex" }}
+          className="flex cursor-pointer border-0 bg-transparent p-0.5 text-text-muted"
         >
           <IconX size={14} strokeWidth={2.5} />
         </button>
@@ -166,32 +137,22 @@ export function FileUpload({
     )
   }
   return (
-    <label style={{ display: "block", cursor: "pointer" }}>
+    <label className="block cursor-pointer">
       <input
         type="file"
         accept={accept}
-        style={{ display: "none" }}
+        className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0]
           if (f) onChange(f.name)
         }}
       />
-      <div
-        style={{
-          border: "var(--border-dashed)",
-          borderRadius: "var(--radius-md)",
-          paddingBlock: 18,
-          paddingInline: 20,
-          textAlign: "center",
-          transition: "var(--transition-fast)",
-          background: "var(--surface-upload)",
-        }}
-      >
-        <span style={{ display: "block", width: 20, margin: "0 auto", marginBottom: 8, color: "var(--color-text-muted)" }}>
+      <div className="rounded-md border-2 border-dashed border-text-faint bg-surface-upload px-5 py-4.5 text-center transition-colors">
+        <span className="mx-auto mb-2 block w-5 text-text-muted">
           <IconUpload size={20} strokeWidth={1.5} />
         </span>
-        <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)" }}>{placeholder}</p>
-        <p style={{ margin: 0, marginTop: 4, fontSize: 11, color: "var(--color-text-muted)" }}>
+        <p className="m-0 text-base text-text-3">{placeholder}</p>
+        <p className="mt-1 mb-0 text-xs text-text-muted">
           {accept.replace(/\./g, "").toUpperCase().replace(/,/g, ", ")}
         </p>
       </div>
@@ -201,20 +162,9 @@ export function FileUpload({
 
 /** Círculo royal preenchido com check branco. */
 export function CheckMark({ small }: { small?: boolean }) {
-  const s = small ? 16 : 20
   return (
     <span
-      style={{
-        width: s,
-        height: s,
-        borderRadius: "var(--radius-full)",
-        background: "var(--color-royal)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: "var(--color-surface)",
-      }}
+      className={`flex shrink-0 items-center justify-center rounded-full bg-royal text-surface ${small ? "size-4" : "size-5"}`}
     >
       <IconCheck size={small ? 9 : 11} strokeWidth={3.5} />
     </span>
@@ -241,39 +191,16 @@ export function ChoiceCard({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        paddingBlock: size === "small" ? 12 : 16,
-        paddingInline: size === "small" ? 16 : 20,
-        borderRadius: "var(--radius-card)",
-        border: selected ? "var(--border-selected)" : "var(--border-default)",
-        background: selected ? "var(--tint-royal-bg)" : "var(--color-surface)",
-        cursor: "pointer",
-        textAlign: "left",
-        transition: "var(--transition-fast)",
-        width: "100%",
-      }}
+      className={`flex w-full cursor-pointer items-center gap-3.5 rounded-card text-left transition-colors ${
+        size === "small" ? "px-4 py-3" : "px-5 py-4"
+      } ${selected ? "border-2 border-royal bg-tint-royal-bg" : "border border-border bg-surface"}`}
     >
-      {icon && <span style={{ display: "flex", alignItems: "center", flexShrink: 0, color: "var(--color-royal)" }}>{icon}</span>}
-      <span style={{ flex: 1, display: "block" }}>
-        <span
-          style={{
-            display: "block",
-            fontSize: size === "small" ? 13 : 14,
-            fontWeight: 700,
-            color: "var(--text-body)",
-            fontFamily: "var(--font-display)",
-          }}
-        >
+      {icon && <span className="flex shrink-0 items-center text-royal">{icon}</span>}
+      <span className="block flex-1">
+        <span className={`block font-display font-bold text-text-1 ${size === "small" ? "text-base" : "text-md"}`}>
           {title}
         </span>
-        {desc && (
-          <span style={{ display: "block", fontSize: size === "small" ? 12 : 13, color: "var(--text-secondary)", marginTop: 2 }}>
-            {desc}
-          </span>
-        )}
+        {desc && <span className={`mt-0.5 block text-text-3 ${size === "small" ? "text-sm" : "text-base"}`}>{desc}</span>}
       </span>
       {selected && <CheckMark small={size === "small"} />}
     </button>
@@ -286,64 +213,33 @@ export function SearchInput({
   value,
   onChange,
   kbd,
-  width = 240,
-  background = "var(--color-ice)",
+  tone = "ice",
   grow,
 }: {
   placeholder?: string
   value?: string
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
   kbd?: string
-  width?: number
-  background?: string
+  tone?: "ice" | "surface"
   grow?: boolean
 }) {
   return (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        background,
-        border: "var(--border-default)",
-        borderRadius: "var(--radius-md)",
-        paddingInline: 12,
-        height: 36,
-        width: grow ? undefined : width,
-        flexGrow: grow ? 1 : undefined, flexShrink: grow ? 1 : undefined, flexBasis: grow ? 260 : undefined,
-        maxWidth: grow ? 320 : undefined,
-      }}
+      className={`flex h-9 items-center gap-2 rounded-md border border-border px-3 ${tone === "ice" ? "bg-ice" : "bg-surface"} ${
+        grow ? "max-w-80 flex-[1_1_260px]" : "w-60"
+      }`}
     >
-      <span style={{ display: "flex", color: "var(--color-text-muted)" }}>
+      <span className="flex text-text-muted">
         <IconSearch size={14} />
       </span>
       <input
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        style={{
-          border: "none",
-          background: "transparent",
-          fontSize: 13,
-          color: "var(--text-body)",
-          width: "100%",
-          fontFamily: "var(--font-body)",
-        }}
+        className="w-full border-0 bg-transparent font-body text-base text-text-1"
       />
       {kbd && (
-        <span
-          style={{
-            fontSize: 11,
-            color: "var(--color-text-faint)",
-            fontFamily: "var(--font-mono)",
-            background: "var(--color-border-soft)",
-            paddingBlock: 2,
-            paddingInline: 5,
-            borderRadius: "var(--radius-xs)",
-          }}
-        >
-          {kbd}
-        </span>
+        <span className="rounded-xs bg-border-soft px-1.25 py-0.5 font-mono text-xs text-text-faint">{kbd}</span>
       )}
     </div>
   )
@@ -360,35 +256,15 @@ export function FilterTabs({
   onChange: (key: string) => void
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 6,
-        background: "var(--color-surface)",
-        border: "var(--border-default)",
-        borderRadius: "var(--radius-md)",
-        padding: 4,
-        flexWrap: "wrap",
-      }}
-    >
+    <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-surface p-1">
       {options.map((f) => (
         <button
           key={f.key}
           type="button"
           onClick={() => onChange(f.key)}
-          style={{
-            paddingBlock: 5,
-            paddingInline: 12,
-            borderRadius: "var(--radius-sm)",
-            border: "none",
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: "pointer",
-            background: active === f.key ? "var(--color-navy)" : "transparent",
-            color: active === f.key ? "var(--color-surface)" : "var(--text-secondary)",
-            transition: "var(--transition-fast)",
-            fontFamily: "var(--font-body)",
-          }}
+          className={`cursor-pointer rounded-sm border-0 px-3 py-1.25 font-body text-sm font-semibold transition-colors ${
+            active === f.key ? "bg-navy text-surface" : "bg-transparent text-text-3"
+          }`}
         >
           {f.label}
         </button>

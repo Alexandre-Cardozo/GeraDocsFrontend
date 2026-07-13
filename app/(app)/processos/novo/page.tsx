@@ -35,25 +35,53 @@ const modosATA: Array<{ key: ModoATA; label: string; desc: string }> = [
   { key: "combinado", label: "Anexar ATA e também buscar outras opções", desc: "A IA revisa sua ATA e ainda sugere alternativas encontradas." },
 ]
 
+/** Cores por tipo de documento (tokens doc-* do DS via classes). */
 const documentosGeraveis = [
-  { key: "etp", titulo: "Estudo Técnico Preliminar (ETP)", desc: "Fundamenta a necessidade e os requisitos técnicos da contratação", obrig: true, secoes: 12, color: "var(--doc-etp)", bg: "var(--doc-etp-bg)" },
-  { key: "tr", titulo: "Termo de Referência (TR)", desc: "Define as condições para execução do objeto da licitação", obrig: true, secoes: 15, color: "var(--doc-tr)", bg: "var(--doc-tr-bg)" },
-  { key: "cotacao", titulo: "Cotação de Mercado", desc: "Pesquisa de preços com fornecedores para embasar a estimativa de valor", obrig: false, secoes: 4, color: "var(--doc-cotacao)", bg: "var(--doc-cotacao-bg)" },
-  { key: "mapa", titulo: "Mapa de Riscos", desc: "Avaliação e classificação dos riscos envolvidos na contratação", obrig: false, secoes: 5, color: "var(--doc-mapa)", bg: "var(--doc-mapa-bg)" },
+  {
+    key: "etp",
+    titulo: "Estudo Técnico Preliminar (ETP)",
+    desc: "Fundamenta a necessidade e os requisitos técnicos da contratação",
+    obrig: true,
+    secoes: 12,
+    selecionado: "border-doc-etp bg-doc-etp-bg",
+    chipSelecionado: "border-doc-etp bg-doc-etp-bg text-doc-etp",
+    checkSelecionado: "border-doc-etp bg-doc-etp",
+  },
+  {
+    key: "tr",
+    titulo: "Termo de Referência (TR)",
+    desc: "Define as condições para execução do objeto da licitação",
+    obrig: true,
+    secoes: 15,
+    selecionado: "border-doc-tr bg-doc-tr-bg",
+    chipSelecionado: "border-doc-tr bg-doc-tr-bg text-doc-tr",
+    checkSelecionado: "border-doc-tr bg-doc-tr",
+  },
+  {
+    key: "cotacao",
+    titulo: "Cotação de Mercado",
+    desc: "Pesquisa de preços com fornecedores para embasar a estimativa de valor",
+    obrig: false,
+    secoes: 4,
+    selecionado: "border-doc-cotacao bg-doc-cotacao-bg",
+    chipSelecionado: "border-doc-cotacao bg-doc-cotacao-bg text-doc-cotacao",
+    checkSelecionado: "border-doc-cotacao bg-doc-cotacao",
+  },
+  {
+    key: "mapa",
+    titulo: "Mapa de Riscos",
+    desc: "Avaliação e classificação dos riscos envolvidos na contratação",
+    obrig: false,
+    secoes: 5,
+    selecionado: "border-doc-mapa bg-doc-mapa-bg",
+    chipSelecionado: "border-doc-mapa bg-doc-mapa-bg text-doc-mapa",
+    checkSelecionado: "border-doc-mapa bg-doc-mapa",
+  },
 ] as const
 
-const headingStyle = {
-  fontFamily: "var(--font-display)",
-  fontSize: "var(--text-2xl)",
-  fontWeight: 800,
-  color: "var(--text-body)",
-  margin: 0,
-  marginBottom: 6,
-  letterSpacing: "var(--tracking-tight)",
-} as const
-
-const subtextStyle = { margin: 0, marginBottom: 24, fontSize: 14, color: "var(--text-secondary)" } as const
-const labelStyle = { fontSize: 13, fontWeight: 600, color: "var(--text-label)" } as const
+const headingClasses = "m-0 mb-1.5 font-display text-2xl font-extrabold tracking-tight text-text-1"
+const subtextClasses = "m-0 mb-6 text-md text-text-3"
+const labelClasses = "text-base font-semibold text-text-2"
 
 export default function NovoProcesso() {
   const router = useRouter()
@@ -126,18 +154,18 @@ export default function NovoProcesso() {
   }
 
   return (
-    <div className="gd-page" style={{ maxWidth: "var(--content-max-wizard)" }}>
-      <div style={{ marginBottom: 32 }}>
+    <div className="max-w-wizard p-4 sm:p-5 lg:p-7">
+      <div className="mb-8">
         <StepIndicator steps={["Modalidade", "Identificação", "Documentos"]} current={step} />
       </div>
 
       {/* ── Passo 1 ── */}
       {step === 1 && (
         <div>
-          <h2 style={headingStyle}>Selecione a Modalidade</h2>
-          <p style={subtextStyle}>Escolha a modalidade de licitação de acordo com o objeto e os valores estimados.</p>
+          <h2 className={headingClasses}>Selecione a Modalidade</h2>
+          <p className={subtextClasses}>Escolha a modalidade de licitação de acordo com o objeto e os valores estimados.</p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+          <div className="mb-6 flex flex-col gap-2.5">
             {modalidades.map((m) => (
               <ChoiceCard
                 key={m.key}
@@ -151,23 +179,23 @@ export default function NovoProcesso() {
           </div>
 
           {/* Adesão de ATA antecipada */}
-          <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", paddingBlock: 18, paddingInline: 20 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ paddingTop: 2 }}>
+          <div className="rounded-card border border-border bg-surface px-5 py-4.5">
+            <div className="flex items-start gap-3">
+              <div className="pt-0.5">
                 <Toggle checked={isAdesaoATA} onChange={setIsAdesaoATA} label="Processo como Adesão de ATA" />
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)" }}>
+              <div className="flex-1">
+                <div className="font-display text-md font-bold text-text-1">
                   Este processo será instaurado como Adesão de Ata de Registro de Preços
                 </div>
-                <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+                <p className="m-0 mt-1 text-base text-text-3">
                   Ative caso a solução já seja previamente definida como Adesão de ATA. O modelo será orientado a gerar o ETP com essa conclusão.
                 </p>
               </div>
             </div>
 
             {isAdesaoATA && (
-              <div style={{ marginTop: 18, borderTop: "var(--border-soft)", paddingTop: 18, display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="mt-4.5 flex flex-col gap-4 border-t border-border-soft pt-4.5">
                 <FormField label="Motivo da decisão prévia pela Adesão de ATA" required hint="Justifique por que a Adesão de ATA já foi definida antes do ETP">
                   <Textarea
                     value={ataMotivo}
@@ -178,8 +206,8 @@ export default function NovoProcesso() {
                 </FormField>
 
                 <div>
-                  <span style={labelStyle}>Gestão da ATA</span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                  <span className={labelClasses}>Gestão da ATA</span>
+                  <div className="mt-2 flex flex-col gap-2">
                     {modosATA.map((opt) => (
                       <ChoiceCard
                         key={opt.key}
@@ -218,10 +246,10 @@ export default function NovoProcesso() {
       {/* ── Passo 2 ── */}
       {step === 2 && (
         <div>
-          <h2 style={headingStyle}>Identificação do Processo</h2>
-          <p style={subtextStyle}>Informe os dados básicos. É obrigatório preencher ao menos o DFD ou o Objeto da Contratação.</p>
+          <h2 className={headingClasses}>Identificação do Processo</h2>
+          <p className={subtextClasses}>Informe os dados básicos. É obrigatório preencher ao menos o DFD ou o Objeto da Contratação.</p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div className="flex flex-col gap-4.5">
             <FormField label="Secretaria Requisitante" required>
               <Select value={secretaria} onChange={(e) => setSecretaria(e.target.value)}>
                 <option value="">Selecione a secretaria...</option>
@@ -234,13 +262,13 @@ export default function NovoProcesso() {
             </FormField>
 
             {/* Upload do DFD */}
-            <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", paddingBlock: 18, paddingInline: 20 }}>
-              <div style={{ marginBottom: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-label)", display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <div className="rounded-card border border-border bg-surface px-5 py-4.5">
+              <div className="mb-3">
+                <span className="inline-flex items-center gap-2 text-base font-bold text-text-2">
                   Documento de Formalização de Demanda (DFD)
                   <Tag tone="warning">Recomendado</Tag>
                 </span>
-                <p style={{ margin: 0, marginTop: 4, fontSize: 12, color: "var(--text-secondary)" }}>
+                <p className="m-0 mt-1 text-sm text-text-3">
                   O DFD alimentará automaticamente as seções do ETP. Caso não possua, preencha o campo Objeto abaixo.
                 </p>
               </div>
@@ -251,7 +279,7 @@ export default function NovoProcesso() {
                 accept=".pdf,.docx,.doc"
               />
               {dfdFile && (
-                <InfoBanner tone="success" icon={<IconCheck size={14} strokeWidth={2.5} />} style={{ marginTop: 10 }}>
+                <InfoBanner tone="success" icon={<IconCheck size={14} strokeWidth={2.5} />} className="mt-2.5">
                   DFD anexado — o ETP será gerado com base neste documento.
                 </InfoBanner>
               )}
@@ -272,7 +300,7 @@ export default function NovoProcesso() {
 
             {!dfdOrObjeto && <ValidationMsg type="error" msg="Preencha ao menos o DFD ou o Objeto da Contratação para continuar." />}
 
-            <div className="gd-form-grid-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Valor de Referência Estimado">
                 <Input value={valorRef} onChange={(e) => setValorRef(e.target.value)} placeholder="R$ 0,00" />
               </FormField>
@@ -287,12 +315,12 @@ export default function NovoProcesso() {
       {/* ── Passo 3 ── */}
       {step === 3 && (
         <div>
-          <h2 style={headingStyle}>Configurar Processo</h2>
-          <p style={subtextStyle}>Selecione os documentos a gerar e configure as fases opcionais do processo.</p>
+          <h2 className={headingClasses}>Configurar Processo</h2>
+          <p className={subtextClasses}>Selecione os documentos a gerar e configure as fases opcionais do processo.</p>
 
-          <div style={{ marginBottom: 24 }}>
-            <span style={{ ...labelStyle, display: "block", marginBottom: 12 }}>Documentos a Gerar</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="mb-6">
+            <span className={`mb-3 block ${labelClasses}`}>Documentos a Gerar</span>
+            <div className="flex flex-col gap-2.5">
               {documentosGeraveis.map((d) => {
                 const selected = docsSelected[d.key] === true
                 return (
@@ -301,63 +329,29 @@ export default function NovoProcesso() {
                     type="button"
                     onClick={() => toggleDoc(d.key)}
                     aria-pressed={selected}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 16,
-                      paddingBlock: 16,
-                      paddingInline: 18,
-                      borderRadius: "var(--radius-card)",
-                      border: selected ? `2px solid ${d.color}` : "var(--border-default)",
-                      background: selected ? d.bg : "var(--color-surface)",
-                      cursor: d.obrig ? "default" : "pointer",
-                      textAlign: "left",
-                      transition: "var(--transition-fast)",
-                      width: "100%",
-                    }}
+                    className={`flex w-full items-start gap-4 rounded-card px-4.5 py-4 text-left transition-colors ${
+                      selected ? `border-2 ${d.selecionado} cursor-default` : "cursor-pointer border border-border bg-surface"
+                    } ${d.obrig ? "cursor-default" : ""}`}
                   >
                     <span
-                      style={{
-                        width: 38,
-                        height: 38,
-                        background: selected ? d.bg : "var(--color-ice)",
-                        borderRadius: "var(--radius-lg)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        marginTop: 2,
-                        border: selected ? `1px solid ${d.color}` : "var(--border-default)",
-                        color: selected ? d.color : "var(--color-text-muted)",
-                      }}
+                      className={`mt-0.5 flex size-9.5 shrink-0 items-center justify-center rounded-lg border ${
+                        selected ? d.chipSelecionado : "border-border bg-ice text-text-muted"
+                      }`}
                     >
                       <IconFile size={17} />
                     </span>
-                    <span style={{ flex: 1, display: "block" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)" }}>
-                          {d.titulo}
-                        </span>
+                    <span className="block flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-display text-md font-bold text-text-1">{d.titulo}</span>
                         {d.obrig && <Tag tone="success">Obrigatório</Tag>}
                       </span>
-                      <span style={{ display: "block", marginTop: 4, fontSize: 13, color: "var(--text-secondary)" }}>{d.desc}</span>
-                      <span style={{ display: "block", marginTop: 5, fontSize: 11, color: "var(--color-text-muted)" }}>{d.secoes} seções</span>
+                      <span className="mt-1 block text-base text-text-3">{d.desc}</span>
+                      <span className="mt-1.25 block text-xs text-text-muted">{d.secoes} seções</span>
                     </span>
                     <span
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: "var(--radius-sm)",
-                        border: `2px solid ${selected ? d.color : "var(--color-border)"}`,
-                        background: selected ? d.color : "var(--color-ice)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        marginTop: 8,
-                        transition: "var(--transition-fast)",
-                        color: "var(--color-surface)",
-                      }}
+                      className={`mt-2 flex size-5.5 shrink-0 items-center justify-center rounded-sm border-2 text-surface transition-colors ${
+                        selected ? d.checkSelecionado : "border-border bg-ice"
+                      }`}
                     >
                       {selected && <IconCheck size={11} strokeWidth={3.5} />}
                     </span>
@@ -368,31 +362,24 @@ export default function NovoProcesso() {
           </div>
 
           {/* Fases opcionais */}
-          <div style={{ marginBottom: 20 }}>
-            <span style={{ ...labelStyle, display: "block", marginBottom: 12 }}>Fases Opcionais do Processo</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="mb-5">
+            <span className={`mb-3 block ${labelClasses}`}>Fases Opcionais do Processo</span>
+            <div className="flex flex-col gap-2.5">
               <div
-                style={{
-                  background: "var(--surface-card)",
-                  border: includeDFDVerification ? "var(--border-royal)" : "var(--border-default)",
-                  borderRadius: "var(--radius-card)",
-                  paddingBlock: 16,
-                  paddingInline: 18,
-                  transition: "border 0.15s",
-                }}
+                className={`rounded-card border bg-surface px-4.5 py-4 transition-colors ${
+                  includeDFDVerification ? "border-royal" : "border-border"
+                }`}
               >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <div style={{ paddingTop: 2 }}>
+                <div className="flex items-start gap-3">
+                  <div className="pt-0.5">
                     <Toggle checked={includeDFDVerification} onChange={setIncludeDFDVerification} label="Verificação do DFD pela IA" />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)" }}>
-                        Verificação do DFD pela IA
-                      </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-md font-bold text-text-1">Verificação do DFD pela IA</span>
                       <Tag tone="info">Antes do ETP</Tag>
                     </div>
-                    <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+                    <p className="m-0 mt-1 text-base text-text-3">
                       Antes de iniciar o ETP, o DFD será analisado pela IA que fornecerá parecer sobre qualidade, completude e compatibilidade com a legislação.
                     </p>
                   </div>
@@ -400,27 +387,20 @@ export default function NovoProcesso() {
               </div>
 
               <div
-                style={{
-                  background: "var(--surface-card)",
-                  border: includeRetificacao ? "var(--border-violet)" : "var(--border-default)",
-                  borderRadius: "var(--radius-card)",
-                  paddingBlock: 16,
-                  paddingInline: 18,
-                  transition: "border 0.15s",
-                }}
+                className={`rounded-card border bg-surface px-4.5 py-4 transition-colors ${
+                  includeRetificacao ? "border-violet" : "border-border"
+                }`}
               >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <div style={{ paddingTop: 2 }}>
-                    <Toggle checked={includeRetificacao} onChange={setIncludeRetificacao} color="var(--color-violet)" label="Fase de Retificação" />
+                <div className="flex items-start gap-3">
+                  <div className="pt-0.5">
+                    <Toggle checked={includeRetificacao} onChange={setIncludeRetificacao} tone="violet" label="Fase de Retificação" />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)" }}>
-                        Fase de Retificação
-                      </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-md font-bold text-text-1">Fase de Retificação</span>
                       <Tag tone="violet">Opcional</Tag>
                     </div>
-                    <p style={{ margin: 0, marginTop: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+                    <p className="m-0 mt-1 text-base text-text-3">
                       Inclui uma fase de retificação no fluxo do processo, permitindo a correção de documentos após a geração quando identificadas inconsistências ou necessidade de ajustes.
                     </p>
                   </div>
@@ -430,7 +410,7 @@ export default function NovoProcesso() {
           </div>
 
           <InfoBanner tone="warning">
-            O processo será criado com o número <strong style={{ fontFamily: "var(--font-mono)" }}>{numeroProcesso}</strong>.{" "}
+            O processo será criado com o número <strong className="font-mono">{numeroProcesso}</strong>.{" "}
             {includeDFDVerification
               ? "Após a criação você será direcionado à verificação do DFD pela IA."
               : "Após a criação você será direcionado ao preenchimento do ETP."}
@@ -439,7 +419,7 @@ export default function NovoProcesso() {
       )}
 
       {/* Ações */}
-      <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
+      <div className="mt-8 flex flex-wrap gap-3">
         {step > 1 && (
           <Button variant="secondary" size="lg" onClick={() => setStep((s) => s - 1)}>
             Voltar

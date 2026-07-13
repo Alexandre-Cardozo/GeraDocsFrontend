@@ -17,14 +17,11 @@ Route group `(app)` para o shell autenticado (Sidebar + Header); `app/layout.tsx
 
 A sub-rota opcional `/etp/[secao]` foi dispensada nesta fase: a troca de seção é instantânea (estado local) e o deep-link relevante é para o processo, não para a seção.
 
-## 2. Estilização: inline styles com tokens, sem CSS-in-JS nem Tailwind
+## 2. Estilização: Tailwind CSS v4 utility-first sobre os tokens do DS
 
-O DS LAHHM/GeraDocs é distribuído como componentes com estilos inline referenciando tokens (`var(--...)`). Mantivemos esse padrão nos ports TSX e nas views:
+> **Atualizado (jul/2026):** a estilização migrou para **Tailwind CSS v4 utility-first**. A decisão detalhada e a garantia de fonte única de verdade estão no **item 10**; o guia prático em `docs/estilizacao.md`. O texto abaixo descreve a abordagem original (inline styles), preservado como histórico.
 
-- **Cores/fontes/radii/espaçamentos de chrome**: sempre `var(--token)`. Hex e px crus vivem **somente** em `app/globals.css` (tokens + extensões).
-- **Dimensões pontuais**: números JS (React aplica `px`), nunca strings `"NNpx"`.
-- **Tints e bordas compostas do protótipo** que não constavam nos tokens de origem foram **tokenizados** num bloco "Extensões do app" em `globals.css` (ex.: `--tint-royal-bg`, `--border-row`, `--gradient-hero`), em vez de hex espalhado no TSX.
-- **Pseudo-estados** que exigiam handlers JS no protótipo (hover de linha, nav da sidebar) viraram classes globais (`.gd-row`, `.gd-nav-item`) — menos JS, mesmo visual.
+~~O DS LAHHM/GeraDocs é distribuído como componentes com estilos inline referenciando tokens (`var(--...)`). Mantivemos esse padrão nos ports TSX e nas views~~ — substituído por classes utilitárias do Tailwind, cujos valores vêm do `@theme` (mesmos tokens). Os tints/gradientes que eram "Extensões do app" em `globals.css` viraram tokens do `@theme`; os pseudo-estados que eram classes `gd-*` viraram utilities `hover:*`.
 
 ## 3. Enforcement de aderência
 
@@ -72,15 +69,20 @@ A partir desta fase o app é compatível com celulares, tablets e laptops (pedid
 
 Verificação: screenshots via Chrome headless em 375 (via harness de iframe — o headless impõe janela mínima de 500px), 768 e 1366 px em todas as rotas.
 
-## 10. Tailwind CSS — avaliado e não adotado nesta fase
+## 10. Tailwind CSS v4 — adotado (utility-first sobre os tokens do DS)
 
-O app **não usa Tailwind**. Avaliação (jul/2026), a pedido do produto:
+**Decisão (jul/2026, a pedido do produto): migrar toda a estilização para Tailwind CSS v4, utility-first, mantendo os tokens do DS como fonte única de verdade.** Substitui a abordagem anterior (estilos inline com `var(--...)` + camada `gd-*`). Guia completo em `docs/estilizacao.md`.
 
-- **Contra, agora**: o DS LAHHM/GeraDocs é distribuído como componentes com estilos inline + tokens `var(--...)` — este app segue o padrão do DS à risca, e o lint de aderência (hex/px cru proibidos em TSX) é o enforcement disso. Utilitários Tailwind (`p-4`, `text-slate-500`) codificam valores fora dos tokens do DS e passariam por fora do lint; valores arbitrários (`bg-[#2563EB]`) o violariam. Migrar agora = reescrever as 8 telas + 20 componentes sem ganho visual, com risco de regressão pixel-perfect e retooling do enforcement.
-- **A favor, no futuro**: Tailwind v4 permite mapear os tokens do DS via `@theme` (gerando utilitários que resolvem para os mesmos `var(--...)`), o que manteria a fonte única de verdade. Se a equipe crescer e preferir utility-first, a adoção correta é: v4 + `@theme` importando os tokens de `globals.css` + regra de lint proibindo valores arbitrários `[...]` — em uma fase própria, tela a tela.
-- **shadcn/ui** (skill instalada): depende de Tailwind e traria componentes Radix com estética própria — conflita com a regra da fase de que "os componentes vêm do DS" e com o sistema flat. Não adotar.
+Como a fonte única de verdade foi preservada:
+- O bloco **`@theme`** de `app/globals.css` declara cada token do DS (cores, fontes, escala tipográfica, raios, breakpoints, larguras máximas). O Tailwind v4 gera as utilities correspondentes, cada uma resolvendo para a mesma CSS variable — trocar `--color-royal` no `@theme` muda o app inteiro. Não há duplicação de valores.
+- Nenhum utilitário de cor "de prateleira" do Tailwind é usado (`text-slate-500` etc.): a paleta do tema é **só** a do DS, então as utilities disponíveis são as dos tokens (`bg-royal`, `text-tint-success-fg`).
+- **Enforcement (lint, severidade error)**: `eslint.config.mjs` proíbe cor hex crua, cor arbitrária (`bg-[#...]`, `-[rgb...]`) e tamanho de fonte arbitrário (`text-[NNpx]`). Valores estruturais pontuais em brackets (`min-w-[560px]` de tabela rolável) são permitidos — equivalem às "dimensões pontuais" que antes eram números JS. O `no-restricted-imports` (barrel `@/components/ui`) segue no oxlint.
+- **Exceções tokenizadas**: dois tamanhos do protótipo fora da escala fixa (16px de títulos de painel, 28px da nota do DFD) viraram tokens `--text-panel`/`--text-score` no `@theme`, em vez de valores arbitrários — mantêm a fonte única.
+- **Responsividade**: migrada da camada `gd-*` para variantes nativas (`xs`/`sm`/`md`/`lg` = 480/640/768/1024). Mesmos breakpoints, mesmo comportamento (sidebar→drawer, tabelas com scroll, painéis que empilham).
+- **Componentes reutilizáveis preservados**: cada componente do DS manteve sua API de props (variantes/tamanhos); só o interior mudou de objeto de estilo para mapa de classes utilitárias. Quem consome (`<Button variant="primary">`) não muda.
+- **shadcn/ui** (skill instalada): continua **não adotado** — traria componentes Radix com estética própria, conflitando com "os componentes vêm do DS" e com o sistema flat. Tailwind é usado só como camada de estilização dos componentes do próprio DS.
 
-**Decisão: manter tokens + inline styles + camada `gd-*`.** Revisitar só se a equipe padronizar utility-first em outros produtos LAHHM.
+**Anti-regressão**: `tsc`, ESLint, oxlint e `next build` verdes; screenshots headless em 1366/768/375 px comparados com o baseline pré-migração — sem regressão visual. Verificado que zero classes `gd-*` e zero `var(--...)`/hex sobraram no TSX.
 
 ## 11. Auditoria com skills instaladas (jul/2026)
 

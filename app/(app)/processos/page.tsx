@@ -39,9 +39,9 @@ export default function Processos() {
   const itens = processos.data?.itens ?? []
 
   return (
-    <div className="gd-page">
+    <div className="p-4 sm:p-5 lg:p-7">
       {/* Filtros */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         <SearchInput
           grow
           placeholder="Buscar por título ou número..."
@@ -50,7 +50,7 @@ export default function Processos() {
             setBusca(e.target.value)
             setPagina(1)
           }}
-          background="var(--color-surface)"
+          tone="surface"
         />
 
         <FilterTabs
@@ -62,7 +62,7 @@ export default function Processos() {
           }}
         />
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+        <div className="ml-auto flex gap-2">
           <Button
             variant="secondary"
             icon={<IconFilter size={14} />}
@@ -81,129 +81,84 @@ export default function Processos() {
       </div>
 
       {/* Tabela */}
-      <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", overflow: "hidden" }}>
+      <div className="overflow-hidden rounded-card border border-border bg-surface">
         {processos.isPending && <SkeletonRows rows={8} />}
         {processos.isError && <ErrorState onRetry={() => void processos.refetch()} />}
 
         {processos.isSuccess && itens.length > 0 && (
-          <div className="gd-table-wrap">
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 880 }}>
-            <thead>
-              <tr style={{ background: "var(--color-ice)", borderBottom: "var(--border-default)" }}>
-                {["Processo / Objeto", "Secretaria", "Modalidade", "Valor Est.", "ETP", "TR", "Responsável", "Status", ""].map((h, i) => (
-                  <Th key={h === "" ? `vazio-${i}` : h}>
-                    {h}
-                  </Th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {itens.map((p, i) => (
-                <tr
-                  key={p.id}
-                  className="gd-row"
-                  onClick={() => router.push(`/processos/${p.id}/etp`)}
-                  style={{ borderBottom: i < itens.length - 1 ? "var(--border-row)" : "none" }}
-                >
-                  <td style={{ paddingBlock: 14, paddingInline: 16 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)", maxWidth: 260 }}>{p.objeto}</div>
-                    <div style={{ fontSize: 11, color: "var(--color-text-muted)", fontFamily: "var(--font-mono)", marginTop: 3 }}>
-                      {p.id}
-                    </div>
-                  </td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)", maxWidth: 160 }}>
-                    {p.secretaria}
-                  </td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16 }}>
-                    <Tag tone="info">{p.modalidade}</Tag>
-                  </td>
-                  <td
-                    style={{
-                      paddingBlock: 14,
-                      paddingInline: 16,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "var(--color-petroleum)",
-                      fontFamily: "var(--font-mono)",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {formatBRL(p.valorEstimado)}
-                  </td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16 }}>
-                    <DocPill status={p.etpStatus} />
-                  </td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16 }}>
-                    <DocPill status={p.trStatus} />
-                  </td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16, fontSize: 12, color: "var(--text-secondary)" }}>{p.responsavel}</td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16 }}>
-                    <StatusBadge status={p.status} size="sm" />
-                  </td>
-                  <td style={{ paddingBlock: 14, paddingInline: 16 }}>
-                    <button
-                      type="button"
-                      aria-label={`Abrir processo ${p.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/processos/${p.id}/etp`)
-                      }}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: "var(--radius-sm)",
-                        border: "var(--border-default)",
-                        background: "var(--color-ice)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      <IconChevronRight size={13} strokeWidth={2.5} />
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[880px] border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-ice">
+                  {["Processo / Objeto", "Secretaria", "Modalidade", "Valor Est.", "ETP", "TR", "Responsável", "Status", ""].map((h, i) => (
+                    <Th key={h === "" ? `vazio-${i}` : h}>{h}</Th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {itens.map((p, i) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => router.push(`/processos/${p.id}/etp`)}
+                    className={`cursor-pointer transition-colors hover:bg-ice ${i < itens.length - 1 ? "border-b border-ice" : ""}`}
+                  >
+                    <td className="px-4 py-3.5">
+                      <div className="max-w-65 text-base font-semibold text-text-1">{p.objeto}</div>
+                      <div className="mt-0.75 font-mono text-xs text-text-muted">{p.id}</div>
+                    </td>
+                    <td className="max-w-40 px-4 py-3.5 text-sm text-text-3">{p.secretaria}</td>
+                    <td className="px-4 py-3.5">
+                      <Tag tone="info">{p.modalidade}</Tag>
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-base font-semibold whitespace-nowrap text-petroleum">
+                      {formatBRL(p.valorEstimado)}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <DocPill status={p.etpStatus} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <DocPill status={p.trStatus} />
+                    </td>
+                    <td className="px-4 py-3.5 text-sm text-text-3">{p.responsavel}</td>
+                    <td className="px-4 py-3.5">
+                      <StatusBadge status={p.status} size="sm" />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <button
+                        type="button"
+                        aria-label={`Abrir processo ${p.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/processos/${p.id}/etp`)
+                        }}
+                        className="flex size-7 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-text-3"
+                      >
+                        <IconChevronRight size={13} strokeWidth={2.5} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
         {processos.isSuccess && itens.length === 0 && <EmptyState message="Nenhum processo encontrado" />}
 
         {processos.isSuccess && (
-          <div
-            style={{
-              paddingBlock: 12,
-              paddingInline: 16,
-              borderTop: "var(--border-soft)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+          <div className="flex items-center justify-between border-t border-border-soft px-4 py-3">
+            <span className="text-sm text-text-muted">
               Exibindo {itens.length} de {processos.data.total} processos
             </span>
-            <div style={{ display: "flex", gap: 6 }}>
+            <div className="flex gap-1.5">
               {Array.from({ length: processos.data.totalPaginas }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => setPagina(p)}
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: "var(--radius-sm)",
-                    border: "var(--border-default)",
-                    background: p === pagina ? "var(--color-navy)" : "var(--color-surface)",
-                    color: p === pagina ? "var(--color-surface)" : "var(--text-secondary)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
+                  className={`size-7.5 cursor-pointer rounded-sm border border-border text-base font-semibold ${
+                    p === pagina ? "bg-navy text-surface" : "bg-surface text-text-3"
+                  }`}
                 >
                   {p}
                 </button>

@@ -15,22 +15,30 @@ const config = defineConfig([
   {
     files: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}"],
     rules: {
-      // Aderência ao DS (espelha _adherence.oxlintrc.json, com severidade error):
-      // cores, espaçamentos e fontes só via tokens var(--...) — hex/px crus vivem
-      // exclusivamente em app/globals.css.
+      // ─── Aderência ao DS no regime Tailwind (utility-first) ─────────────────
+      // A fonte única de verdade das cores/fontes/raios é o bloco @theme de
+      // app/globals.css. Cores devem vir de classes de token (bg-royal,
+      // text-tint-success-fg...), NUNCA de hex cru nem de valores arbitrários de
+      // cor no Tailwind (bg-[#2563EB]). Valores estruturais pontuais em brackets
+      // (min-w-[560px] de tabela rolável) continuam permitidos — são o
+      // equivalente utility-first das "dimensões pontuais" que antes eram números.
       "no-restricted-syntax": [
         "error",
         {
           selector: "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
-          message: "Hex cru — use um token de cor do design system via var(--...).",
+          message: "Cor hex crua — use uma classe de token do design system (ex.: bg-royal, text-tint-success-fg).",
         },
         {
-          selector: "Literal[value=/\\b\\d+px\\b/]",
-          message: "px cru — use número (React aplica px) ou um token de espaçamento via var(--...).",
+          selector: "Literal[value=/-\\[#[0-9a-fA-F]/]",
+          message: "Cor arbitrária no Tailwind (bg-[#...]) burla o @theme — use a classe de token correspondente.",
         },
         {
-          selector: "Property[key.name='fontFamily'] > Literal[value!=/var\\(--font-(display|body|mono)\\)/]",
-          message: "Fonte fora do sistema — use var(--font-display|--font-body|--font-mono).",
+          selector: "Literal[value=/-\\[rgb/]",
+          message: "Cor arbitrária no Tailwind (…-[rgb(...)]) burla o @theme — use a classe de token correspondente.",
+        },
+        {
+          selector: "Literal[value=/\\btext-\\[[0-9]/]",
+          message: "Tamanho de fonte arbitrário (text-[NNpx]) burla a escala tipográfica — use text-xs/sm/base/md/lg/xl/2xl.",
         },
       ],
     },

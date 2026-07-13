@@ -28,14 +28,15 @@ const etapasAnalise = [
   "Geração do parecer",
 ]
 
+/** Classes de cor por severidade do achado. */
 function severidadeCfg(achado: AchadoDFD) {
   if (achado.tipo === "conformidade") {
-    return { bg: "var(--status-done-bg)", border: "var(--tint-success-border)", icon: "✓", iconColor: "var(--color-success)", textColor: "var(--tint-success-fg)" }
+    return { card: "bg-status-done-bg border-tint-success-border", icon: "✓", iconCor: "text-success", texto: "text-tint-success-fg" }
   }
   if (achado.severidade === "atencao") {
-    return { bg: "var(--tint-danger-bg)", border: "var(--tint-danger-border)", icon: "✕", iconColor: "var(--color-danger)", textColor: "var(--tint-danger-fg)" }
+    return { card: "bg-tint-danger-bg border-tint-danger-border", icon: "✕", iconCor: "text-danger", texto: "text-tint-danger-fg" }
   }
-  return { bg: "var(--tint-warning-bg)", border: "var(--tint-warning-border)", icon: "!", iconColor: "var(--color-warning)", textColor: "var(--tint-warning-fg)" }
+  return { card: "bg-tint-warning-bg border-tint-warning-border", icon: "!", iconCor: "text-warning", texto: "text-tint-warning-fg" }
 }
 
 export default function VerificacaoDFD() {
@@ -92,15 +93,15 @@ export default function VerificacaoDFD() {
 
   if (processo.isPending || parecer.isPending) {
     return (
-      <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
+      <div className="max-w-review p-4 sm:p-5 lg:p-7">
         <LoadingState label="Carregando processo..." />
       </div>
     )
   }
   if (processo.isError) {
     return (
-      <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
+      <div className="max-w-review p-4 sm:p-5 lg:p-7">
+        <div className="rounded-card border border-border bg-surface">
           <ErrorState message={processo.error.message} onRetry={() => void processo.refetch()} />
         </div>
       </div>
@@ -111,77 +112,51 @@ export default function VerificacaoDFD() {
   const warnCount = parecer.data?.achados.filter((a) => a.tipo === "alerta" && a.severidade === "recomendacao").length ?? 0
   const errorCount = parecer.data?.achados.filter((a) => a.tipo === "alerta" && a.severidade === "atencao").length ?? 0
 
+  const resumos = [
+    { count: okCount, label: "Conformes", card: "bg-tint-success-bg", num: "text-tint-success-fg", sub: "text-tint-success-fg-soft", icone: <IconCheck size={18} strokeWidth={2.5} />, iconeCor: "text-success" },
+    { count: warnCount, label: "Recomendações", card: "bg-tint-warning-bg", num: "text-tint-warning-fg", sub: "text-tint-warning-fg-strong", icone: <IconInfo size={18} strokeWidth={2.5} />, iconeCor: "text-warning" },
+    { count: errorCount, label: "Atenção necessária", card: "bg-tint-danger-bg", num: "text-tint-danger-fg", sub: "text-tint-danger-fg-strong", icone: <IconXCircle size={18} strokeWidth={2.5} />, iconeCor: "text-danger" },
+  ]
+
   return (
-    <div className="gd-page" style={{ maxWidth: "var(--content-max-review)" }}>
+    <div className="max-w-review p-4 sm:p-5 lg:p-7">
       {/* Breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
-        <Link href="/processos" style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+      <div className="mb-6 flex items-center gap-2">
+        <Link href="/processos" className="text-base text-text-3 no-underline">
           Processos
         </Link>
-        <span style={{ display: "flex", color: "var(--color-text-faint)" }}>
+        <span className="flex text-text-faint">
           <IconChevronRight size={14} strokeWidth={2.5} />
         </span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-royal)", fontWeight: 700 }}>{processoId}</span>
-        <span style={{ display: "flex", color: "var(--color-text-faint)" }}>
+        <span className="font-mono text-sm font-bold text-royal">{processoId}</span>
+        <span className="flex text-text-faint">
           <IconChevronRight size={14} strokeWidth={2.5} />
         </span>
-        <span style={{ fontSize: 13, color: "var(--text-body)", fontWeight: 600 }}>Verificação do DFD</span>
+        <span className="text-base font-semibold text-text-1">Verificação do DFD</span>
       </div>
 
       {/* Indicador de fase */}
-      <div
-        className="gd-on-dark"
-        style={{
-          background: "var(--gradient-hero)",
-          borderRadius: 14,
-          paddingBlock: 20,
-          paddingInline: 24,
-          marginBottom: 28,
-          display: "flex",
-          alignItems: "center",
-          gap: 20,
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            width: 44,
-            height: 44,
-            background: "var(--on-dark-electric-chip)",
-            borderRadius: "var(--radius-card)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            color: "var(--color-electric)",
-          }}
-        >
+      <div className="on-dark mb-7 flex flex-wrap items-center gap-5 rounded-[14px] px-6 py-5 gradient-hero">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-card bg-on-dark-electric-chip text-electric">
           <IconHelp size={22} />
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 800, color: "var(--on-dark-text)", marginBottom: 4 }}>
+        <div className="flex-1">
+          <div className="mb-1 font-display text-panel font-extrabold text-on-dark">
             Fase 1 — Verificação do DFD pela IA
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--on-dark-text-60)" }}>
+          <p className="m-0 text-base text-on-dark-60">
             O modelo analisará o DFD quanto à completude, conformidade legal e compatibilidade com o PCA antes de iniciar a elaboração do ETP e TR.
           </p>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+        <div className="flex shrink-0 flex-col gap-1.5">
           {[
             { label: "Verificação DFD", active: true },
             { label: "ETP", active: false },
             { label: "TR", active: false },
           ].map((ph) => (
-            <div key={ph.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "var(--radius-full)",
-                  background: ph.active ? "var(--color-electric)" : "var(--on-dark-text-20)",
-                }}
-              />
-              <span style={{ fontSize: 11, color: ph.active ? "var(--on-dark-text)" : "var(--on-dark-text-40)", fontWeight: ph.active ? 600 : 400 }}>
+            <div key={ph.label} className="flex items-center gap-2">
+              <span className={`size-2 rounded-full ${ph.active ? "bg-electric" : "bg-on-dark-20"}`} />
+              <span className={`text-xs ${ph.active ? "font-semibold text-on-dark" : "font-normal text-on-dark-40"}`}>
                 {ph.label}
               </span>
             </div>
@@ -191,54 +166,28 @@ export default function VerificacaoDFD() {
 
       {/* ── Estado: Upload ── */}
       {upload && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", paddingBlock: 22, paddingInline: 24 }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 4 }}>
-              Enviar DFD para Verificação
-            </h3>
-            <p style={{ margin: 0, marginBottom: 18, fontSize: 13, color: "var(--text-secondary)" }}>
+        <div className="flex flex-col gap-4.5">
+          <div className="rounded-card border border-border bg-surface px-6 py-5.5">
+            <h3 className="m-0 mb-1 font-display text-lg font-bold text-text-1">Enviar DFD para Verificação</h3>
+            <p className="m-0 mb-4.5 text-base text-text-3">
               Anexe o Documento de Formalização de Demanda que será analisado pela IA. Caso já tenha enviado na criação do processo, o arquivo está disponível abaixo.
             </p>
 
             {dfdFile ? (
               <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    background: "var(--color-ice)",
-                    border: "var(--border-default)",
-                    borderRadius: "var(--radius-xl)",
-                    paddingBlock: 14,
-                    paddingInline: 16,
-                    marginBottom: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 38,
-                      height: 38,
-                      background: "var(--tint-royal-bg)",
-                      borderRadius: "var(--radius-lg)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      color: "var(--color-royal)",
-                    }}
-                  >
+                <div className="mb-4 flex items-center gap-3 rounded-xl border border-border bg-ice px-4 py-3.5">
+                  <div className="flex size-9.5 shrink-0 items-center justify-center rounded-lg bg-tint-royal-bg text-royal">
                     <IconFile size={18} />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)" }}>{dfdFile}</div>
-                    <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>Pronto para análise</div>
+                  <div className="flex-1">
+                    <div className="text-base font-semibold text-text-1">{dfdFile}</div>
+                    <div className="mt-0.5 text-xs text-text-muted">Pronto para análise</div>
                   </div>
                   <button
                     type="button"
                     aria-label="Remover DFD"
                     onClick={() => setDfdFile(null)}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", display: "flex", padding: 4 }}
+                    className="flex cursor-pointer border-0 bg-transparent p-1 text-text-muted"
                   >
                     <IconX size={14} strokeWidth={2.5} />
                   </button>
@@ -248,46 +197,22 @@ export default function VerificacaoDFD() {
                 </Button>
               </div>
             ) : (
-              <label style={{ display: "block", cursor: "pointer" }}>
+              <label className="block cursor-pointer">
                 <input
                   type="file"
                   accept=".pdf,.docx,.doc"
-                  style={{ display: "none" }}
+                  className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0]
                     if (f) setDfdFile(f.name)
                   }}
                 />
-                <div
-                  style={{
-                    border: "var(--border-dashed)",
-                    borderRadius: "var(--radius-xl)",
-                    paddingBlock: 32,
-                    paddingInline: 24,
-                    textAlign: "center",
-                    background: "var(--surface-upload)",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      background: "var(--color-border-soft)",
-                      borderRadius: "var(--radius-card)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto",
-                      marginBottom: 12,
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
+                <div className="rounded-xl border-2 border-dashed border-text-faint bg-surface-upload px-6 py-8 text-center">
+                  <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-card bg-border-soft text-text-muted">
                     <IconUpload size={22} strokeWidth={1.5} />
                   </div>
-                  <p style={{ margin: 0, marginBottom: 4, fontSize: 14, color: "var(--text-label)", fontWeight: 600 }}>
-                    Clique para selecionar o DFD
-                  </p>
-                  <p style={{ margin: 0, fontSize: 12, color: "var(--color-text-muted)" }}>PDF, DOCX ou DOC</p>
+                  <p className="m-0 mb-1 text-md font-semibold text-text-2">Clique para selecionar o DFD</p>
+                  <p className="m-0 text-sm text-text-muted">PDF, DOCX ou DOC</p>
                 </div>
               </label>
             )}
@@ -296,16 +221,7 @@ export default function VerificacaoDFD() {
           <button
             type="button"
             onClick={() => router.push(`/processos/${processoId}/etp`)}
-            style={{
-              alignSelf: "flex-start",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              color: "var(--text-secondary)",
-              textDecoration: "underline",
-              padding: 0,
-            }}
+            className="cursor-pointer self-start border-0 bg-transparent p-0 text-base text-text-3 underline"
           >
             Pular esta fase e iniciar o ETP sem verificação
           </button>
@@ -314,69 +230,34 @@ export default function VerificacaoDFD() {
 
       {/* ── Estado: Analisando ── */}
       {analisando && (
-        <div
-          style={{
-            background: "var(--surface-card)",
-            border: "var(--border-default)",
-            borderRadius: "var(--radius-card)",
-            paddingBlock: 36,
-            paddingInline: 28,
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: "var(--radius-full)",
-              background: "var(--tint-royal-bg)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto",
-              marginBottom: 20,
-              color: "var(--color-royal)",
-            }}
-          >
+        <div className="rounded-card border border-border bg-surface px-7 py-9 text-center">
+          <div className="mx-auto mb-5 flex size-15 items-center justify-center rounded-full bg-tint-royal-bg text-royal">
             <IconHelp size={28} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-xl)", fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 8 }}>
-            Analisando o DFD...
-          </h3>
-          <p style={{ margin: 0, marginBottom: 28, fontSize: 13, color: "var(--text-secondary)" }}>
+          <h3 className="m-0 mb-2 font-display text-xl font-bold text-text-1">Analisando o DFD...</h3>
+          <p className="m-0 mb-7 text-base text-text-3">
             O modelo está verificando completude, conformidade e compatibilidade com o PCA vigente.
           </p>
-          <div style={{ maxWidth: 420, margin: "0 auto" }}>
-            <ProgressBar percent={progress} label="Progresso da análise" height={8} transition="width 0.3s" />
-            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="mx-auto max-w-105">
+            <ProgressBar percent={progress} label="Progresso da análise" barClasses="h-2" transition="width 0.3s" />
+            <div className="mt-4 flex flex-col gap-2">
               {etapasAnalise.map((etapa, i) => {
                 const feito = progress > (i + 1) * 25
                 const ativo = !feito && progress > i * 25
                 return (
-                  <div key={etapa} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div key={etapa} className="flex items-center gap-2.5">
                     <span
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: "var(--radius-full)",
-                        border: `2px solid ${feito ? "var(--color-success)" : ativo ? "var(--color-royal)" : "var(--color-border)"}`,
-                        background: feito ? "var(--color-success)" : "transparent",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        color: "var(--color-surface)",
-                      }}
+                      className={`flex size-4.5 shrink-0 items-center justify-center rounded-full border-2 text-surface ${
+                        feito ? "border-success bg-success" : ativo ? "border-royal bg-transparent" : "border-border bg-transparent"
+                      }`}
                     >
                       {feito && <IconCheck size={9} strokeWidth={3.5} />}
-                      {ativo && !feito && <span style={{ width: 6, height: 6, borderRadius: "var(--radius-full)", background: "var(--color-royal)" }} />}
+                      {ativo && !feito && <span className="size-1.5 rounded-full bg-royal" />}
                     </span>
                     <span
-                      style={{
-                        fontSize: 12,
-                        color: feito ? "var(--tint-success-fg)" : ativo ? "var(--color-royal-hover)" : "var(--color-text-muted)",
-                        fontWeight: ativo || feito ? 600 : 400,
-                      }}
+                      className={`text-sm ${
+                        feito ? "font-semibold text-tint-success-fg" : ativo ? "font-semibold text-royal-hover" : "font-normal text-text-muted"
+                      }`}
                     >
                       {etapa}
                     </span>
@@ -390,80 +271,48 @@ export default function VerificacaoDFD() {
 
       {/* ── Estado: Parecer ── */}
       {done && parecer.data && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)", paddingBlock: 22, paddingInline: 24 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 20 }}>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 4 }}>
-                  Parecer da IA — DFD Analisado
-                </h3>
-                <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)" }}>
-                  {parecer.data.arquivo} · Analisado em 09/07/2025 às 14:38
-                </p>
+        <div className="flex flex-col gap-4.5">
+          <div className="rounded-card border border-border bg-surface px-6 py-5.5">
+            <div className="mb-5 flex items-start gap-5">
+              <div className="flex-1">
+                <h3 className="m-0 mb-1 font-display text-lg font-bold text-text-1">Parecer da IA — DFD Analisado</h3>
+                <p className="m-0 text-base text-text-3">{parecer.data.arquivo} · Analisado em 09/07/2025 às 14:38</p>
               </div>
-              <div
-                style={{
-                  background: "var(--tint-warning-bg)",
-                  border: "var(--border-tint-warning)",
-                  borderRadius: "var(--radius-xl)",
-                  paddingBlock: 10,
-                  paddingInline: 18,
-                  textAlign: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <div style={{ fontSize: 28, fontWeight: 800, color: "var(--tint-warning-fg)", fontFamily: "var(--font-display)", letterSpacing: "var(--tracking-stat)" }}>
+              <div className="shrink-0 rounded-xl border border-tint-warning-border bg-tint-warning-bg px-4.5 py-2.5 text-center">
+                <div className="font-display text-score font-extrabold tracking-stat text-tint-warning-fg">
                   {parecer.data.nota}
                 </div>
-                <div style={{ fontSize: 10, color: "var(--tint-warning-fg-strong)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "var(--tracking-caps)" }}>
-                  / 100
-                </div>
-                <div style={{ fontSize: 10, color: "var(--tint-warning-fg)", marginTop: 2 }}>{parecer.data.classificacao}</div>
+                <div className="text-2xs font-bold tracking-caps text-tint-warning-fg-strong uppercase">/ 100</div>
+                <div className="mt-0.5 text-2xs text-tint-warning-fg">{parecer.data.classificacao}</div>
               </div>
             </div>
 
             {/* Resumo */}
-            <div className="gd-grid-3" style={{ marginBottom: 20 }}>
-              {[
-                { count: okCount, label: "Conformes", bg: "var(--tint-success-bg)", fg: "var(--tint-success-fg)", sub: "var(--tint-success-fg-soft)", icon: <IconCheck size={18} strokeWidth={2.5} />, iconColor: "var(--color-success)" },
-                { count: warnCount, label: "Recomendações", bg: "var(--tint-warning-bg)", fg: "var(--tint-warning-fg)", sub: "var(--tint-warning-fg-strong)", icon: <IconInfo size={18} strokeWidth={2.5} />, iconColor: "var(--color-warning)" },
-                { count: errorCount, label: "Atenção necessária", bg: "var(--tint-danger-bg)", fg: "var(--tint-danger-fg)", sub: "var(--tint-danger-fg-strong)", icon: <IconXCircle size={18} strokeWidth={2.5} />, iconColor: "var(--color-danger)" },
-              ].map((r) => (
-                <div key={r.label} style={{ background: r.bg, borderRadius: "var(--radius-xl)", paddingBlock: 12, paddingInline: 14, display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ display: "flex", color: r.iconColor }}>{r.icon}</span>
+            <div className="mb-5 grid grid-cols-1 gap-3 xs:grid-cols-3">
+              {resumos.map((r) => (
+                <div key={r.label} className={`flex items-center gap-2.5 rounded-xl px-3.5 py-3 ${r.card}`}>
+                  <span className={`flex ${r.iconeCor}`}>{r.icone}</span>
                   <div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: r.fg, fontFamily: "var(--font-display)" }}>{r.count}</div>
-                    <div style={{ fontSize: 11, color: r.sub }}>{r.label}</div>
+                    <div className={`font-display text-2xl font-extrabold ${r.num}`}>{r.count}</div>
+                    <div className={`text-xs ${r.sub}`}>{r.label}</div>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Checklist de achados com fundamentação */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="flex flex-col gap-2">
               {parecer.data.achados.map((achado, i) => {
                 const cfg = severidadeCfg(achado)
                 return (
-                  <div
-                    key={i}
-                    style={{
-                      background: cfg.bg,
-                      border: `1px solid ${cfg.border}`,
-                      borderRadius: "var(--radius-md)",
-                      paddingBlock: 10,
-                      paddingInline: 14,
-                      display: "flex",
-                      gap: 10,
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontWeight: 700, color: cfg.iconColor, flexShrink: 0, marginTop: 1 }}>{cfg.icon}</span>
-                    <span style={{ fontSize: 13, color: cfg.textColor, lineHeight: 1.5 }}>
+                  <div key={i} className={`flex items-start gap-2.5 rounded-md border px-3.5 py-2.5 ${cfg.card}`}>
+                    <span className={`mt-px shrink-0 text-sm font-bold ${cfg.iconCor}`}>{cfg.icon}</span>
+                    <span className={`text-base leading-normal ${cfg.texto}`}>
                       {achado.descricao}
                       {achado.fundamentacao && (
                         <>
                           {" "}
-                          <span style={{ fontWeight: 700 }}>({achado.fundamentacao})</span>
+                          <span className="font-bold">({achado.fundamentacao})</span>
                         </>
                       )}
                     </span>
@@ -474,28 +323,14 @@ export default function VerificacaoDFD() {
           </div>
 
           {/* Ações */}
-          <div
-            style={{
-              background: "var(--surface-card)",
-              border: "var(--border-default)",
-              borderRadius: "var(--radius-card)",
-              paddingBlock: 18,
-              paddingInline: 22,
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ flexGrow: 1, flexShrink: 1, flexBasis: 260 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-body)", fontFamily: "var(--font-display)", marginBottom: 4 }}>
-                Como deseja prosseguir?
-              </div>
-              <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)" }}>
+          <div className="flex flex-wrap items-center gap-4 rounded-card border border-border bg-surface px-5.5 py-4.5">
+            <div className="flex-[1_1_260px]">
+              <div className="mb-1 font-display text-md font-bold text-text-1">Como deseja prosseguir?</div>
+              <p className="m-0 text-base text-text-3">
                 O DFD foi aceito com ressalvas. Você pode corrigir os pontos apontados antes de continuar ou prosseguir para o ETP com as informações atuais.
               </p>
             </div>
-            <div style={{ display: "flex", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>
+            <div className="flex shrink-0 flex-wrap gap-2.5">
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -509,7 +344,7 @@ export default function VerificacaoDFD() {
               </Button>
               <Button onClick={() => router.push(`/processos/${processoId}/etp`)}>
                 Prosseguir para o ETP
-                <span style={{ display: "flex" }}>
+                <span className="flex">
                   <IconChevronRight size={14} strokeWidth={2.5} />
                 </span>
               </Button>

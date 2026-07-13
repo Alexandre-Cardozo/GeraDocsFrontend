@@ -27,6 +27,15 @@ const eventoLabel: Record<string, string> = {
   conclusao: "Conclusão",
 }
 
+/** Cor do ponto na trilha por tipo de evento. */
+const eventoDot: Record<string, string> = {
+  aprovacao: "bg-success",
+  rejeicao: "bg-danger",
+  retificacao: "bg-violet",
+  envio: "bg-royal",
+  conclusao: "bg-royal",
+}
+
 export default function Aprovacoes() {
   const showToast = useToast()
   const fila = useFilaAprovacoes()
@@ -69,15 +78,15 @@ export default function Aprovacoes() {
 
   if (fila.isPending) {
     return (
-      <div className="gd-page">
+      <div className="p-4 sm:p-5 lg:p-7">
         <SkeletonRows rows={6} />
       </div>
     )
   }
   if (fila.isError) {
     return (
-      <div className="gd-page">
-        <div style={{ background: "var(--surface-card)", border: "var(--border-default)", borderRadius: "var(--radius-card)" }}>
+      <div className="p-4 sm:p-5 lg:p-7">
+        <div className="rounded-card border border-border bg-surface">
           <ErrorState onRetry={() => void fila.refetch()} />
         </div>
       </div>
@@ -86,49 +95,48 @@ export default function Aprovacoes() {
 
   const pendentesCount = itens.filter((a) => a.status === "aguardando").length
 
+  // Estado final (não-aguardando): classes do banner de decisão registrada.
+  const finalBanner =
+    active?.status === "aprovado"
+      ? { box: "bg-tint-success-bg border-tint-success-border", texto: "text-tint-success-fg", label: "✓ Processo Aprovado" }
+      : active?.status === "rejeitado"
+        ? { box: "bg-tint-danger-bg border-tint-danger-border-strong", texto: "text-tint-danger-fg", label: "✕ Processo Rejeitado" }
+        : { box: "bg-tint-violet-bg border-violet", texto: "text-tint-violet-fg", label: "Retificação Solicitada — processo devolvido para Em Revisão" }
+
   return (
-    <div className="gd-split">
+    <div className="flex flex-col lg:h-full lg:flex-row lg:overflow-hidden">
       {/* Lista à esquerda (empilha acima do detalhe no celular) */}
-      <div className="gd-approvals-rail">
-        <div style={{ paddingBlock: 16, paddingInline: 18, borderBottom: "var(--border-soft)" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-body)" }}>Pendentes de Aprovação</div>
-          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
-            {pendentesCount} documentos aguardando análise
-          </div>
+      <div className="flex w-full shrink-0 flex-col overflow-hidden border-b border-border bg-surface lg:w-85 lg:min-w-85 lg:border-r lg:border-b-0">
+        <div className="border-b border-border-soft px-4.5 py-4">
+          <div className="text-base font-bold text-text-1">Pendentes de Aprovação</div>
+          <div className="mt-0.5 text-sm text-text-3">{pendentesCount} documentos aguardando análise</div>
         </div>
-        <div style={{ flex: 1, overflowY: "auto" }}>
+        <div className="flex-1 overflow-y-auto">
           {itens.length === 0 && <EmptyState message="Nenhum item na fila de aprovação" />}
           {itens.map((a) => (
             <div
               key={a.processoId}
-              className="gd-row"
               onClick={() => {
                 setSelected(a.processoId)
                 setComment("")
                 setErroComentario(false)
               }}
-              style={{
-                paddingBlock: 14,
-                paddingInline: 18,
-                borderBottom: "var(--border-row)",
-                background: activeId === a.processoId ? "var(--tint-royal-bg)" : "transparent",
-                borderLeft: activeId === a.processoId ? "var(--border-royal-3)" : "var(--border-transparent-3)",
-              }}
+              className={`cursor-pointer border-b border-ice px-4.5 py-3.5 transition-colors ${
+                activeId === a.processoId ? "border-l-[3px] border-l-royal bg-tint-royal-bg" : "border-l-[3px] border-l-transparent hover:bg-ice"
+              }`}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-body)", flex: 1 }}>{a.objeto}</div>
+              <div className="mb-1.5 flex items-start justify-between gap-2">
+                <div className="flex-1 text-base font-semibold text-text-1">{a.objeto}</div>
                 {a.status === "aguardando" && a.urgente && <Tag tone="warning">Urgente</Tag>}
                 {a.status === "aprovado" && <Tag tone="success">Aprovado</Tag>}
                 {a.status === "rejeitado" && <Tag tone="danger">Rejeitado</Tag>}
                 {a.status === "em_revisao" && <Tag tone="violet">Em Retificação</Tag>}
               </div>
-              <div style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)", marginBottom: 4 }}>
-                {a.processoId}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 4 }}>{a.secretaria}</div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div className="mb-1 font-mono text-xs text-text-muted">{a.processoId}</div>
+              <div className="mb-1 text-sm text-text-3">{a.secretaria}</div>
+              <div className="flex items-center gap-2">
                 <Tag tone="neutral">{a.tipo}</Tag>
-                <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Prazo: {formatData(a.prazo)}</span>
+                <span className="text-xs text-text-muted">Prazo: {formatData(a.prazo)}</span>
               </div>
             </div>
           ))}
@@ -137,44 +145,26 @@ export default function Aprovacoes() {
 
       {/* Detalhe à direita */}
       {active && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--surface-app)" }}>
-          <div style={{ background: "var(--color-surface)", borderBottom: "var(--border-default)", paddingBlock: 16, paddingInline: 16 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--color-text-muted)", marginBottom: 4 }}>
-                  {active.processoId}
-                </div>
-                <h2
-                  style={{
-                    margin: 0,
-                    fontFamily: "var(--font-display)",
-                    fontSize: 18,
-                    fontWeight: 800,
-                    color: "var(--text-body)",
-                    letterSpacing: "var(--tracking-display)",
-                  }}
-                >
-                  {active.objeto}
-                </h2>
-                <div style={{ display: "flex", gap: 14, marginTop: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+        <div className="flex flex-1 flex-col overflow-hidden bg-ice">
+          <div className="border-b border-border bg-surface px-4 py-4">
+            <div className="flex flex-wrap items-start justify-between gap-2.5">
+              <div className="min-w-0">
+                <div className="mb-1 font-mono text-xs text-text-muted">{active.processoId}</div>
+                <h2 className="m-0 font-display text-lg font-extrabold tracking-display text-text-1">{active.objeto}</h2>
+                <div className="mt-2 flex flex-wrap gap-3.5">
+                  <span className="inline-flex items-center gap-1.25 text-sm text-text-3">
                     <IconFolder size={12} /> {active.secretaria}
                   </span>
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                  <span className="inline-flex items-center gap-1.25 text-sm text-text-3">
                     <IconUser size={12} /> {active.responsavel}
                   </span>
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                  <span className="inline-flex items-center gap-1.25 text-sm text-text-3">
                     <IconCalendar size={12} /> Enviado em {formatData(active.enviadoEm)}
                   </span>
                   <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: active.urgente ? "var(--color-warning-strong)" : "var(--text-secondary)",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 5,
-                    }}
+                    className={`inline-flex items-center gap-1.25 text-sm font-bold ${
+                      active.urgente ? "text-warning-strong" : "text-text-3"
+                    }`}
                   >
                     <IconClock size={12} /> Prazo: {formatData(active.prazo)}
                   </span>
@@ -191,133 +181,63 @@ export default function Aprovacoes() {
             </div>
           </div>
 
-          <div className="gd-split-content" style={{ flex: 1, overflowY: "auto" }}>
+          <div className="flex-1 overflow-y-auto p-4 lg:p-6">
             {/* Cards de informação */}
-            <div className="gd-info-grid">
+            <div className="mb-5 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3.5">
               {[
                 { label: "Modalidade", value: <span>{active.modalidade}</span> },
                 { label: "Tipo", value: <span>{active.tipo}</span> },
-                { label: "Valor Estimado", value: <span style={{ fontFamily: "var(--font-mono)" }}>{formatBRL(active.valorEstimado)}</span> },
+                { label: "Valor Estimado", value: <span className="font-mono">{formatBRL(active.valorEstimado)}</span> },
                 { label: "Status", value: <StatusBadge status={active.status} size="sm" /> },
               ].map((info) => (
-                <div
-                  key={info.label}
-                  style={{
-                    background: "var(--surface-card)",
-                    border: "var(--border-default)",
-                    borderRadius: "var(--radius-xl)",
-                    paddingBlock: 12,
-                    paddingInline: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "var(--color-text-muted)",
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "var(--tracking-caps)",
-                      marginBottom: 5,
-                    }}
-                  >
-                    {info.label}
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-body)" }}>{info.value}</div>
+                <div key={info.label} className="rounded-xl border border-border bg-surface px-3.5 py-3">
+                  <div className="mb-1.25 text-xs font-semibold tracking-caps text-text-muted uppercase">{info.label}</div>
+                  <div className="text-base font-bold text-text-1">{info.value}</div>
                 </div>
               ))}
             </div>
 
             {/* Checklist de conformidade */}
-            <div
-              style={{
-                background: "var(--surface-card)",
-                border: "var(--border-default)",
-                borderRadius: "var(--radius-card)",
-                paddingBlock: 18,
-                paddingInline: 20,
-                marginBottom: 16,
-              }}
-            >
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 14 }}>
-                Checklist de Conformidade
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="mb-4 rounded-card border border-border bg-surface px-5 py-4.5">
+              <h3 className="m-0 mb-3.5 font-display text-md font-bold text-text-1">Checklist de Conformidade</h3>
+              <div className="flex flex-col gap-2">
                 {active.checklist.map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div key={i} className="flex items-center gap-2.5">
                     <span
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: "var(--radius-full)",
-                        background: item.ok ? "var(--tint-success-bg)" : "var(--tint-danger-bg)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        color: item.ok ? "var(--color-success)" : "var(--color-danger)",
-                      }}
+                      className={`flex size-5 shrink-0 items-center justify-center rounded-full ${
+                        item.ok ? "bg-tint-success-bg text-success" : "bg-tint-danger-bg text-danger"
+                      }`}
                     >
                       {item.ok ? <IconCheck size={10} strokeWidth={3.5} /> : <IconX size={10} strokeWidth={3.5} />}
                     </span>
-                    <span style={{ fontSize: 13, color: item.ok ? "var(--text-label)" : "var(--color-danger)", fontWeight: item.ok ? 400 : 600 }}>
-                      {item.texto}
-                    </span>
+                    <span className={`text-base ${item.ok ? "text-text-2" : "font-semibold text-danger"}`}>{item.texto}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Trilha de auditoria */}
-            <div
-              style={{
-                background: "var(--surface-card)",
-                border: "var(--border-default)",
-                borderRadius: "var(--radius-card)",
-                paddingBlock: 18,
-                paddingInline: 20,
-                marginBottom: 16,
-              }}
-            >
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 14 }}>
-                Histórico do Processo
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <div className="mb-4 rounded-card border border-border bg-surface px-5 py-4.5">
+              <h3 className="m-0 mb-3.5 font-display text-md font-bold text-text-1">Histórico do Processo</h3>
+              <div className="flex flex-col">
                 {active.trilha.map((t, i) => (
-                  <div key={i} style={{ display: "flex", gap: 12 }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <span
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: "var(--radius-full)",
-                          background:
-                            t.evento === "aprovacao"
-                              ? "var(--color-success)"
-                              : t.evento === "rejeicao"
-                                ? "var(--color-danger)"
-                                : t.evento === "retificacao"
-                                  ? "var(--color-violet)"
-                                  : "var(--color-royal)",
-                          flexShrink: 0,
-                          marginTop: 4,
-                        }}
-                      />
-                      {i < active.trilha.length - 1 && <span style={{ width: 2, flex: 1, background: "var(--color-border-soft)" }} />}
+                  <div key={i} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <span className={`mt-1 size-2.5 shrink-0 rounded-full ${eventoDot[t.evento] ?? "bg-royal"}`} />
+                      {i < active.trilha.length - 1 && <span className="w-0.5 flex-1 bg-border-soft" />}
                     </div>
-                    <div style={{ paddingBottom: i < active.trilha.length - 1 ? 16 : 0, flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-body)" }}>{eventoLabel[t.evento]}</span>
-                        <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                    <div className={`flex-1 ${i < active.trilha.length - 1 ? "pb-4" : ""}`}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-base font-bold text-text-1">{eventoLabel[t.evento]}</span>
+                        <span className="text-xs text-text-muted">
                           {STATUS_PROCESSO_LABEL[t.de]} → {STATUS_PROCESSO_LABEL[t.para]}
                         </span>
-                        <span style={{ fontSize: 11, color: "var(--color-text-muted)", fontFamily: "var(--font-mono)" }}>
-                          {formatData(t.data)}
-                        </span>
+                        <span className="font-mono text-xs text-text-muted">{formatData(t.data)}</span>
                       </div>
-                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
+                      <div className="mt-0.5 text-sm text-text-3">
                         {t.autor} · {PAPEL_LABEL[t.papel]}
                       </div>
-                      <div style={{ fontSize: 13, color: "var(--text-label)", marginTop: 4, lineHeight: 1.5 }}>{t.comentario}</div>
+                      <div className="mt-1 text-base leading-normal text-text-2">{t.comentario}</div>
                     </div>
                   </div>
                 ))}
@@ -325,20 +245,9 @@ export default function Aprovacoes() {
             </div>
 
             {/* Parecer */}
-            <div
-              style={{
-                background: "var(--surface-card)",
-                border: "var(--border-default)",
-                borderRadius: "var(--radius-card)",
-                paddingBlock: 18,
-                paddingInline: 20,
-                marginBottom: 16,
-              }}
-            >
-              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--text-body)", margin: 0, marginBottom: 4 }}>
-                Parecer / Observações
-              </h3>
-              <p style={{ margin: 0, marginBottom: 10, fontSize: 12, color: "var(--color-text-muted)" }}>
+            <div className="mb-4 rounded-card border border-border bg-surface px-5 py-4.5">
+              <h3 className="m-0 mb-1 font-display text-md font-bold text-text-1">Parecer / Observações</h3>
+              <p className="m-0 mb-2.5 text-sm text-text-muted">
                 O comentário é obrigatório e ficará registrado na trilha de auditoria do processo.
               </p>
               <Textarea
@@ -355,11 +264,11 @@ export default function Aprovacoes() {
 
             {/* Decisão — empilha no celular, lado a lado no tablet+ */}
             {active.status === "aguardando" ? (
-              <div className="gd-actions-stack">
+              <div className="flex flex-col gap-2.5 md:flex-row md:gap-3">
                 <Button
                   variant="danger-soft"
                   size="lg"
-                  style={{ flex: 1, fontWeight: 700 }}
+                  className="flex-1 font-bold"
                   icon={<IconX size={15} strokeWidth={2.5} />}
                   disabled={decidir.isPending}
                   onClick={() => handleDecisao("rejeitar")}
@@ -369,7 +278,7 @@ export default function Aprovacoes() {
                 <Button
                   variant="secondary"
                   size="lg"
-                  style={{ flex: 1, fontWeight: 700, color: "var(--tint-violet-fg)", borderColor: "var(--color-violet)" }}
+                  className="flex-1 border-violet font-bold text-tint-violet-fg"
                   icon={<IconHelp size={15} />}
                   disabled={decidir.isPending}
                   onClick={() => handleDecisao("retificar")}
@@ -379,7 +288,7 @@ export default function Aprovacoes() {
                 <Button
                   variant="success"
                   size="lg"
-                  style={{ flex: 1, fontWeight: 700 }}
+                  className="flex-1 font-bold"
                   icon={<IconCheck size={15} strokeWidth={2.5} />}
                   disabled={decidir.isPending}
                   onClick={() => handleDecisao("aprovar")}
@@ -388,46 +297,9 @@ export default function Aprovacoes() {
                 </Button>
               </div>
             ) : (
-              <div
-                style={{
-                  background:
-                    active.status === "aprovado"
-                      ? "var(--tint-success-bg)"
-                      : active.status === "rejeitado"
-                        ? "var(--tint-danger-bg)"
-                        : "var(--tint-violet-bg)",
-                  border: `1px solid ${
-                    active.status === "aprovado"
-                      ? "var(--tint-success-border)"
-                      : active.status === "rejeitado"
-                        ? "var(--tint-danger-border-strong)"
-                        : "var(--color-violet)"
-                  }`,
-                  borderRadius: "var(--radius-xl)",
-                  paddingBlock: 16,
-                  paddingInline: 20,
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    color:
-                      active.status === "aprovado"
-                        ? "var(--tint-success-fg)"
-                        : active.status === "rejeitado"
-                          ? "var(--tint-danger-fg)"
-                          : "var(--tint-violet-fg)",
-                  }}
-                >
-                  {active.status === "aprovado" && "✓ Processo Aprovado"}
-                  {active.status === "rejeitado" && "✕ Processo Rejeitado"}
-                  {active.status === "em_revisao" && "Retificação Solicitada — processo devolvido para Em Revisão"}
-                </div>
-                <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 4 }}>
-                  Decisão registrada na trilha de auditoria acima.
-                </div>
+              <div className={`rounded-xl border px-5 py-4 text-center ${finalBanner.box}`}>
+                <div className={`text-lg font-bold ${finalBanner.texto}`}>{finalBanner.label}</div>
+                <div className="mt-1 text-base text-text-3">Decisão registrada na trilha de auditoria acima.</div>
               </div>
             )}
           </div>
