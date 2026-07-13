@@ -64,39 +64,32 @@ export function Tag({ children, tone = "info" }: { children: ReactNode; tone?: k
 }
 
 /** Card KPI do dashboard: chip de ícone, chip de tendência, número 30px. */
+/**
+ * Card KPI: fundo colorido com o ícone como marca d'água no canto e texto branco.
+ * `bgClass` define a cor do fundo (ex.: "bg-stat-processos"); `icon` é o ícone
+ * grande usado como marca d'água (passe um tamanho ~130).
+ */
 export function StatCard({
   label,
   value,
-  sub,
-  trend = "up",
   icon,
-  iconClasses = "bg-tint-royal-bg text-royal",
+  bgClass,
 }: {
   label: string
   value: string
-  sub?: string
-  trend?: "up" | "warn"
   icon: ReactNode
-  /** Classes de cor do chip do ícone (ex.: "bg-tint-warning-bg text-warning-strong"). */
-  iconClasses?: string
+  bgClass: string
 }) {
-  const warn = trend === "warn"
   return (
-    <div className="rounded-card border border-border bg-surface p-5">
-      <div className="mb-3 flex items-start justify-between">
-        <div className={`flex size-10 items-center justify-center rounded-xl ${iconClasses}`}>{icon}</div>
-        {sub && (
-          <span
-            className={`rounded-sm px-1.75 py-0.5 text-xs font-semibold ${
-              warn ? "bg-tint-warning-bg text-warning-strong" : "bg-status-done-bg text-green"
-            }`}
-          >
-            {warn ? "!" : "↑"} {sub}
-          </span>
-        )}
+    <div className={`relative flex min-h-31 flex-col overflow-hidden rounded-card p-5 ${bgClass}`}>
+      {/* Ícone de fundo (marca d'água), parcialmente recortado no canto inferior direito */}
+      <span className="pointer-events-none absolute -right-4 -bottom-5 text-on-dark/12" aria-hidden>
+        {icon}
+      </span>
+      <div className="relative text-base font-medium text-on-dark/85">{label}</div>
+      <div className="relative mt-auto pt-4 font-display text-stat leading-none font-extrabold tracking-stat text-on-dark">
+        {value}
       </div>
-      <div className="font-display text-stat leading-none font-extrabold tracking-stat text-text-1">{value}</div>
-      <div className="mt-1 text-base font-medium text-text-3">{label}</div>
     </div>
   )
 }

@@ -59,41 +59,33 @@ export default function Dashboard() {
         <div className="mb-5 grid grid-cols-1 gap-3 xs:grid-cols-2 lg:mb-6 lg:grid-cols-4 lg:gap-4">
           {estatisticas.isPending ? (
             Array.from({ length: 4 }, (_, i) => (
-              <div key={i} aria-hidden className="h-[130px] rounded-card border border-border bg-surface" />
+              <div key={i} aria-hidden className="h-31 rounded-card border border-border bg-surface" />
             ))
           ) : (
             <>
               <StatCard
                 label="Processos Ativos"
                 value={String(estatisticas.data.processosAtivos)}
-                sub={`+${estatisticas.data.processosNovosMes} este mês`}
-                trend="up"
-                icon={<IconFile size={20} />}
-                iconClasses="bg-tint-royal-bg text-royal"
+                icon={<IconFile size={130} strokeWidth={1.5} />}
+                bgClass="bg-stat-processos"
               />
               <StatCard
                 label="Aguardando Aprovação"
                 value={String(estatisticas.data.aguardandoAprovacao)}
-                sub={`${estatisticas.data.aguardandoUrgentes} com urgência`}
-                trend="warn"
-                icon={<IconClock size={20} />}
-                iconClasses="bg-tint-warning-bg text-warning-strong"
+                icon={<IconClock size={130} strokeWidth={1.5} />}
+                bgClass="bg-stat-aguardando"
               />
               <StatCard
                 label="Documentos Gerados"
                 value={String(estatisticas.data.documentosGerados)}
-                sub={`${estatisticas.data.documentosSemana} esta semana`}
-                trend="up"
-                icon={<IconDownload size={20} />}
-                iconClasses="bg-doc-tr-bg text-teal"
+                icon={<IconDownload size={130} strokeWidth={1.5} />}
+                bgClass="bg-stat-documentos"
               />
               <StatCard
                 label="ETPs Concluídos"
                 value={String(estatisticas.data.etpsConcluidos)}
-                sub={`Taxa de conclusão: ${estatisticas.data.taxaConclusao}%`}
-                trend="up"
-                icon={<IconCheckCircle size={20} />}
-                iconClasses="bg-status-done-bg text-green"
+                icon={<IconCheckCircle size={130} strokeWidth={1.5} />}
+                bgClass="bg-stat-etps"
               />
             </>
           )}

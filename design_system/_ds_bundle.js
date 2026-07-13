@@ -342,7 +342,7 @@ function Sidebar({
   orgName = "Prefeitura de São Paulo",
   orgUnit = "Secretaria de Compras",
   userName = "Maria Costa",
-  userRole = "Servidora · Compras",
+  userRole = "Servidor · Compras",
   userInitials = "MC"
 }) {
   const go = v => navigate && navigate(v);
