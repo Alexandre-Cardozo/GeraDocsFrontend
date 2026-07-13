@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { ReactNode } from "react"
@@ -7,7 +8,6 @@ import type { ReactNode } from "react"
 import {
   IconBuilding,
   IconCheckCircle,
-  IconChevronDown,
   IconDashboard,
   IconDownload,
   IconFileText,
@@ -124,25 +124,18 @@ export default function Sidebar({
         aberta ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      {/* Logo — wordmark GeraDocs (correção 3.3.1): chip gradiente 34px + texto */}
+      {/* Logo GeraDocs — marca oficial num chip claro (contraste sobre o navy) */}
       <div className="border-b border-on-dark-border px-5 pt-6 pb-5">
         <div className="flex items-center gap-2.5">
-          <div className="flex size-8.5 shrink-0 items-center justify-center rounded-md text-on-dark gradient-brand">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <polyline points="9 14 11 16 15 12" />
-            </svg>
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-surface">
+            <Image
+              src="/geradocs-logo.png"
+              alt="GeraDocs"
+              width={28}
+              height={29}
+              priority
+              className="object-contain"
+            />
           </div>
           <div>
             <div className="font-display text-lg font-bold tracking-heading text-on-dark">GeraDocs</div>
@@ -151,13 +144,10 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Órgão atual */}
+      {/* Órgão atual — apenas informativo */}
       <div className="border-b border-on-dark-border px-5 py-3.5">
         <div className="mb-1.5 text-2xs font-semibold tracking-caps-wide text-on-dark-35 uppercase">Órgão Atual</div>
-        <button
-          type="button"
-          className="flex w-full cursor-pointer items-center gap-2 rounded-md border-0 bg-on-dark-fill px-2.5 py-2 text-left"
-        >
+        <div className="flex items-center gap-2 rounded-md bg-on-dark-fill px-2.5 py-2">
           <span className="flex size-5.5 shrink-0 items-center justify-center rounded-[5px] bg-on-dark-royal-chip text-electric">
             <IconBuilding size={12} strokeWidth={2.5} />
           </span>
@@ -165,10 +155,7 @@ export default function Sidebar({
             <span className="block truncate text-sm font-semibold text-on-dark">Pref. de São Paulo</span>
             <span className="block text-2xs text-on-dark-40">Secretaria de Compras</span>
           </span>
-          <span className="flex text-on-dark-30">
-            <IconChevronDown size={12} strokeWidth={2.5} />
-          </span>
-        </button>
+        </div>
       </div>
 
       {/* Navegação */}
