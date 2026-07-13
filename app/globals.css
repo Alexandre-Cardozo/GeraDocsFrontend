@@ -79,12 +79,6 @@
   --color-doc-mapa: #B45309;
   --color-doc-mapa-bg: #FFFBEB;
 
-  /* ── Fundos dos cards de estatística (tons profundos, legíveis com texto branco) ── */
-  --color-stat-processos: #1D4ED8;
-  --color-stat-aguardando: #B45309;
-  --color-stat-documentos: #0F766E;
-  --color-stat-etps: #15803D;
-
   /* ── Tints derivados do protótipo ───────────────────────────────────────── */
   --color-tint-royal-bg: #EFF6FF;
   --color-tint-royal-border: #BFDBFE;

@@ -65,29 +65,31 @@ export function Tag({ children, tone = "info" }: { children: ReactNode; tone?: k
 
 /** Card KPI do dashboard: chip de ícone, chip de tendência, número 30px. */
 /**
- * Card KPI: fundo colorido com o ícone como marca d'água no canto e texto branco.
- * `bgClass` define a cor do fundo (ex.: "bg-stat-processos"); `icon` é o ícone
- * grande usado como marca d'água (passe um tamanho ~130).
+ * Card KPI: card claro (flat) com o ícone como marca d'água suave no canto, na
+ * cor do tema. `bgClass` = fundo claro (ex.: "bg-tint-royal-bg"); `iconClass` =
+ * cor/opacidade da marca d'água (ex.: "text-royal/15"); `icon` = ícone grande (~130).
  */
 export function StatCard({
   label,
   value,
   icon,
   bgClass,
+  iconClass,
 }: {
   label: string
   value: string
   icon: ReactNode
   bgClass: string
+  iconClass: string
 }) {
   return (
-    <div className={`relative flex min-h-31 flex-col overflow-hidden rounded-card p-5 ${bgClass}`}>
+    <div className={`relative flex min-h-31 flex-col overflow-hidden rounded-card border border-border p-5 ${bgClass}`}>
       {/* Ícone de fundo (marca d'água), parcialmente recortado no canto inferior direito */}
-      <span className="pointer-events-none absolute -right-4 -bottom-5 text-on-dark/12" aria-hidden>
+      <span className={`pointer-events-none absolute -right-4 -bottom-5 ${iconClass}`} aria-hidden>
         {icon}
       </span>
-      <div className="relative text-base font-medium text-on-dark/85">{label}</div>
-      <div className="relative mt-auto pt-4 font-display text-stat leading-none font-extrabold tracking-stat text-on-dark">
+      <div className="relative text-base font-medium text-text-3">{label}</div>
+      <div className="relative mt-auto pt-4 font-display text-stat leading-none font-extrabold tracking-stat text-text-1">
         {value}
       </div>
     </div>

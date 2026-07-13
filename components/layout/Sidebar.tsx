@@ -169,16 +169,14 @@ export default function Sidebar({
         </div>
         <div className="flex items-center gap-2 rounded-md">
           {tenant?.logoDataUrl ? (
-            <span className="flex size-5.5 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-surface">
-              <Image
-                src={tenant.logoDataUrl}
-                alt=""
-                width={22}
-                height={22}
-                unoptimized
-                className="size-full object-contain"
-              />
-            </span>
+            <Image
+              src={tenant.logoDataUrl}
+              alt=""
+              width={22}
+              height={22}
+              unoptimized
+              className="size-5.5 shrink-0 object-contain"
+            />
           ) : (
             <span className="flex size-5.5 shrink-0 items-center justify-center rounded-[5px] bg-on-dark-royal-chip text-electric">
               <IconBuilding size={12} strokeWidth={2.5} />

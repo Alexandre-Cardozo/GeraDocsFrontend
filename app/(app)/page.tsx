@@ -67,25 +67,29 @@ export default function Dashboard() {
                 label="Processos Ativos"
                 value={String(estatisticas.data.processosAtivos)}
                 icon={<IconFile size={130} strokeWidth={1.5} />}
-                bgClass="bg-stat-processos"
+                bgClass="bg-tint-royal-bg"
+                iconClass="text-royal/15"
               />
               <StatCard
                 label="Aguardando Aprovação"
                 value={String(estatisticas.data.aguardandoAprovacao)}
                 icon={<IconClock size={130} strokeWidth={1.5} />}
-                bgClass="bg-stat-aguardando"
+                bgClass="bg-tint-warning-bg"
+                iconClass="text-warning-strong/15"
               />
               <StatCard
                 label="Documentos Gerados"
                 value={String(estatisticas.data.documentosGerados)}
                 icon={<IconDownload size={130} strokeWidth={1.5} />}
-                bgClass="bg-stat-documentos"
+                bgClass="bg-doc-tr-bg"
+                iconClass="text-teal/15"
               />
               <StatCard
                 label="ETPs Concluídos"
                 value={String(estatisticas.data.etpsConcluidos)}
                 icon={<IconCheckCircle size={130} strokeWidth={1.5} />}
-                bgClass="bg-stat-etps"
+                bgClass="bg-status-done-bg"
+                iconClass="text-green/15"
               />
             </>
           )}

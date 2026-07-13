@@ -21,6 +21,83 @@ const tabs = [
 /** Cores dos avatares de usuário (ciclo por índice). */
 const avatarCores = ["bg-royal", "bg-teal", "bg-violet", "bg-doc-mapa"]
 
+/**
+ * Pré-visualização ao vivo do documento timbrado (brasão + cabeçalho + rodapé).
+ * Preenche a coluna direita das abas de identidade/cabeçalho e reflete o que está
+ * sendo configurado. Reutilizável entre as duas abas.
+ */
+function PreviewDocumento({
+  logoDataUrl,
+  cabecalho,
+  rodape,
+  timbrado,
+}: {
+  logoDataUrl: string | null
+  cabecalho: string
+  rodape: string
+  timbrado: boolean
+}) {
+  const rodapeResolvido = rodape
+    .replace("{data}", "09/07/2025")
+    .replace("{numero}", "PROC-2024-090")
+    .replace("{pagina}", "1")
+
+  return (
+    <div className="lg:sticky lg:top-4">
+      <div className="mb-2 text-2xs font-semibold tracking-caps text-text-muted uppercase">
+        Pré-visualização do Documento
+      </div>
+      <div className="rounded-card border border-border bg-ice p-5">
+        {/* Folha A4 estilizada */}
+        <div className="mx-auto flex aspect-[1/1.414] w-full max-w-70 flex-col rounded-sm border border-border bg-surface p-5">
+          {timbrado ? (
+            <div className="flex items-start gap-2.5 border-b-2 border-navy pb-2.5">
+              {logoDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- data URL local, sem otimização do next/image
+                <img src={logoDataUrl} alt="" className="size-8 shrink-0 object-contain" />
+              ) : (
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-border-soft text-text-faint">
+                  <IconImage size={16} strokeWidth={1.5} />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                {cabecalho.split("\n").map((line, i) => (
+                  <div
+                    key={i}
+                    className={`truncate font-display leading-tight text-text-1 ${i === 0 ? "text-2xs font-bold" : "text-2xs font-medium text-text-3"}`}
+                  >
+                    {line || " "}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Corpo simulado */}
+          <div className="mt-4 flex flex-1 flex-col gap-2">
+            <div className="h-1.5 w-1/3 rounded-full bg-border-soft" />
+            <div className="h-1.5 w-full rounded-full bg-border-soft" />
+            <div className="h-1.5 w-full rounded-full bg-border-soft" />
+            <div className="h-1.5 w-5/6 rounded-full bg-border-soft" />
+            <div className="mt-2 h-1.5 w-2/5 rounded-full bg-border-soft" />
+            <div className="h-1.5 w-full rounded-full bg-border-soft" />
+            <div className="h-1.5 w-11/12 rounded-full bg-border-soft" />
+          </div>
+
+          {timbrado && rodape.trim() !== "" ? (
+            <div className="mt-3 border-t border-text-faint pt-1.5">
+              <div className="truncate text-center text-2xs text-text-muted">{rodapeResolvido}</div>
+            </div>
+          ) : null}
+        </div>
+        <p className="mt-3 mb-0 text-center text-xs text-text-muted">
+          {timbrado ? "Assim o timbre aparecerá nos documentos gerados." : "Timbre desativado — documentos sem brasão."}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function Configuracoes() {
   const showToast = useToast()
   const tenant = useConfigTenant()
@@ -119,7 +196,7 @@ export default function Configuracoes() {
   }
 
   return (
-    <div className="max-w-settings p-4 sm:p-5 lg:p-7">
+    <div className="max-w-content p-4 sm:p-5 lg:p-7">
       <div className="mb-6">
         <h2 className="m-0 mb-1 font-display text-2xl font-extrabold tracking-tight text-text-1">
           Configurações da Prefeitura
@@ -147,7 +224,8 @@ export default function Configuracoes() {
 
       {/* ── Identidade Visual ── */}
       {activeTab === "identidade" && (
-        <div className="flex flex-col gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex flex-col gap-5">
           <SectionBlock
             title="Logotipo / Brasão da Prefeitura"
             hint="O logotipo será inserido no cabeçalho dos documentos timbrados. Formatos aceitos: PNG, SVG, JPG (fundo transparente recomendado)."
@@ -243,62 +321,41 @@ export default function Configuracoes() {
               {atualizar.isPending ? "Salvando..." : "Salvar Configurações"}
             </Button>
           </div>
+          </div>
+
+          <PreviewDocumento logoDataUrl={logoDataUrl} cabecalho={cabecalho} rodape={rodape} timbrado={timbrado} />
         </div>
       )}
 
       {/* ── Cabeçalho e Rodapé ── */}
       {activeTab === "cabecalho" && (
-        <div className="flex flex-col gap-5">
-          <SectionBlock
-            title="Cabeçalho dos Documentos"
-            hint="Texto exibido no topo de cada página dos documentos gerados. Use quebras de linha para organizar as informações. Variáveis disponíveis: {processo}, {data}, {secretaria}."
-          >
-            <Textarea value={cabecalho} onChange={(e) => setCabecalho(e.target.value)} rows={4} />
-            <div className="mt-3.5 rounded-xl border border-border bg-ice px-5 py-4">
-              <div className="mb-2.5 text-xs font-semibold tracking-caps text-text-muted uppercase">
-                Pré-visualização do Cabeçalho
-              </div>
-              <div className="flex items-start gap-4 border-b-2 border-navy pb-2.5">
-                {logoFile && <div className="size-10 shrink-0 rounded-sm bg-border" />}
-                <div className="flex-1">
-                  {cabecalho.split("\n").map((line, i) => (
-                    <div
-                      key={i}
-                      className={`font-display leading-normal text-text-1 ${i === 0 ? "text-base font-bold" : "text-xs font-medium"}`}
-                    >
-                      {line || " "}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </SectionBlock>
-
-          <SectionBlock
-            title="Rodapé dos Documentos"
-            hint="Texto exibido na parte inferior de cada página. Variáveis disponíveis: {processo}, {data}, {numero}, {pagina}."
-          >
-            <Textarea value={rodape} onChange={(e) => setRodape(e.target.value)} rows={3} />
-            <div className="mt-3.5 rounded-xl border border-border bg-ice px-5 py-4">
-              <div className="mb-2.5 text-xs font-semibold tracking-caps text-text-muted uppercase">
-                Pré-visualização do Rodapé
-              </div>
-              <div className="border-t border-text-faint pt-2">
-                <div className="text-center font-body text-2xs text-text-muted">
-                  {rodape.replace("{data}", "09/07/2025").replace("{numero}", "PROC-2024-090").replace("{pagina}", "1")}
-                </div>
-              </div>
-            </div>
-          </SectionBlock>
-
-          <div className="flex gap-2.5">
-            <Button
-              disabled={atualizar.isPending}
-              onClick={() => salvarTenant({ cabecalho, rodape }, "Cabeçalho e rodapé salvos com sucesso.")}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex flex-col gap-5">
+            <SectionBlock
+              title="Cabeçalho dos Documentos"
+              hint="Texto exibido no topo de cada página dos documentos gerados. Use quebras de linha para organizar as informações. Variáveis disponíveis: {processo}, {data}, {secretaria}."
             >
-              {atualizar.isPending ? "Salvando..." : "Salvar Cabeçalho e Rodapé"}
-            </Button>
+              <Textarea value={cabecalho} onChange={(e) => setCabecalho(e.target.value)} rows={4} />
+            </SectionBlock>
+
+            <SectionBlock
+              title="Rodapé dos Documentos"
+              hint="Texto exibido na parte inferior de cada página. Variáveis disponíveis: {processo}, {data}, {numero}, {pagina}."
+            >
+              <Textarea value={rodape} onChange={(e) => setRodape(e.target.value)} rows={3} />
+            </SectionBlock>
+
+            <div className="flex gap-2.5">
+              <Button
+                disabled={atualizar.isPending}
+                onClick={() => salvarTenant({ cabecalho, rodape }, "Cabeçalho e rodapé salvos com sucesso.")}
+              >
+                {atualizar.isPending ? "Salvando..." : "Salvar Cabeçalho e Rodapé"}
+              </Button>
+            </div>
           </div>
+
+          <PreviewDocumento logoDataUrl={logoDataUrl} cabecalho={cabecalho} rodape={rodape} timbrado={timbrado} />
         </div>
       )}
 
@@ -320,18 +377,18 @@ export default function Configuracoes() {
               Adicionar Secretaria
             </Button>
           </div>
-          <div className="flex flex-col">
-            {secretarias.map((s, i) => (
-              <div key={s.id} className={`flex items-center gap-3 py-2.75 ${i < secretarias.length - 1 ? "border-b border-border-soft" : ""}`}>
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {secretarias.map((s) => (
+              <div key={s.id} className="flex items-center gap-3 rounded-md border border-border-soft px-3 py-2.5">
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-sm bg-tint-royal-bg text-royal">
                   <IconFile size={14} />
                 </span>
-                <span className="flex-1 text-base font-medium text-text-1">{s.nome}</span>
+                <span className="flex-1 truncate text-base font-medium text-text-1">{s.nome}</span>
                 <button
                   type="button"
                   aria-label={`Remover ${s.nome}`}
                   onClick={() => removeSecretaria(s.id)}
-                  className="flex size-7 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-text-3"
+                  className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-text-3"
                 >
                   <IconTrash size={13} />
                 </button>
@@ -343,11 +400,8 @@ export default function Configuracoes() {
 
       {/* ── PCA ── */}
       {activeTab === "pca" && (
-        <div className="flex flex-col gap-5">
-          <InfoBanner tone="info">
-            O <strong>Plano de Contratações Anual (PCA)</strong> é utilizado pelo modelo de IA para validar se o processo em elaboração está previsto no planejamento vigente, sugerindo o item correspondente e auxiliando no preenchimento do ETP.
-          </InfoBanner>
-
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="flex flex-col gap-5">
           <SectionBlock
             title="PCA do Ano Vigente"
             hint="Anexe o PCA aprovado para o ano corrente. Formatos aceitos: PDF, XLSX, DOCX. O arquivo será utilizado como referência durante a geração dos documentos."
@@ -421,6 +475,13 @@ export default function Configuracoes() {
             >
               {atualizar.isPending ? "Salvando..." : "Salvar PCA"}
             </Button>
+          </div>
+          </div>
+
+          <div className="lg:sticky lg:top-4">
+            <InfoBanner tone="info">
+              O <strong>Plano de Contratações Anual (PCA)</strong> é utilizado pelo modelo de IA para validar se o processo em elaboração está previsto no planejamento vigente, sugerindo o item correspondente e auxiliando no preenchimento do ETP.
+            </InfoBanner>
           </div>
         </div>
       )}
