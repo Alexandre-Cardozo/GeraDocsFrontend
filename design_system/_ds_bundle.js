@@ -339,7 +339,7 @@ function Sidebar({
     view: "settings",
     label: "Configurações"
   }],
-  orgName = "Pref. de São Paulo",
+  orgName = "Prefeitura de São Paulo",
   orgUnit = "Secretaria de Compras",
   userName = "Maria Costa",
   userRole = "Servidora · Compras",

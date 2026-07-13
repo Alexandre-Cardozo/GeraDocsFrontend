@@ -7,7 +7,7 @@ import type {
   SecaoETP,
   Tenant,
   UsuarioAtual,
-} from "@/lib/types"
+} from "@/lib/types";
 
 /**
  * Fixtures do mock — dados idênticos aos do protótipo Vite.
@@ -20,7 +20,7 @@ export const usuarioAtual: UsuarioAtual = {
   iniciais: "MC",
   papel: "servidor_compras",
   descricao: "Servidora · Compras",
-}
+};
 
 export const estatisticas: EstatisticasDashboard = {
   processosAtivos: 24,
@@ -31,7 +31,7 @@ export const estatisticas: EstatisticasDashboard = {
   documentosSemana: 12,
   etpsConcluidos: 61,
   taxaConclusao: 89,
-}
+};
 
 export const processos: Processo[] = [
   {
@@ -150,7 +150,7 @@ export const processos: Processo[] = [
     atualizadoEm: "2024-06-27",
     fases: { verificacaoDFD: false, retificacao: false },
   },
-]
+];
 
 /** As 12 seções do ETP na ordem do protótipo, com inciso do Art. 18. */
 export const secoesETPBase: SecaoETP[] = [
@@ -265,7 +265,7 @@ export const secoesETPBase: SecaoETP[] = [
     hint: "Registre o posicionamento conclusivo sobre a adequação da contratação para o atendimento da necessidade.",
     conteudo: "",
   },
-]
+];
 
 /** Achados do parecer da IA sobre o DFD (protótipo DFDReview). */
 export const parecerDFDBase: Omit<ParecerDFD, "processoId" | "arquivo"> = {
@@ -276,28 +276,33 @@ export const parecerDFDBase: Omit<ParecerDFD, "processoId" | "arquivo"> = {
     {
       tipo: "conformidade",
       severidade: "info",
-      descricao: "Identificação do demandante completa e assinada pela autoridade competente.",
+      descricao:
+        "Identificação do demandante completa e assinada pela autoridade competente.",
     },
     {
       tipo: "conformidade",
       severidade: "info",
-      descricao: "Objeto descrito com clareza e especificidade suficiente para embasamento do ETP.",
+      descricao:
+        "Objeto descrito com clareza e especificidade suficiente para embasamento do ETP.",
     },
     {
       tipo: "conformidade",
       severidade: "info",
-      descricao: "Justificativa da necessidade alinhada com o planejamento institucional.",
+      descricao:
+        "Justificativa da necessidade alinhada com o planejamento institucional.",
       fundamentacao: "PCA 2025 — item 47",
     },
     {
       tipo: "alerta",
       severidade: "recomendacao",
-      descricao: "Estimativa de valor ausente. Recomenda-se incluir pesquisa prévia de preços para fortalecer a justificativa.",
+      descricao:
+        "Estimativa de valor ausente. Recomenda-se incluir pesquisa prévia de preços para fortalecer a justificativa.",
     },
     {
       tipo: "alerta",
       severidade: "recomendacao",
-      descricao: "Prazo de entrega não especificado. Adicionar cronograma ou prazo estimado facilita o preenchimento do TR.",
+      descricao:
+        "Prazo de entrega não especificado. Adicionar cronograma ou prazo estimado facilita o preenchimento do TR.",
     },
     {
       tipo: "conformidade",
@@ -308,10 +313,11 @@ export const parecerDFDBase: Omit<ParecerDFD, "processoId" | "arquivo"> = {
     {
       tipo: "alerta",
       severidade: "atencao",
-      descricao: "Ausência de referência ao item do PCA vigente. O ETP pode ser questionado na fase de aprovação.",
+      descricao:
+        "Ausência de referência ao item do PCA vigente. O ETP pode ser questionado na fase de aprovação.",
     },
   ],
-}
+};
 
 export const aprovacoes: ItemAprovacao[] = [
   {
@@ -351,7 +357,8 @@ export const aprovacoes: ItemAprovacao[] = [
         autor: "Comissão de Contratação",
         papel: "comissao",
         data: "2024-07-04",
-        comentario: "Documentação conferida. Segue para decisão do gestor aprovador.",
+        comentario:
+          "Documentação conferida. Segue para decisão do gestor aprovador.",
       },
     ],
   },
@@ -369,7 +376,11 @@ export const aprovacoes: ItemAprovacao[] = [
     status: "aguardando",
     checklist: [
       { ok: true, texto: "Descrição da necessidade preenchida e fundamentada" },
-      { ok: true, texto: "Inviabilidade de competição demonstrada (Art. 74, Lei 14.133/21)" },
+      {
+        ok: true,
+        texto:
+          "Inviabilidade de competição demonstrada (Art. 74, Lei 14.133/21)",
+      },
       { ok: true, texto: "Responsável técnico identificado e assinado" },
       { ok: true, texto: "Justificativa de preço com comparativos de mercado" },
       { ok: true, texto: "Declaração de viabilidade preenchida" },
@@ -391,7 +402,8 @@ export const aprovacoes: ItemAprovacao[] = [
         autor: "Departamento Jurídico",
         papel: "juridico",
         data: "2024-07-02",
-        comentario: "Solicito retificação: incluir comparativo de preços exigido pelo Art. 23, Lei 14.133/21.",
+        comentario:
+          "Solicito retificação: incluir comparativo de preços exigido pelo Art. 23, Lei 14.133/21.",
       },
       {
         evento: "envio",
@@ -400,7 +412,8 @@ export const aprovacoes: ItemAprovacao[] = [
         autor: "Pedro Ramos",
         papel: "servidor_compras",
         data: "2024-07-03",
-        comentario: "Retificação atendida; comparativo de preços anexado à seção 5 do ETP.",
+        comentario:
+          "Retificação atendida; comparativo de preços anexado à seção 5 do ETP.",
       },
     ],
   },
@@ -432,7 +445,8 @@ export const aprovacoes: ItemAprovacao[] = [
         autor: "Ana Oliveira",
         papel: "secretaria_demandante",
         data: "2024-06-30",
-        comentario: "ETP da reforma concluído conforme levantamento da engenharia.",
+        comentario:
+          "ETP da reforma concluído conforme levantamento da engenharia.",
       },
       {
         evento: "envio",
@@ -445,20 +459,83 @@ export const aprovacoes: ItemAprovacao[] = [
       },
     ],
   },
-]
+];
 
 export const documentos: DocumentoGerado[] = [
-  { id: "DOC-2024-0189", processoId: "PROC-2024-087", titulo: "ETP — Fornecimento de Material de Escritório", tipo: "ETP", formato: "DOCX + PDF", geradoEm: "2024-07-03T16:42:00", tamanho: "284 KB", status: "final" },
-  { id: "DOC-2024-0188", processoId: "PROC-2024-087", titulo: "TR — Fornecimento de Material de Escritório", tipo: "TR", formato: "DOCX + PDF", geradoEm: "2024-07-03T16:40:00", tamanho: "310 KB", status: "final" },
-  { id: "DOC-2024-0187", processoId: "PROC-2024-087", titulo: "Cotação de Mercado — Material de Escritório", tipo: "Cotação", formato: "DOCX + PDF", geradoEm: "2024-07-03T16:35:00", tamanho: "196 KB", status: "final" },
-  { id: "DOC-2024-0185", processoId: "PROC-2024-085", titulo: "ETP — Aquisição de Veículos Oficiais", tipo: "ETP", formato: "DOCX + PDF", geradoEm: "2024-07-01T11:20:00", tamanho: "398 KB", status: "final" },
-  { id: "DOC-2024-0184", processoId: "PROC-2024-085", titulo: "TR — Aquisição de Veículos Oficiais", tipo: "TR", formato: "DOCX + PDF", geradoEm: "2024-07-01T11:18:00", tamanho: "425 KB", status: "final" },
-  { id: "DOC-2024-0171", processoId: "PROC-2024-079", titulo: "ETP — Serviços de Vigilância Armada", tipo: "ETP", formato: "DOCX + PDF", geradoEm: "2024-06-25T09:55:00", tamanho: "266 KB", status: "rascunho" },
-  { id: "DOC-2024-0168", processoId: "PROC-2024-078", titulo: "Mapa de Riscos — TI 2024", tipo: "Mapa", formato: "PDF", geradoEm: "2024-06-24T14:30:00", tamanho: "128 KB", status: "final" },
-]
+  {
+    id: "DOC-2024-0189",
+    processoId: "PROC-2024-087",
+    titulo: "ETP — Fornecimento de Material de Escritório",
+    tipo: "ETP",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-03T16:42:00",
+    tamanho: "284 KB",
+    status: "final",
+  },
+  {
+    id: "DOC-2024-0188",
+    processoId: "PROC-2024-087",
+    titulo: "TR — Fornecimento de Material de Escritório",
+    tipo: "TR",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-03T16:40:00",
+    tamanho: "310 KB",
+    status: "final",
+  },
+  {
+    id: "DOC-2024-0187",
+    processoId: "PROC-2024-087",
+    titulo: "Cotação de Mercado — Material de Escritório",
+    tipo: "Cotação",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-03T16:35:00",
+    tamanho: "196 KB",
+    status: "final",
+  },
+  {
+    id: "DOC-2024-0185",
+    processoId: "PROC-2024-085",
+    titulo: "ETP — Aquisição de Veículos Oficiais",
+    tipo: "ETP",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-01T11:20:00",
+    tamanho: "398 KB",
+    status: "final",
+  },
+  {
+    id: "DOC-2024-0184",
+    processoId: "PROC-2024-085",
+    titulo: "TR — Aquisição de Veículos Oficiais",
+    tipo: "TR",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-01T11:18:00",
+    tamanho: "425 KB",
+    status: "final",
+  },
+  {
+    id: "DOC-2024-0171",
+    processoId: "PROC-2024-079",
+    titulo: "ETP — Serviços de Vigilância Armada",
+    tipo: "ETP",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-06-25T09:55:00",
+    tamanho: "266 KB",
+    status: "rascunho",
+  },
+  {
+    id: "DOC-2024-0168",
+    processoId: "PROC-2024-078",
+    titulo: "Mapa de Riscos — TI 2024",
+    tipo: "Mapa",
+    formato: "PDF",
+    geradoEm: "2024-06-24T14:30:00",
+    tamanho: "128 KB",
+    status: "final",
+  },
+];
 
 export const tenant: Tenant = {
-  orgao: "Pref. de São Paulo",
+  orgao: "Prefeitura de São Paulo",
   unidade: "Secretaria de Compras",
   secretarias: [
     { id: "sec-1", nome: "Secretaria de Educação" },
@@ -472,14 +549,43 @@ export const tenant: Tenant = {
     { id: "sec-9", nome: "Administração Central" },
   ],
   logoArquivo: "brasao-sao-paulo.png",
+  // Sem imagem exibível por padrão → a sidebar mostra o ícone padrão do órgão até
+  // que o servidor importe um brasão em Configurações → Identidade Visual.
+  logoDataUrl: null,
   timbrado: true,
-  cabecalho: "PREFEITURA MUNICIPAL DE SÃO PAULO\nSecretaria Municipal de Compras e Contratações",
-  rodape: "Documento gerado eletronicamente pela plataforma GeraDocs · São Paulo, {data} · Processo nº {numero}",
+  cabecalho:
+    "PREFEITURA MUNICIPAL DE SÃO PAULO\nSecretaria Municipal de Compras e Contratações",
+  rodape:
+    "Documento gerado eletronicamente pela plataforma GeraDocs · São Paulo, {data} · Processo nº {numero}",
   pca: { ano: "2025", arquivo: null, itensIndexados: 247 },
   usuarios: [
-    { nome: "Maria Costa", cargo: "Chefe de Compras", perfil: "Administrador", ultimoAcesso: "Hoje, 14:22", iniciais: "MC" },
-    { nome: "José Alves", cargo: "Analista de Compras", perfil: "Elaborador", ultimoAcesso: "Hoje, 11:05", iniciais: "JA" },
-    { nome: "Ana Ribeiro", cargo: "Técnica de Licitações", perfil: "Elaborador", ultimoAcesso: "08/07/2025", iniciais: "AR" },
-    { nome: "Carlos Lima", cargo: "Gestor de Contratos", perfil: "Aprovador", ultimoAcesso: "07/07/2025", iniciais: "CL" },
+    {
+      nome: "Maria Costa",
+      cargo: "Chefe de Compras",
+      perfil: "Administrador",
+      ultimoAcesso: "Hoje, 14:22",
+      iniciais: "MC",
+    },
+    {
+      nome: "José Alves",
+      cargo: "Analista de Compras",
+      perfil: "Elaborador",
+      ultimoAcesso: "Hoje, 11:05",
+      iniciais: "JA",
+    },
+    {
+      nome: "Ana Ribeiro",
+      cargo: "Técnica de Licitações",
+      perfil: "Elaborador",
+      ultimoAcesso: "08/07/2025",
+      iniciais: "AR",
+    },
+    {
+      nome: "Carlos Lima",
+      cargo: "Gestor de Contratos",
+      perfil: "Aprovador",
+      ultimoAcesso: "07/07/2025",
+      iniciais: "CL",
+    },
   ],
-}
+};

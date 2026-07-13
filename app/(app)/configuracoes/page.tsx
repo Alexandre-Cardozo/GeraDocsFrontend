@@ -3,7 +3,7 @@
 import { useState } from "react"
 
 import { Button, FileUpload, FormField, InfoBanner, Input, SectionBlock, Select, Tag, Textarea, Toggle } from "@/components/ui"
-import { IconCheck, IconFile, IconImage, IconPlus, IconTrash } from "@/components/ui/icons"
+import { IconCheck, IconFile, IconImage, IconPlus, IconTrash, IconUpload } from "@/components/ui/icons"
 import { ErrorState, LoadingState } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
 import { useToast } from "@/components/shared/providers"
@@ -30,6 +30,7 @@ export default function Configuracoes() {
 
   // Estado local dos formulários, semeado quando o tenant carrega.
   const [logoFile, setLogoFile] = useState<string | null>(null)
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null)
   const [timbrado, setTimbrado] = useState(true)
   const [cabecalho, setCabecalho] = useState("")
   const [rodape, setRodape] = useState("")
@@ -44,6 +45,7 @@ export default function Configuracoes() {
   if (tenant.data && !seeded) {
     setSeeded(true)
     setLogoFile(tenant.data.logoArquivo)
+    setLogoDataUrl(tenant.data.logoDataUrl)
     setTimbrado(tenant.data.timbrado)
     setCabecalho(tenant.data.cabecalho)
     setRodape(tenant.data.rodape)
@@ -75,6 +77,7 @@ export default function Configuracoes() {
         // Realinha o formulário com o estado canônico devolvido pela API — na
         // integração real o backend pode normalizar valores (trim, ids, contagens).
         setLogoFile(tenantAtualizado.logoArquivo)
+        setLogoDataUrl(tenantAtualizado.logoDataUrl)
         setTimbrado(tenantAtualizado.timbrado)
         setCabecalho(tenantAtualizado.cabecalho)
         setRodape(tenantAtualizado.rodape)
@@ -100,6 +103,19 @@ export default function Configuracoes() {
     const lista = secretarias.filter((s) => s.id !== id)
     setSecretarias(lista)
     salvarTenant({ secretarias: lista }, "Secretaria removida.")
+  }
+
+  // Lê o brasão selecionado como data URL para poder exibi-lo (preview, sidebar, timbre).
+  const selecionarLogo = (file: File) => {
+    setLogoFile(file.name)
+    const reader = new FileReader()
+    reader.onload = () => setLogoDataUrl(typeof reader.result === "string" ? reader.result : null)
+    reader.readAsDataURL(file)
+  }
+
+  const removerLogo = () => {
+    setLogoFile(null)
+    setLogoDataUrl(null)
   }
 
   return (
@@ -138,12 +154,19 @@ export default function Configuracoes() {
           >
             {logoFile ? (
               <div className="flex items-center gap-4">
-                <div className="flex size-20 items-center justify-center rounded-xl border border-border bg-border-soft text-text-muted">
-                  <IconImage size={32} strokeWidth={1.5} />
+                <div className="flex size-20 items-center justify-center overflow-hidden rounded-xl border border-border bg-border-soft text-text-muted">
+                  {logoDataUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- data URL local, sem otimização do next/image
+                    <img src={logoDataUrl} alt="Brasão da prefeitura" className="size-full object-contain" />
+                  ) : (
+                    <IconImage size={32} strokeWidth={1.5} />
+                  )}
                 </div>
                 <div>
                   <div className="text-base font-semibold text-text-1">{logoFile}</div>
-                  <div className="mt-0.5 text-sm text-text-muted">PNG · 340 × 340 px · 48 KB</div>
+                  <div className="mt-0.5 text-sm text-text-muted">
+                    {logoDataUrl ? "Será exibido na sidebar e no timbre dos documentos" : "PNG · 340 × 340 px · 48 KB"}
+                  </div>
                   <div className="mt-2.5 flex gap-2">
                     <label className="cursor-pointer">
                       <input
@@ -152,26 +175,38 @@ export default function Configuracoes() {
                         className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0]
-                          if (f) setLogoFile(f.name)
+                          if (f) selecionarLogo(f)
                         }}
                       />
                       <span className="inline-block cursor-pointer rounded-sm border border-tint-royal-border bg-tint-royal-bg px-3 py-1.25 text-sm font-semibold text-royal">
                         Substituir
                       </span>
                     </label>
-                    <Button variant="secondary" size="sm" onClick={() => setLogoFile(null)}>
+                    <Button variant="secondary" size="sm" onClick={removerLogo}>
                       Remover
                     </Button>
                   </div>
                 </div>
               </div>
             ) : (
-              <FileUpload
-                file={null}
-                onChange={setLogoFile}
-                placeholder="Clique para selecionar ou arraste o logotipo aqui"
-                accept=".png,.svg,.jpg,.jpeg"
-              />
+              <label className="block cursor-pointer">
+                <input
+                  type="file"
+                  accept=".png,.svg,.jpg,.jpeg"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    if (f) selecionarLogo(f)
+                  }}
+                />
+                <div className="rounded-md border-2 border-dashed border-text-faint bg-surface-upload px-5 py-4.5 text-center transition-colors">
+                  <span className="mx-auto mb-2 block w-5 text-text-muted">
+                    <IconUpload size={20} strokeWidth={1.5} />
+                  </span>
+                  <p className="m-0 text-base text-text-3">Clique para selecionar ou arraste o logotipo aqui</p>
+                  <p className="mt-1 mb-0 text-xs text-text-muted">PNG, SVG, JPG, JPEG</p>
+                </div>
+              </label>
             )}
           </SectionBlock>
 
@@ -203,7 +238,7 @@ export default function Configuracoes() {
           <div className="flex gap-2.5">
             <Button
               disabled={atualizar.isPending}
-              onClick={() => salvarTenant({ logoArquivo: logoFile, timbrado }, "Configurações de identidade salvas com sucesso.")}
+              onClick={() => salvarTenant({ logoArquivo: logoFile, logoDataUrl, timbrado }, "Configurações de identidade salvas com sucesso.")}
             >
               {atualizar.isPending ? "Salvando..." : "Salvar Configurações"}
             </Button>

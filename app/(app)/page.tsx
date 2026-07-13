@@ -17,7 +17,7 @@ import {
 import { ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
 import { useEstatisticas, useFilaAprovacoes, useProcessos, useUsuarioAtual } from "@/lib/api/hooks"
-import { formatBRL, formatData } from "@/lib/format"
+import { dataPorExtenso, formatBRL, formatData, saudacao } from "@/lib/format"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -31,12 +31,14 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-content p-4 sm:p-5 lg:p-7">
-      {/* Saudação */}
+      {/* Saudação — data e período do dia no horário de Brasília; nome do servidor logado */}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3 lg:mb-7">
         <div>
-          <p className="m-0 mb-1 text-base text-text-3">Segunda-feira, 07 de julho de 2024</p>
-          <h2 className="m-0 font-display text-3xl font-extrabold tracking-tight text-text-1">
-            Bom dia, {usuario?.primeiroNome ?? "..."}
+          <p className="m-0 mb-1 text-base text-text-3" suppressHydrationWarning>
+            {dataPorExtenso()}
+          </p>
+          <h2 className="m-0 font-display text-3xl font-extrabold tracking-tight text-text-1" suppressHydrationWarning>
+            {saudacao()}, {usuario?.primeiroNome ?? "..."}
           </h2>
         </div>
         <Link

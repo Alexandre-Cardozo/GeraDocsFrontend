@@ -212,7 +212,10 @@ export interface Tenant {
   orgao: string
   unidade: string
   secretarias: Secretaria[]
+  /** Nome do arquivo do logotipo/brasão configurado (metadado exibido). */
   logoArquivo: string | null
+  /** Imagem do logotipo/brasão em data URL, para exibição (sidebar, timbre). Null = sem logo. */
+  logoDataUrl: string | null
   timbrado: boolean
   cabecalho: string
   rodape: string

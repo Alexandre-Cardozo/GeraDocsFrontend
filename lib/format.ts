@@ -21,3 +21,38 @@ export function formatData(iso: string): string {
 export function formatDataHora(iso: string): string {
   return `${formatData(iso)} — ${iso.slice(11, 16)}`
 }
+
+/** Fuso oficial de Brasília — usado nas saudações e na data do Dashboard. */
+const FUSO_BRASILIA = "America/Sao_Paulo"
+
+/** Hora do dia (0–23) no fuso de Brasília. */
+export function horaBrasilia(d: Date = new Date()): number {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: FUSO_BRASILIA,
+    hour: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+  }).formatToParts(d)
+  return Number(partes.find((p) => p.type === "hour")?.value ?? "0")
+}
+
+/** Saudação conforme o período do dia em Brasília: Bom dia / Boa tarde / Boa noite. */
+export function saudacao(d: Date = new Date()): string {
+  const h = horaBrasilia(d)
+  if (h >= 5 && h < 12) return "Bom dia"
+  if (h >= 12 && h < 18) return "Boa tarde"
+  return "Boa noite"
+}
+
+/** Data por extenso em pt-BR no fuso de Brasília: "Segunda-feira, 07 de julho de 2024". */
+export function dataPorExtenso(d: Date = new Date()): string {
+  const texto = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: FUSO_BRASILIA,
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(d)
+  // Intl retorna com inicial minúscula ("segunda-feira, ...") — capitaliza a primeira letra.
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
