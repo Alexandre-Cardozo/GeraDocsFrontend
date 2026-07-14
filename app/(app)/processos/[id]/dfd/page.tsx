@@ -19,8 +19,9 @@ import {
 import { ErrorState, LoadingState } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
 import { useAnalisarDFD, useParecerDFD, useProcesso } from "@/lib/api/hooks"
+import { CATALOGO, ordenar, totalSecoes } from "@/lib/documentos"
 import { formatDataHora } from "@/lib/format"
-import type { AchadoDFD, TipoDocumento } from "@/lib/types"
+import type { AchadoDFD } from "@/lib/types"
 
 const etapasAnalise = [
   "Leitura e estruturação do documento",
@@ -28,14 +29,6 @@ const etapasAnalise = [
   "Cruzamento com PCA 2025",
   "Geração do parecer",
 ]
-
-/** Título completo e nº de seções por documento — alimenta o painel "Fases do Processo". */
-const META_FASE: Record<TipoDocumento, { titulo: string; secoes: number }> = {
-  ETP: { titulo: "Estudo Técnico Preliminar (ETP)", secoes: 11 },
-  TR: { titulo: "Termo de Referência (TR)", secoes: 10 },
-  "Cotação": { titulo: "Cotação de Mercado", secoes: 4 },
-  Mapa: { titulo: "Mapa de Riscos", secoes: 5 },
-}
 
 /** Classes de cor por severidade do achado. */
 function severidadeCfg(achado: AchadoDFD) {
@@ -65,6 +58,13 @@ export default function VerificacaoDFD() {
   const [analisando, setAnalisando] = useState(false)
   const [reenviando, setReenviando] = useState(false)
   const intervalo = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Documento que sucede o DFD no fluxo. Em regra é o ETP, mas na contratação
+  // direta ele é dispensável (Art. 18, § 2º) e o processo começa por outro.
+  const proximo = ordenar(processo.data?.documentos ?? [])[0]
+  const proximoTitulo = proximo ? CATALOGO[proximo].titulo : "processo"
+  const irParaProximo = () =>
+    router.push(proximo ? `/processos/${processoId}/documento/${CATALOGO[proximo].slug}` : `/processos/${processoId}`)
 
   useEffect(() => () => {
     if (intervalo.current) clearInterval(intervalo.current)
@@ -217,10 +217,10 @@ export default function VerificacaoDFD() {
 
           <button
             type="button"
-            onClick={() => router.push(`/processos/${processoId}/etp`)}
+            onClick={irParaProximo}
             className="cursor-pointer self-start border-0 bg-transparent p-0 text-base text-text-3 underline"
           >
-            Pular esta fase e iniciar o ETP sem verificação
+            Pular esta fase e iniciar o {proximoTitulo} sem verificação
           </button>
         </div>
       )}
@@ -326,7 +326,8 @@ export default function VerificacaoDFD() {
             <div className="flex-[1_1_260px]">
               <div className="mb-1 font-display text-md font-bold text-text-1">Como deseja prosseguir?</div>
               <p className="m-0 text-base text-text-3">
-                O DFD foi aceito com ressalvas. Você pode corrigir os pontos apontados antes de continuar ou prosseguir para o ETP com as informações atuais.
+                O DFD foi aceito com ressalvas. Você pode corrigir os pontos apontados antes de continuar ou prosseguir
+                para o {proximoTitulo} com as informações atuais.
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2.5">
@@ -341,8 +342,8 @@ export default function VerificacaoDFD() {
               >
                 Enviar DFD Corrigido
               </Button>
-              <Button onClick={() => router.push(`/processos/${processoId}/etp`)}>
-                Prosseguir para o ETP
+              <Button onClick={irParaProximo}>
+                Prosseguir para o {proximoTitulo}
                 <span className="flex">
                   <IconChevronRight size={14} strokeWidth={2.5} />
                 </span>
@@ -360,9 +361,9 @@ export default function VerificacaoDFD() {
             <ol className="flex flex-col">
               {[
                 { label: "Verificação do DFD", sub: "Análise pela IA", estado: "atual" },
-                ...(processo.data?.documentos ?? []).map((tipo) => ({
-                  label: META_FASE[tipo].titulo,
-                  sub: `${META_FASE[tipo].secoes} seções`,
+                ...ordenar(processo.data?.documentos ?? []).map((tipo) => ({
+                  label: CATALOGO[tipo].titulo,
+                  sub: `${totalSecoes(tipo)} seções`,
                   estado: "proxima",
                 })),
               ].map((f, i, arr) => (
@@ -388,7 +389,7 @@ export default function VerificacaoDFD() {
             </ol>
             <div className="mt-4 border-t border-border-soft pt-4">
               <p className="m-0 text-sm text-text-3">
-                A verificação do DFD é opcional. Você pode prosseguir direto ao ETP a qualquer momento.
+                A verificação do DFD é opcional. Você pode prosseguir direto ao {proximoTitulo} a qualquer momento.
               </p>
             </div>
           </div>

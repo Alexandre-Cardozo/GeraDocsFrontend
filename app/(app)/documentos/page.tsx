@@ -9,16 +9,9 @@ import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estado
 import { Th } from "@/components/shared/tabela"
 import { useToast } from "@/components/shared/providers"
 import { useDocumentos, useResumoDocumentos } from "@/lib/api/hooks"
+import { CATALOGO, ORDEM_FLUXO } from "@/lib/documentos"
 import { formatDataHora } from "@/lib/format"
 import type { TipoDocumento } from "@/lib/types"
-
-/** Classes de cor por tipo de documento (tokens doc-* do DS). */
-const tiposDoc: Record<TipoDocumento, string> = {
-  ETP: "bg-doc-etp-bg text-doc-etp",
-  TR: "bg-doc-tr-bg text-doc-tr",
-  "Cotação": "bg-doc-cotacao-bg text-doc-cotacao",
-  Mapa: "bg-doc-mapa-bg text-doc-mapa",
-}
 
 export default function Documentos() {
   const showToast = useToast()
@@ -54,7 +47,7 @@ export default function Documentos() {
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border-soft px-5 py-4">
           <h3 className="m-0 font-display text-lg font-bold text-text-1">Documentos Gerados</h3>
           <div className="flex flex-wrap gap-2">
-            {(Object.keys(tiposDoc) as TipoDocumento[]).map((f) => {
+            {ORDEM_FLUXO.map((f) => {
               const ativo = filtroTipo === f
               return (
                 <button
@@ -98,7 +91,7 @@ export default function Documentos() {
                       <span className="font-mono text-xs font-semibold text-royal">{doc.processoId}</span>
                     </td>
                     <td className="px-4 py-3.25">
-                      <DocPill status={doc.tipo} classes={tiposDoc[doc.tipo]} />
+                      <DocPill status={doc.tipo} classes={CATALOGO[doc.tipo].chip} />
                     </td>
                     <td className="px-4 py-3.25 text-sm text-text-3">{doc.formato}</td>
                     <td className="px-4 py-3.25 text-sm whitespace-nowrap text-text-3">{formatDataHora(doc.geradoEm)}</td>

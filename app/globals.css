@@ -78,6 +78,11 @@
   --color-doc-cotacao-bg: #F5F3FF;
   --color-doc-mapa: #B45309;
   --color-doc-mapa-bg: #FFFBEB;
+  --color-doc-edital: #BE185D;
+  --color-doc-edital-bg: #FDF2F8;
+  /* Contrato usa ardósia, e não verde: o verde institucional já é o status "Concluído". */
+  --color-doc-contrato: #334155;
+  --color-doc-contrato-bg: #F1F5F9;
 
   /* ── Tints derivados do protótipo ───────────────────────────────────────── */
   --color-tint-royal-bg: #EFF6FF;

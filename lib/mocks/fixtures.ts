@@ -5,15 +5,17 @@ import type {
   ParecerDFD,
   Processo,
   ResumoDocumentos,
-  SecaoETP,
   Tenant,
-  TipoDocumento,
   UsuarioAtual,
 } from "@/lib/types";
 
 /**
- * Fixtures do mock — dados idênticos aos do protótipo Vite.
+ * Fixtures do mock — dados de demonstração.
  * Nunca importe este módulo em componentes: consuma via lib/api + hooks.
+ *
+ * A estrutura seccional dos documentos não vive aqui: é domínio, e está em
+ * `lib/documentos/secoes.ts`. Este módulo guarda apenas o conteúdo já redigido
+ * do processo de referência.
  */
 
 export const usuarioAtual: UsuarioAtual = {
@@ -81,7 +83,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-087",
     objeto: "Fornecimento de Material de Escritório",
-    documentos: ["ETP", "TR", "Cotação"],
+    documentos: ["Cotação", "ETP", "TR", "Edital", "Contrato"],
     secretaria: "Administração Central",
     modalidade: "Dispensa Art. 75",
     status: "aprovado",
@@ -172,169 +174,14 @@ export const processos: Processo[] = [
   },
 ];
 
-/** As 11 seções do ETP na ordem do protótipo, com inciso do Art. 18. */
-export const secoesETPBase: SecaoETP[] = [
-  {
-    id: "1",
-    titulo: "Descrição da Necessidade",
-    status: "Completo",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, I, Lei 14.133/21",
-    hint: "Descreva de forma clara e objetiva a necessidade que justifica a contratação, com base nos planos de trabalho e planejamento da unidade.",
-    conteudo:
-      "Necessidade de aquisição de equipamentos de tecnologia da informação para modernização do parque tecnológico das unidades escolares da rede municipal de ensino, visando melhorar a qualidade do ensino e a infraestrutura pedagógica.",
-  },
-  {
-    id: "2",
-    titulo: "Área Requisitante",
-    status: "Completo",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, II, Lei 14.133/21",
-    hint: "Identifique a unidade demandante, o responsável pela solicitação e a previsão da contratação no PCA vigente.",
-    conteudo:
-      "Secretaria Municipal de Educação — Diretoria de Tecnologia Educacional. Demanda prevista no PCA 2025, item 47.",
-  },
-  {
-    id: "3",
-    titulo: "Descrição dos Requisitos",
-    status: "Completo",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, III, Lei 14.133/21",
-    hint: "Especifique os requisitos técnicos e de desempenho indispensáveis ao atendimento da necessidade, sem direcionamento de marca.",
-    conteudo:
-      "Microcomputadores tipo desktop com processador de no mínimo 6 núcleos, 16 GB de memória RAM, armazenamento SSD de 512 GB e garantia on-site de 36 meses.",
-  },
-  {
-    id: "4",
-    titulo: "Estimativa das Quantidades e do Valor",
-    status: "Em andamento",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, IV e VI, Lei 14.133/21",
-    hint: "Informe as quantidades estimadas e a estimativa de valor, com base em histórico de consumo, demanda projetada e pesquisa de preços.",
-    conteudo: "",
-  },
-  {
-    id: "5",
-    titulo: "Soluções Disponíveis no Mercado",
-    status: "Não iniciado",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, V, Lei 14.133/21",
-    hint: "Levante as soluções existentes no mercado, incluindo a possibilidade de Adesão a Ata de Registro de Preços vigente.",
-    conteudo: "",
-  },
-  {
-    id: "6",
-    titulo: "Justificativa para Contratação",
-    status: "Não iniciado",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, IX, Lei 14.133/21",
-    hint: "Demonstre os resultados pretendidos e o alinhamento da contratação com o interesse público e o planejamento institucional.",
-    conteudo: "",
-  },
-  {
-    id: "7",
-    titulo: "Análise da Viabilidade",
-    status: "Não iniciado",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, XIII, Lei 14.133/21",
-    hint: "Avalie a viabilidade técnica, econômica e operacional da contratação diante das alternativas levantadas.",
-    conteudo: "",
-  },
-  {
-    id: "8",
-    titulo: "Declaração de Viabilidade",
-    status: "Não iniciado",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, XIII, Lei 14.133/21",
-    hint: "Declare expressamente se a contratação é viável, com base nos elementos analisados nas seções anteriores.",
-    conteudo: "",
-  },
-  {
-    id: "9",
-    titulo: "Responsável Técnico",
-    status: "Não iniciado",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, caput, Lei 14.133/21",
-    hint: "Identifique o servidor responsável pela elaboração do estudo, com cargo, matrícula e assinatura.",
-    conteudo: "",
-  },
-  {
-    id: "10",
-    titulo: "Sustentabilidade",
-    status: "Não iniciado",
-    obrigatoria: false,
-    incisoArt18: "Art. 18, § 1º, XII, Lei 14.133/21",
-    hint: "Descreva os impactos ambientais da contratação e as medidas de mitigação, conforme critérios de sustentabilidade aplicáveis.",
-    conteudo: "",
-  },
-  {
-    id: "11",
-    titulo: "Posicionamento Conclusivo",
-    status: "Não iniciado",
-    obrigatoria: false,
-    incisoArt18: "Art. 18, § 1º, XIII, Lei 14.133/21",
-    hint: "Registre o posicionamento conclusivo sobre a adequação da contratação para o atendimento da necessidade.",
-    conteudo: "",
-  },
-];
-
-/** Monta seções zeradas a partir de uma lista de (título, referência, hint). */
-function secoes(defs: Array<[string, string, string]>, opcionaisAPartirDe = Infinity): SecaoETP[] {
-  return defs.map(([titulo, incisoArt18, hint], i) => ({
-    id: String(i + 1),
-    titulo,
-    status: "Não iniciado",
-    obrigatoria: i + 1 < opcionaisAPartirDe,
-    incisoArt18,
-    hint,
-    conteudo: "",
-  }))
-}
-
-/** Seções do Termo de Referência (Art. 6º, XXIII, Lei 14.133/21). */
-const secoesTRBase: SecaoETP[] = secoes(
-  [
-    ["Definição do Objeto", "Art. 6º, XXIII, 'a', Lei 14.133/21", "Defina o objeto de forma precisa, suficiente e clara, com quantitativos e unidades de medida."],
-    ["Fundamentação da Contratação", "Art. 6º, XXIII, 'b', Lei 14.133/21", "Referencie o ETP e demonstre a necessidade pública que motiva a contratação."],
-    ["Descrição da Solução", "Art. 6º, XXIII, 'c', Lei 14.133/21", "Descreva a solução como um todo, considerando o ciclo de vida do objeto."],
-    ["Requisitos da Contratação", "Art. 6º, XXIII, 'd', Lei 14.133/21", "Especifique requisitos de sustentabilidade, garantia, prazos e obrigações das partes."],
-    ["Modelo de Execução do Objeto", "Art. 6º, XXIII, 'e', Lei 14.133/21", "Defina como o contrato deverá produzir os resultados pretendidos (rotinas, prazos, locais)."],
-    ["Modelo de Gestão do Contrato", "Art. 6º, XXIII, 'f', Lei 14.133/21", "Descreva a fiscalização, o recebimento e a gestão contratual."],
-    ["Critérios de Medição e Pagamento", "Art. 6º, XXIII, 'g', Lei 14.133/21", "Estabeleça os critérios de medição, aferição de resultados e condições de pagamento."],
-    ["Seleção do Fornecedor", "Art. 6º, XXIII, 'h', Lei 14.133/21", "Indique a forma de seleção, o critério de julgamento e as exigências de habilitação."],
-    ["Estimativa do Valor da Contratação", "Art. 23, Lei 14.133/21", "Apresente o valor estimado acompanhado dos preços unitários referenciais."],
-    ["Adequação Orçamentária", "Art. 6º, XXIII, 'j', Lei 14.133/21", "Informe a dotação orçamentária e a previsão no PCA vigente."],
-  ],
-  10, // "Adequação Orçamentária" opcional
-);
-
-/** Seções da Cotação de Mercado (pesquisa de preços — Art. 23, Lei 14.133/21). */
-const secoesCotacaoBase: SecaoETP[] = secoes(
-  [
-    ["Objeto da Pesquisa de Preços", "Art. 23, Lei 14.133/21", "Delimite o objeto e as especificações que balizam a coleta de preços."],
-    ["Fornecedores e Fontes Consultadas", "Art. 23, § 1º, Lei 14.133/21", "Liste as fontes utilizadas (painel de preços, contratos, fornecedores)."],
-    ["Preços Coletados", "Art. 23, § 2º, Lei 14.133/21", "Registre os preços obtidos por fonte, com datas e validade das propostas."],
-    ["Metodologia e Preço de Referência", "IN SEGES 65/2021", "Explicite a metodologia (média, mediana, menor preço) e o valor de referência apurado."],
-  ],
-);
-
-/** Seções do Mapa de Riscos (gestão de riscos — Art. 18, X, Lei 14.133/21). */
-const secoesMapaBase: SecaoETP[] = secoes(
-  [
-    ["Identificação dos Riscos", "Art. 18, X, Lei 14.133/21", "Liste os riscos das fases de planejamento, seleção e execução do contrato."],
-    ["Análise de Probabilidade e Impacto", "Art. 18, X, Lei 14.133/21", "Classifique cada risco quanto à probabilidade e ao impacto."],
-    ["Ações Preventivas", "Art. 18, X, Lei 14.133/21", "Defina medidas para reduzir a probabilidade de ocorrência dos riscos."],
-    ["Ações de Contingência", "Art. 18, X, Lei 14.133/21", "Estabeleça respostas caso o risco se concretize."],
-    ["Responsáveis e Monitoramento", "Art. 18, X, Lei 14.133/21", "Aponte os responsáveis pelo monitoramento e a periodicidade de revisão."],
-  ],
-);
-
-/** Seções por tipo de documento — fonte única do editor de seções. */
-export const secoesPorTipoBase: Record<TipoDocumento, SecaoETP[]> = {
-  ETP: secoesETPBase,
-  TR: secoesTRBase,
-  "Cotação": secoesCotacaoBase,
-  Mapa: secoesMapaBase,
+/**
+ * Conteúdo já redigido do ETP do processo de referência (PROC-2024-089),
+ * por id de seção. As demais seções e documentos nascem em branco.
+ */
+export const conteudoDemoETP: Record<string, string> = {
+  "1": "Necessidade de aquisição de equipamentos de tecnologia da informação para modernização do parque tecnológico das unidades escolares da rede municipal de ensino, visando melhorar a qualidade do ensino e a infraestrutura pedagógica.",
+  "2": "Contratação prevista no Plano de Contratações Anual de 2025, item 47, sob responsabilidade da Secretaria Municipal de Educação — Diretoria de Tecnologia Educacional.",
+  "3": "Microcomputadores tipo desktop com processador de no mínimo 6 núcleos, 16 GB de memória RAM, armazenamento SSD de 512 GB e garantia on-site de 36 meses.",
 };
 
 /** Achados do parecer da IA sobre o DFD (protótipo DFDReview). */
@@ -532,6 +379,26 @@ export const aprovacoes: ItemAprovacao[] = [
 ];
 
 export const documentos: DocumentoGerado[] = [
+  {
+    id: "DOC-2024-0191",
+    processoId: "PROC-2024-087",
+    titulo: "Contrato — Fornecimento de Material de Escritório",
+    tipo: "Contrato",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-04T09:15:00",
+    tamanho: "386 KB",
+    status: "final",
+  },
+  {
+    id: "DOC-2024-0190",
+    processoId: "PROC-2024-087",
+    titulo: "Edital — Fornecimento de Material de Escritório",
+    tipo: "Edital",
+    formato: "DOCX + PDF",
+    geradoEm: "2024-07-04T09:12:00",
+    tamanho: "424 KB",
+    status: "final",
+  },
   {
     id: "DOC-2024-0189",
     processoId: "PROC-2024-087",

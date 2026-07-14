@@ -4,15 +4,14 @@ import Link from "next/link"
 import { notFound, useParams, useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 
-import { Button, InfoBanner, ProgressBar, SectionBlock, Textarea, ValidationMsg } from "@/components/ui"
+import { Button, InfoBanner, ProgressBar, SectionBlock, Tag, Textarea, ValidationMsg } from "@/components/ui"
 import { IconArrowRight, IconCheck, IconCheckCircle, IconDownload, IconEye, IconHelp, IconSave, IconSparkles } from "@/components/ui/icons"
+import { PainelATA, PainelDaSecao } from "@/components/documentos/paineis"
 import { ErrorState, InlineSpinner, LoadingState } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
 import { useAtualizarSecao, useDocumentos, useGerarDocumento, useGerarSecao, useProcesso, useSecoes } from "@/lib/api/hooks"
-import type { SecaoETP, StatusDocumento, TipoDocumento } from "@/lib/types"
-
-/** Mapa slug da URL → tipo de documento e rótulo do progresso. */
-const SLUG_TIPO: Record<string, TipoDocumento> = { etp: "ETP", tr: "TR", cotacao: "Cotação", mapa: "Mapa" }
+import { CATALOGO, porSlug } from "@/lib/documentos"
+import type { SecaoDocumento, StatusDocumento } from "@/lib/types"
 
 const statusRail: Record<StatusDocumento, { dot: string; chip: string }> = {
   "Completo": { dot: "bg-success", chip: "bg-tint-success-bg text-tint-success-fg" },
@@ -27,8 +26,10 @@ export default function EditorDocumento() {
   const router = useRouter()
   const showToast = useToast()
   const processoId = params.id
-  const tipo = SLUG_TIPO[params.tipo]
+  const tipo = porSlug(params.tipo)
   if (!tipo) notFound()
+
+  const meta = CATALOGO[tipo]
 
   const processo = useProcesso(processoId)
   const secoes = useSecoes(processoId, tipo)
@@ -50,7 +51,7 @@ export default function EditorDocumento() {
   }
 
   const lista = secoes.data ?? []
-  const active: SecaoETP | undefined = lista.find((s) => s.id === activeSection)
+  const active: SecaoDocumento | undefined = lista.find((s) => s.id === activeSection)
 
   const [secaoSincronizada, setSecaoSincronizada] = useState<string | null>(null)
   if (secoes.isSuccess && activeSection !== secaoSincronizada) {
@@ -60,6 +61,11 @@ export default function EditorDocumento() {
 
   const completedCount = lista.filter((s) => s.status === "Completo").length
   const progress = lista.length > 0 ? Math.round((completedCount / lista.length) * 100) : 0
+
+  // Só as seções indispensáveis prendem a geração: as demais são dispensáveis
+  // mediante justificativa (no ETP, Art. 18, § 2º).
+  const obrigatoriasPendentes = lista.filter((s) => s.obrigatoria && s.status !== "Completo")
+  const podeGerar = lista.length > 0 && obrigatoriasPendentes.length === 0
 
   const handleSave = (avancar = false) => {
     if (!active) return
@@ -170,7 +176,7 @@ export default function EditorDocumento() {
         <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border bg-surface px-4 py-3.5">
           <div className="min-w-0 flex-[1_1_220px]">
             <div className="mb-0.5 text-xs text-text-muted">
-              Seção {active?.id} de {lista.length} · {active?.incisoArt18}
+              Seção {active?.id} de {lista.length} · {active?.fundamentoLegal}
             </div>
             <h2 className="m-0 font-display text-panel font-bold text-text-1">{active?.titulo}</h2>
           </div>
@@ -196,7 +202,9 @@ export default function EditorDocumento() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {active && (
+          {active?.painel && active.painel !== "ata" ? (
+            <PainelDaSecao secao={active} rascunho={rascunho} setRascunho={setRascunho} />
+          ) : active ? (
             <SectionBlock title={active.titulo} hint={active.hint}>
               {active.status === "Completo" && rascunho === active.conteudo && active.conteudo !== "" ? (
                 <div className="flex flex-col gap-3.5">
@@ -236,7 +244,10 @@ export default function EditorDocumento() {
                 </div>
               )}
             </SectionBlock>
-          )}
+          ) : null}
+
+          {/* Painel de Adesão de ATA — acompanha o Levantamento de Mercado. */}
+          {active?.painel === "ata" && <PainelATA />}
 
           {(() => {
             const isLast = activeSection === lista[lista.length - 1]?.id
@@ -257,6 +268,12 @@ export default function EditorDocumento() {
                     Ao regerar o {tipo}, o documento gerado anteriormente será <strong>substituído</strong> por esta nova versão.
                   </InfoBanner>
                 )}
+                {isLast && !jaGerado && !podeGerar && (
+                  <InfoBanner tone="warning">
+                    Conclua as seções obrigatórias para gerar o {meta.titulo}. Faltam:{" "}
+                    <strong>{obrigatoriasPendentes.map((s) => s.titulo).join(", ")}</strong>.
+                  </InfoBanner>
+                )}
                 <div className="flex flex-wrap justify-between gap-2.5">
                   <Button
                     variant="secondary"
@@ -270,7 +287,17 @@ export default function EditorDocumento() {
                   >
                     ← Seção Anterior
                   </Button>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {!isLast && podeGerar && !jaGerado && (
+                      <Button
+                        variant="success"
+                        icon={<IconDownload size={14} strokeWidth={2.5} />}
+                        disabled={gerarDocumento.isPending}
+                        onClick={() => finalizar(false)}
+                      >
+                        {gerarDocumento.isPending ? `Gerando ${tipo}...` : `Finalizar e Gerar ${tipo}`}
+                      </Button>
+                    )}
                     {!isLast ? (
                       <Button disabled={salvar.isPending} onClick={() => handleSave(true)}>
                         Salvar e Avançar →
@@ -296,12 +323,22 @@ export default function EditorDocumento() {
                         </>
                       )
                     ) : (
-                      <Button variant="success" icon={<IconDownload size={14} strokeWidth={2.5} />} disabled={gerarDocumento.isPending} onClick={() => finalizar(false)}>
+                      <Button
+                        variant="success"
+                        icon={<IconDownload size={14} strokeWidth={2.5} />}
+                        disabled={gerarDocumento.isPending || !podeGerar}
+                        onClick={() => finalizar(false)}
+                      >
                         {gerarDocumento.isPending ? `Gerando ${tipo}...` : `Finalizar e Gerar ${tipo}`}
                       </Button>
                     )}
                   </div>
                 </div>
+                {isLast && !jaGerado && lista.some((s) => !s.obrigatoria && s.status !== "Completo") && podeGerar && (
+                  <div className="flex justify-end">
+                    <Tag tone="info">Seções opcionais em branco serão omitidas do documento</Tag>
+                  </div>
+                )}
               </div>
             )
           })()}

@@ -1,6 +1,8 @@
 # GeraDocs — Frontend
 
-Aplicação web do **GeraDocs**, SaaS GovTech da **LAHHM** que automatiza, com IA, os documentos de planejamento da contratação pública sob a **Lei 14.133/2021** (DFD → ETP/TR → aprovação → exportação DOCX/PDF com timbre do município).
+Aplicação web do **GeraDocs**, SaaS GovTech da **LAHHM** que automatiza, com IA, os documentos da fase preparatória da contratação pública sob a **Lei 14.133/2021**: o DFD é anexado e verificado, e a plataforma gera **Cotação de Mercado → ETP → Mapa de Riscos → TR → Edital → Contrato**, na ordem do fluxo real, até a aprovação e a exportação DOCX/PDF com timbre do município.
+
+> Que documentos existem, em que ordem, com que fundamento legal e quais são as lacunas conhecidas: **[docs/fluxo-contratacao.md](docs/fluxo-contratacao.md)** — leia antes de mexer em documentos, wizard ou hub do processo.
 
 Esta é a **Fase 1 (somente interface)**: a industrialização do protótipo Vite como aplicação **Next.js (App Router)** de produção. Não há backend — toda a interface funciona de ponta a ponta sobre uma camada de dados mockada, arquitetada para a integração com o backend Spring Boot (via OpenAPI) ser plugada tela a tela, sem retrabalho.
 
@@ -36,22 +38,25 @@ app/                    # ROTAS (App Router) — cada pasta = um segmento de URL
   not-found.tsx         # 404
   (app)/                # shell autenticado: Sidebar 240px navy + Header 60px
     page.tsx            # Dashboard                       /
-    processos/          # Lista, wizard (novo/), DFD e ETP ([id]/dfd, [id]/etp)
+    processos/          # Lista, wizard (novo/), hub ([id]), DFD ([id]/dfd) e
+                        #   editor de documentos ([id]/documento/[tipo])
     aprovacoes/         # Fila + trilha de auditoria      /aprovacoes
     documentos/         # Repositório de documentos       /documentos
     configuracoes/      # Tenant, secretarias, PCA        /configuracoes
 components/             # INTERFACE REUTILIZÁVEL
   ui/                   # Design System em TSX — importe SEMPRE de "@/components/ui"
   layout/               # Moldura da aplicação: AppShell, Sidebar, Header
+  documentos/           # Painéis de domínio do editor (ATA, quantidades, valor)
   shared/               # Apoios: providers (Query+Toast), estados (loading/erro/vazio), tabela
 lib/                    # DADOS E DOMÍNIO (TypeScript puro)
-  types.ts              # modelo de domínio congelado (Processo, SecaoETP, ...)
+  types.ts              # modelo de domínio congelado (Processo, SecaoDocumento, ...)
+  documentos/           # CATÁLOGO: ordem, dependências, regras por modalidade e seções
   format.ts             # formatBRL ("R$ 485.000,00"), formatData, formatDataHora
   mocks/fixtures.ts     # dados — nunca importar em componentes
   api/client.ts         # client mock (assinaturas = futuro cliente OpenAPI)
   api/hooks.ts          # hooks TanStack Query (única porta das views)
 design_system/          # DS fonte (tokens, .prompt.md, guidelines) — normativo
-docs/                   # estrutura.md (organização) e decisions.md (decisões)
+docs/                   # estrutura.md · decisions.md · fluxo-contratacao.md (domínio)
 ```
 
 ## Convenções
@@ -72,4 +77,6 @@ docs/                   # estrutura.md (organização) e decisions.md (decisões
 
 ## Fluxo completo simulável com mocks
 
-Criar processo (wizard) → anexar DFD → checklist da IA (parecer persistido) → preencher/gerar seções do ETP (IA simulada) → enviar/decidir aprovação com comentário obrigatório (Aprovar / Rejeitar / Solicitar Retificação, trilha de auditoria) → ver documentos em Documentos Gerados.
+Criar processo no wizard (os documentos oferecidos dependem da modalidade — contratação direta não tem Edital) → anexar DFD → checklist da IA (parecer persistido) → elaborar os documentos na ordem do fluxo, preenchendo ou gerando cada seção com IA simulada, com as dependências travando o que ainda não pode começar (o TR espera o ETP; o Edital espera o TR) → finalizar cada documento, o que exige só as seções obrigatórias → enviar/decidir aprovação com comentário obrigatório (Aprovar / Rejeitar / Solicitar Retificação, trilha de auditoria) → ver os documentos em Documentos Gerados.
+
+Ordem, fundamento legal de cada documento e **lacunas conhecidas** (retificação, versionamento, envio para aprovação, parecer jurídico): [docs/fluxo-contratacao.md](docs/fluxo-contratacao.md).

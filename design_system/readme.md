@@ -1,6 +1,10 @@
 # LAHHM · GeraDocs Design System
 
-GeraDocs is LAHHM's GovTech SaaS product: a web platform used by Brazilian municipal governments (prefeituras) and public agencies to automate the drafting of public-procurement planning documents — chiefly the Estudo Técnico Preliminar (ETP), the Termo de Referência (TR), plus Cotação de Mercado and Mapa de Riscos. It replaces manual Word files and scattered templates with a guided, step-by-step flow: create a contratação process, attach/verify the DFD with AI feedback, fill the ETP/TR section by section with automatic validations, manage ATA adhesion (attach an ATA for AI review and/or delegate ATA search to the model), route for review/approval (including an optional Retificação phase), and export final DOCX/PDF with the municipality's letterhead.
+GeraDocs is LAHHM's GovTech SaaS product: a web platform used by Brazilian municipal governments (prefeituras) and public agencies to automate the drafting of public-procurement documents under Lei 14.133/21. It generates **six document types, in the canonical order of a real contratação**: Cotação de Mercado → ETP → Mapa de Riscos → TR → Edital → Contrato. The DFD is an input (attached and AI-verified), and the PCA is agency-level context — neither is generated.
+
+It replaces manual Word files and scattered templates with a guided, step-by-step flow: create a contratação process (the documents on offer depend on the modalidade — direct contracting has no Edital), attach/verify the DFD with AI feedback, fill each document section by section with automatic validations, manage ATA adhesion (attach an ATA for AI review and/or delegate ATA search to the model), route for review/approval (including an optional Retificação phase), and export final DOCX/PDF with the municipality's letterhead.
+
+Which documents exist, in what order, on what legal basis: `docs/fluxo-contratacao.md` in the app repo.
 
 **Users:** municipal procurement staff, requesting secretarias, contracting commissions, legal, and approving managers. The UI must convey trust, security, organization, and institutional professionalism — modern corporate SaaS, not an institutional website.
 
@@ -27,6 +31,7 @@ Note: the prototype's sidebar wordmark reads "ContrataDoc"; per the user, the pr
 ## VISUAL FOUNDATIONS
 
 - **Palette:** deep navy `#071A3D` (sidebar, headings), petroleum `#0D3B66` (money values, dark panels), royal `#2563EB` (primary actions/links/active), electric `#38BDF8` (accents, active-item tick, gradients), slate `#64748B` (secondary text), ice `#F8FAFC` (app bg), border `#E2E8F0`. Semantic: success `#10B981`, warning `#F59E0B`, danger `#EF4444`.
+- **Document accents (`doc-*`)** — one hue per document type, used on chips, icons and selected cards. Each has a paired tint background: Cotação `#7C3AED`/`#F5F3FF` · ETP `#2563EB`/`#EFF6FF` · Mapa `#B45309`/`#FFFBEB` · TR `#0D9488`/`#F0FDFA` · Edital `#BE185D`/`#FDF2F8` · Contrato `#334155`/`#F1F5F9`. **Contrato is slate, not green:** institutional green is already the "Concluído" status, and a green chip on a document would read as a status badge.
 - **Type:** Plus Jakarta Sans (700/800) for headings with negative tracking (−0.3/−0.5px); Inter for UI text; JetBrains Mono for IDs, money, kbd. Base UI size 13px; inputs 14px; stat numbers 30px/800. **Heading ramp (fixed):** page headings 20px/800 −0.5px · toolbar/header titles 17px/700 −0.3px · card titles 15px/700 · body 13px.
 - **Backgrounds:** flat ice-white app canvas; white cards; navy sidebar & occasional navy/petroleum dark panels (`linear-gradient(135deg,#1E3A5F,#0D3B66)`); no imagery, no textures.
 - **Gradients:** small and purposeful only — brand logo chip `135deg #2563EB→#38BDF8`, avatar `135deg #0D3B66→#2563EB`, progress bar `90deg #2563EB→#38BDF8`.
@@ -70,6 +75,7 @@ All three families are Google Fonts, loaded via `@import` in `tokens/typography.
 ### Intentional additions
 
 - `ProgressBar`, `SearchInput`, `FilterTabs` — extracted from repeated inline patterns in the source views (ETP progress, header/list search, ProcessList status filter), not inventions.
+- App-side extensions with no `.prompt.md` here, approved and registered in the app's `docs/decisions.md` §17: `Dropdown` (+ `DropdownOption`), `MoneyInput`, `QuantityInput`, `CheckMark`. Conversely, `CardPanel` is specified in `SectionBlock.prompt.md` but is not exported by the app barrel.
 
 ### Known gaps
 

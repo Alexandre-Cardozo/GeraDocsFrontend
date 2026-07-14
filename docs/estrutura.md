@@ -28,8 +28,11 @@ GeraDocs/
 │       │   ├── page.tsx          # Lista de processos ........................ rota  /processos
 │       │   ├── novo/page.tsx     # Wizard de novo processo ................... rota  /processos/novo
 │       │   └── [id]/             # Segmento dinâmico ([id] = número do processo)
+│       │       ├── page.tsx      # Hub do processo (pipeline de documentos) .. rota  /processos/PROC-2024-089
 │       │       ├── dfd/page.tsx  # Verificação do DFD pela IA ................ rota  /processos/PROC-2024-089/dfd
-│       │       └── etp/page.tsx  # Editor de ETP (12 seções) ................. rota  /processos/PROC-2024-089/etp
+│       │       ├── documento/[tipo]/page.tsx   # Editor de seções — serve os 6 tipos de documento
+│       │       │                 #                            ................ rota  /processos/PROC-2024-089/documento/etp
+│       │       └── etp/page.tsx  # Redirect legado → documento/etp (compat.)
 │       ├── aprovacoes/page.tsx   # Fila de aprovações + trilha de auditoria .. rota  /aprovacoes
 │       ├── documentos/page.tsx   # Repositório de documentos gerados ......... rota  /documentos
 │       └── configuracoes/page.tsx# Configurações do órgão (tenant) ........... rota  /configuracoes
@@ -38,7 +41,8 @@ GeraDocs/
 │   ├── ui/                       # Design System LAHHM/GeraDocs portado para React (primitivos)
 │   │   ├── index.ts              # Barrel — IMPORTE SEMPRE DAQUI: import { Button } from "@/components/ui"
 │   │   ├── actions.tsx           # Button, Toggle
-│   │   ├── forms.tsx             # Input, Textarea, Select, FormField, FileUpload, ChoiceCard, SearchInput, FilterTabs
+│   │   ├── forms.tsx             # Input, Textarea, Select, FormField, FileUpload, ChoiceCard, SearchInput,
+│   │   │                         #   FilterTabs, Dropdown, MoneyInput, QuantityInput, CheckMark
 │   │   ├── feedback.tsx          # StatusBadge, DocPill, Tag, StatCard, ProgressBar, ValidationMsg, InfoBanner
 │   │   ├── navigation.tsx        # SectionBlock, StepIndicator
 │   │   └── icons.tsx             # Ícones de linha estilo Lucide (zero emoji na interface)
@@ -46,15 +50,23 @@ GeraDocs/
 │   │   ├── AppShell.tsx          # Casca responsiva: sidebar fixa no laptop, drawer no celular
 │   │   ├── Sidebar.tsx           # Navegação lateral navy 240px com wordmark GeraDocs
 │   │   └── Header.tsx            # Barra superior 60px: título da rota, busca, hambúrguer, CTA
+│   ├── documentos/               # Componentes de DOMÍNIO dos documentos (não são do DS)
+│   │   └── paineis.tsx           # Painéis especiais do editor, acionados por SecaoDocumento.painel:
+│   │                             #   PainelATA (adesão a ARP), quantidades e valor (ETP, incisos IV e VI)
 │   └── shared/                   # Componentes de apoio usados por várias telas (não são do DS)
 │       ├── providers.tsx         # QueryClientProvider (TanStack Query) + Toast global
 │       ├── estados.tsx           # LoadingState, SkeletonRows, ErrorState, EmptyState, InlineSpinner
 │       └── tabela.tsx            # Th — cabeçalho de tabela padronizado
 │
 ├── lib/                          # DADOS E DOMÍNIO (TypeScript puro; nenhum componente aqui)
-│   ├── types.ts                  # Modelo de domínio congelado: Processo, SecaoETP, AchadoDFD,
+│   ├── types.ts                  # Modelo de domínio congelado: Processo, SecaoDocumento, AchadoDFD,
 │   │                             #   TransicaoAprovacao, Tenant, papéis, vocabulários de status
 │   ├── format.ts                 # Formatação pt-BR: formatBRL, formatData, formatDataHora
+│   ├── documentos/               # CATÁLOGO DE DOCUMENTOS — fonte única (ver docs/fluxo-contratacao.md)
+│   │   ├── catalogo.ts           # CATALOGO, ORDEM_FLUXO, REGRA_MODALIDADE + helpers (porSlug, ordenar,
+│   │   │                         #   pendencias, totalSecoes). Metadados por tipo vivem SÓ aqui.
+│   │   ├── secoes.ts             # Estrutura seccional de cada documento, com fundamento legal e hint
+│   │   └── index.ts              # Barrel — importe daqui: import { CATALOGO } from "@/lib/documentos"
 │   ├── api/
 │   │   ├── client.ts             # Cliente de API — hoje resolve contra mocks em memória com latência
 │   │   │                         #   simulada; as assinaturas espelham o futuro cliente OpenAPI (Spring)
@@ -125,7 +137,7 @@ TypeScript puro, testável sem browser:
 ### `design_system/`, `docs/`, `.agents/`
 
 - **`design_system/`** — o pacote fonte do DS (tokens, especificações `.prompt.md`, guidelines). É **normativo e somente-leitura**: em conflito entre qualquer código e ele, ele vence.
-- **`docs/`** — este arquivo e o `decisions.md` (o "diário" de decisões de arquitetura, com o porquê de cada escolha).
+- **`docs/`** — este arquivo, o `decisions.md` (o "diário" de decisões de arquitetura) e o [`fluxo-contratacao.md`](fluxo-contratacao.md) (referência de domínio: documentos, ordem, fundamento legal).
 - **`.agents/skills/`** — skills para agentes de IA (Claude etc.); não participa do build.
 
 ## Onde colocar meu código? (fluxo de decisão)
@@ -134,10 +146,12 @@ TypeScript puro, testável sem browser:
 2. **É um pedaço visual reutilizável?**
    - Está especificado no DS? → `components/ui/` (+ export no `index.ts`).
    - É moldura da aplicação? → `components/layout/`.
+   - É de domínio dos documentos (painel de seção etc.)? → `components/documentos/`.
    - É apoio genérico (estado, tabela, provider)? → `components/shared/`.
    - Usado por uma tela só? → dentro do próprio `page.tsx`, como função local.
 3. **É dado/lógica?**
    - Nova entidade ou campo? → `lib/types.ts`.
+   - **Novo tipo de documento, ou mexer em ordem/dependência/seções?** → `lib/documentos/` (catálogo e seções). **Nunca** espalhe metadado por tipo nas telas — elas leem do catálogo. Leia [`fluxo-contratacao.md`](fluxo-contratacao.md) antes.
    - Novo acesso a dados? → função em `lib/api/client.ts` **+** hook em `lib/api/hooks.ts` (as telas usam só o hook).
    - Dado de exemplo? → `lib/mocks/fixtures.ts`.
    - Formatação? → `lib/format.ts`.
@@ -155,7 +169,7 @@ TypeScript puro, testável sem browser:
 | Componentes | PascalCase (arquivo = componente principal quando exclusivo) | `AppShell.tsx`, `Sidebar.tsx` |
 | Módulos agrupadores | minúsculo, pelo papel | `forms.tsx`, `estados.tsx` |
 | Hooks | `use` + Entidade em pt-BR | `useProcessos`, `useCriarProcesso` |
-| Tipos | PascalCase pt-BR | `Processo`, `SecaoETP`, `ItemAprovacao` |
+| Tipos | PascalCase pt-BR | `Processo`, `SecaoDocumento`, `ItemAprovacao` |
 | Classes CSS globais | prefixo `gd-` (GeraDocs) kebab-case | `gd-page`, `gd-table-wrap` |
 | Tokens CSS | `--categoria-nome` | `--color-royal`, `--radius-card` |
 | Alias de import | `@/` = raiz do repo | `@/components/ui`, `@/lib/types` |

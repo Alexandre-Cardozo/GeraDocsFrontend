@@ -11,11 +11,13 @@ Route group `(app)` para o shell autenticado (Sidebar + Header); `app/layout.tsx
 | `/` | Dashboard |
 | `/processos` | Lista de processos |
 | `/processos/novo` | Wizard de novo processo |
+| `/processos/[id]` | Hub do processo (dados + pipeline de documentos) |
 | `/processos/[id]/dfd` | Verificação do DFD pela IA |
-| `/processos/[id]/etp` | Editor de ETP (12 seções — seção ativa é estado local, não sub-rota) |
+| `/processos/[id]/documento/[tipo]` | Editor de seções — atende os seis tipos de documento (ver §13) |
+| `/processos/[id]/etp` | Redirect para `/processos/[id]/documento/etp` (compatibilidade — ver §14) |
 | `/aprovacoes` · `/documentos` · `/configuracoes` | Aprovações · Documentos · Configurações |
 
-A sub-rota opcional `/etp/[secao]` foi dispensada nesta fase: a troca de seção é instantânea (estado local) e o deep-link relevante é para o processo, não para a seção.
+A sub-rota opcional `/[tipo]/[secao]` foi dispensada nesta fase: a troca de seção é instantânea (estado local) e o deep-link relevante é para o processo, não para a seção.
 
 ## 2. Estilização: Tailwind CSS v4 utility-first sobre os tokens do DS
 
@@ -31,10 +33,11 @@ A sub-rota opcional `/etp/[secao]` foi dispensada nesta fase: a troca de seção
 
 ## 4. Camada de dados: mock em memória com contrato de API estável
 
-- `lib/types.ts` — modelo de domínio congelado (Processo, SecaoETP, AchadoDFD, TransicaoAprovacao, Tenant, papéis).
+- `lib/types.ts` — modelo de domínio congelado (Processo, SecaoDocumento, AchadoDFD, TransicaoAprovacao, Tenant, papéis).
+- `lib/documentos/` — catálogo de documentos e estrutura seccional (ver §13). É domínio, não mock.
 - `lib/mocks/fixtures.ts` — dados do protótipo. **Nunca** importado por componentes.
 - `lib/api/client.ts` — funções assíncronas com latência simulada (300–700 ms) sobre um "banco" em memória mutável (criação de processo, salvar/gerar seção, decidir aprovação e parecer do DFD persistem durante a sessão). As assinaturas espelham o futuro cliente OpenAPI do Spring Boot: a integração troca apenas o corpo das funções.
-- `lib/api/hooks.ts` — hooks TanStack Query (`useProcessos`, `useProcesso`, `useCriarProcesso`, `useParecerDFD`/`useAnalisarDFD`, `useSecoesETP`, `useAtualizarSecaoETP`, `useGerarSecaoETP`, `useFilaAprovacoes`, `useDecidirAprovacao`, `useDocumentos`, `useConfigTenant`...). Única porta de entrada das views.
+- `lib/api/hooks.ts` — hooks TanStack Query (`useProcessos`, `useProcesso`, `useCriarProcesso`, `useParecerDFD`/`useAnalisarDFD`, `useSecoes`, `useAtualizarSecao`, `useGerarSecao`, `useGerarDocumento`, `useFilaAprovacoes`, `useDecidirAprovacao`, `useDocumentos`, `useConfigTenant`...). Única porta de entrada das views. Os hooks de seção são genéricos por `TipoDocumento` — não há hook por tipo.
 - MSW foi dispensado nesta fase: o client mockado cumpre o mesmo papel com menos infraestrutura; se a integração preferir interceptação HTTP, basta trocar o corpo do client.
 
 ## 5. Server vs Client Components
@@ -91,3 +94,42 @@ Revisão multi-ângulo (skill code-review) usando as skills do repo (`.agents/sk
 ## 12. Protótipo preservado
 
 O protótipo Vite original foi mantido em `prototype/` como referência visual durante a migração e **removido do repositório** após a conclusão das 8 telas (permanece disponível no histórico do git, commit `131c240`). A especificação visual vigente é o design system em `design_system/` (renomeado de `LAHHM___GeraDocs_Design_System/`).
+
+## 13. Catálogo de documentos como fonte única (`lib/documentos/`)
+
+Ao acrescentar Edital e Contrato, os metadados por tipo estavam **duplicados em seis lugares** (`TIPOS`/`SLUG`/`META_DOC` no hub, `SLUG_TIPO` no editor, `META_FASE` no DFD, `documentosGeraveis` no wizard, `tiposDoc` em Documentos, `TAMANHO_POR_TIPO` no client), com contagens de seções escritas à mão. Dois tipos novos significariam manter seis mapas em sincronia.
+
+Criado `lib/documentos/`:
+
+- **`catalogo.ts`** — `CATALOGO` (slug, título, descrição, ordem, fundamento, chip de cor, dependências, formato, tamanho), `ORDEM_FLUXO`, `REGRA_MODALIDADE` e os helpers `porSlug`, `ordenar`, `pendencias`, `totalSecoes`, `documentosDaModalidade`, `ehObrigatorio`.
+- **`secoes.ts`** — a estrutura seccional de cada documento. **Saiu de `lib/mocks/fixtures.ts`**: a estrutura de um ETP é domínio legal, não dado de demonstração. O que sobrou em fixtures é o conteúdo já redigido do processo de referência (`conteudoDemoETP`).
+
+Todas as telas passaram a ler daqui. Só permanece local no wizard o mapa de classes do estado selecionado (`CLASSES_SELECAO`), porque o Tailwind não enxerga classe montada em tempo de execução — as strings precisam ser literais.
+
+**Ordem canônica e dependências** ficaram declaradas no catálogo e são a espinha do fluxo (Cotação → ETP → Mapa → TR → Edital → Contrato; TR requer ETP, Edital e Contrato requerem TR). Fundamentação em [`fluxo-contratacao.md`](fluxo-contratacao.md).
+
+Uma dependência **só bloqueia se o processo contiver aquele documento**: no Leilão o Edital é obrigatório e não há TR, e ele não pode ficar preso esperando um documento que o processo nunca terá.
+
+## 14. Editor de documentos unificado; rota `/etp` vira redirect
+
+`/processos/[id]/etp` era um editor próprio, ~90% duplicado de `documento/[tipo]` (mesmo rail, mesmo save/advance, mesmo fluxo de regeração). Com seis tipos, a duplicação seria insustentável.
+
+O editor genérico passou a ser o único. Os dois trechos que só o ETP tinha viraram **painéis acionados por metadado da seção** (`SecaoDocumento.painel`), em `components/documentos/paineis.tsx` — antes eram disparados por comparação de **título** (`active.titulo === "Soluções Disponíveis no Mercado"`, `titulo.startsWith("Estimativa")`), o que quebraria ao renomear uma seção.
+
+O antigo `EstimativasSecao` renderizava quantidades **e** valor num bloco só. Como são incisos distintos (Art. 18, § 1º, IV e VI) e agora são seções distintas, virou dois painéis: `quantidades` e `valor`.
+
+A rota `/etp` permanece como `redirect()` para `documento/etp`, para não quebrar links existentes.
+
+## 15. Geração travada só pelas seções obrigatórias
+
+Antes, "Gerar Documento" exigia **todas** as seções concluídas. Isso é incompatível com o **Art. 18, § 2º**, que torna indispensáveis apenas os incisos I, IV, VI, VIII e XIII do ETP e permite dispensar os demais mediante justificativa.
+
+O gate (no hub e no editor) passou a exigir apenas as seções `obrigatoria`. As opcionais em branco são omitidas do documento, com aviso na interface. A `ProgressBar` continua medindo sobre o total.
+
+## 16. Edital e Contrato — tokens `doc-*`
+
+Dois tokens novos em `@theme` (`app/globals.css`), seguindo o padrão dos quatro existentes. O Contrato usa **ardósia** (`#334155`), e não verde: o verde institucional já é o status "Concluído" (`--color-status-done-fg` é exatamente `#15803D`), e um chip verde no documento leria como badge de status.
+
+## 17. Extensões do barrel registradas (pendência antiga)
+
+`docs/estrutura.md` exige registrar aqui todo componente de `components/ui/` que não esteja no DS. Ficaram sem registro: **`Dropdown`** (+ `DropdownOption`), **`MoneyInput`**, **`QuantityInput`** e **`CheckMark`** — todos em uso e sem `.prompt.md` no DS. Ficam registrados como extensões aprovadas. `CardPanel` é o inverso: está especificado em `SectionBlock.prompt.md` e não é exportado pelo barrel.

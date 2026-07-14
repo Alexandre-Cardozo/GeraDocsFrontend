@@ -102,18 +102,30 @@ export interface NovoProcessoInput {
   }
 }
 
-/** As 12 seções do ETP na ordem do protótipo (Art. 18, Lei 14.133/21). */
-export interface SecaoETP {
-  /** "1"–"12". */
+/** Painel especial do editor acionado por uma seção (ver components/documentos/paineis.tsx). */
+export type PainelSecao = "ata" | "quantidades" | "valor"
+
+/**
+ * Seção de um documento gerável (ETP, TR, Cotação, Mapa, Edital, Contrato).
+ * A estrutura seccional de cada tipo vive em `lib/documentos/secoes.ts`.
+ */
+export interface SecaoDocumento {
+  /** Ordinal da seção dentro do documento ("1", "2", ...). */
   id: string
   titulo: string
   status: StatusDocumento
+  /**
+   * Seção indispensável. No ETP são as do Art. 18, § 2º (incisos I, IV, VI, VIII
+   * e XIII); as demais são dispensáveis mediante justificativa.
+   */
   obrigatoria: boolean
   conteudo: string
   /** Frase de orientação — o usuário sempre sabe o que escrever e por quê. */
   hint: string
-  /** Referência ao inciso do Art. 18 da Lei 14.133/21. */
-  incisoArt18: string
+  /** Fundamento citado literalmente (ex.: "Art. 18, § 1º, I, Lei 14.133/21"). */
+  fundamentoLegal: string
+  /** Painel especial do editor, quando a seção tem um. */
+  painel?: PainelSecao
 }
 
 /** Achado do parecer da IA sobre o DFD. */
@@ -187,7 +199,12 @@ export interface ItemAprovacao {
 
 export type DecisaoAprovacao = "aprovar" | "rejeitar" | "retificar"
 
-export type TipoDocumento = "ETP" | "TR" | "Cotação" | "Mapa"
+/**
+ * Documentos geráveis pela plataforma, na ordem canônica do fluxo de contratação.
+ * O DFD é insumo (anexo + verificação) e o PCA é contexto do órgão — nenhum dos
+ * dois é gerado aqui. Metadados de cada tipo: `lib/documentos/catalogo.ts`.
+ */
+export type TipoDocumento = "Cotação" | "ETP" | "Mapa" | "TR" | "Edital" | "Contrato"
 
 export interface DocumentoGerado {
   /** Formato DOC-AAAA-NNNN. */

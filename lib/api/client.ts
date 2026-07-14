@@ -5,15 +5,16 @@ import "client-only"
 
 import {
   aprovacoes as aprovacoesFixture,
+  conteudoDemoETP,
   documentos as documentosFixture,
   estatisticas as estatisticasFixture,
   parecerDFDBase,
   processos as processosFixture,
   resumoDocumentos as resumoDocumentosFixture,
-  secoesPorTipoBase,
   tenant as tenantFixture,
   usuarioAtual,
 } from "@/lib/mocks/fixtures"
+import { CATALOGO, secoesPorTipoBase } from "@/lib/documentos"
 import { dataBrasiliaISO, dataHoraBrasiliaISO } from "@/lib/format"
 import type {
   DecisaoAprovacao,
@@ -24,7 +25,7 @@ import type {
   ParecerDFD,
   Processo,
   ResumoDocumentos,
-  SecaoETP,
+  SecaoDocumento,
   StatusProcesso,
   Tenant,
   TipoDocumento,
@@ -53,7 +54,7 @@ const db = {
   usuario: clone(usuarioAtual),
   processos: clone(processosFixture),
   /** Seções por documento — chave `${processoId}:${tipo}`. */
-  secoes: new Map<string, SecaoETP[]>(),
+  secoes: new Map<string, SecaoDocumento[]>(),
   pareceresDFD: new Map<string, ParecerDFD>(),
   aprovacoes: clone(aprovacoesFixture),
   documentos: clone(documentosFixture),
@@ -61,21 +62,25 @@ const db = {
   resumoDocumentos: clone(resumoDocumentosFixture),
   tenant: clone(tenantFixture),
   seqProcesso: 90,
-  seqDocumento: 189,
+  seqDocumento: 191,
 }
 
-function secoesDoDocumento(processoId: string, tipo: TipoDocumento): SecaoETP[] {
+function secoesDoDocumento(processoId: string, tipo: TipoDocumento): SecaoDocumento[] {
   const chave = `${processoId}:${tipo}`
   let secoes = db.secoes.get(chave)
   if (!secoes) {
+    // As seções nascem em branco a partir do catálogo de domínio.
     secoes = clone(secoesPorTipoBase[tipo])
     const jaGerado = db.documentos.some((d) => d.processoId === processoId && d.tipo === tipo)
     if (jaGerado) {
       // Documento já gerado → todas as seções contam como concluídas (progresso 100%).
       secoes = secoes.map((s) => ({ ...s, status: "Completo" }))
-    } else if (!(tipo === "ETP" && processoId === "PROC-2024-089")) {
-      // Só o ETP do processo de referência começa com seções pré-preenchidas.
-      secoes = secoes.map((s) => ({ ...s, status: "Não iniciado", conteudo: "" }))
+    } else if (tipo === "ETP" && processoId === "PROC-2024-089") {
+      // Só o ETP do processo de referência já chega com seções redigidas.
+      secoes = secoes.map((s) => {
+        const conteudo = conteudoDemoETP[s.id]
+        return conteudo ? { ...s, conteudo, status: "Completo" as const } : s
+      })
     }
     db.secoes.set(chave, secoes)
   }
@@ -216,9 +221,9 @@ export async function getParecerDFD(processoId: string): Promise<ParecerDFD | nu
   return parecer ? clone(parecer) : null
 }
 
-/* ── Seções de documento (ETP, TR, Cotação, Mapa) ──────────────────────────── */
+/* ── Seções de documento (todos os tipos do catálogo) ──────────────────────── */
 
-export async function getSecoes(processoId: string, tipo: TipoDocumento): Promise<SecaoETP[]> {
+export async function getSecoes(processoId: string, tipo: TipoDocumento): Promise<SecaoDocumento[]> {
   await delay()
   return clone(secoesDoDocumento(processoId, tipo))
 }
@@ -228,10 +233,10 @@ export interface AtualizarSecaoInput {
   tipo: TipoDocumento
   secaoId: string
   conteudo: string
-  status?: SecaoETP["status"]
+  status?: SecaoDocumento["status"]
 }
 
-export async function atualizarSecao(input: AtualizarSecaoInput): Promise<SecaoETP> {
+export async function atualizarSecao(input: AtualizarSecaoInput): Promise<SecaoDocumento> {
   await delay(400)
   const secoes = secoesDoDocumento(input.processoId, input.tipo)
   const secao = secoes.find((s) => s.id === input.secaoId)
@@ -244,7 +249,7 @@ export async function atualizarSecao(input: AtualizarSecaoInput): Promise<SecaoE
 }
 
 /** Geração de conteúdo por IA — simulada com delay maior. */
-export async function gerarSecao(processoId: string, tipo: TipoDocumento, secaoId: string): Promise<SecaoETP> {
+export async function gerarSecao(processoId: string, tipo: TipoDocumento, secaoId: string): Promise<SecaoDocumento> {
   await delay(1800)
   const secoes = secoesDoDocumento(processoId, tipo)
   const secao = secoes.find((s) => s.id === secaoId)
@@ -254,7 +259,7 @@ export async function gerarSecao(processoId: string, tipo: TipoDocumento, secaoI
   secao.conteudo =
     `[Conteúdo gerado pela IA] ${secao.titulo} referente ao processo ${processoId} — ` +
     `${objeto}. Elaborado em conformidade com o ` +
-    `${secao.incisoArt18}, considerando o DFD anexado, o PCA vigente e as informações prestadas pela ${processo?.secretaria ?? "secretaria demandante"}.`
+    `${secao.fundamentoLegal}, considerando o DFD anexado, o PCA vigente e as informações prestadas pela ${processo?.secretaria ?? "secretaria demandante"}.`
   secao.status = "Completo"
   return clone(secao)
 }
@@ -307,9 +312,6 @@ export async function getResumoDocumentos(): Promise<ResumoDocumentos> {
   return clone(db.resumoDocumentos)
 }
 
-/** Tamanho aproximado por tipo de documento (KB) — usado no registro gerado. */
-const TAMANHO_POR_TIPO: Record<TipoDocumento, number> = { ETP: 312, TR: 348, "Cotação": 196, Mapa: 128 }
-
 export interface GerarDocumentoInput {
   processoId: string
   tipo: TipoDocumento
@@ -323,7 +325,8 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
   await delay(700)
   const processo = db.processos.find((p) => p.id === input.processoId)
   const objeto = processo?.objeto ?? "Processo de Contratação"
-  const tamanhoKB = TAMANHO_POR_TIPO[input.tipo]
+  const meta = CATALOGO[input.tipo]
+  const tamanhoKB = meta.tamanhoKB
 
   // Documento finalizado → todas as suas seções ficam concluídas (inclui a última).
   for (const secao of secoesDoDocumento(input.processoId, input.tipo)) secao.status = "Completo"
@@ -345,7 +348,7 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
     processoId: input.processoId,
     titulo: `${input.tipo} — ${objeto}`,
     tipo: input.tipo,
-    formato: input.tipo === "Mapa" ? "PDF" : "DOCX + PDF",
+    formato: meta.formato,
     geradoEm: dataHoraBrasiliaISO(),
     tamanho: `${tamanhoKB} KB`,
     status: "final",
