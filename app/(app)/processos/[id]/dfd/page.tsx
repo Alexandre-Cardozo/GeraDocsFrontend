@@ -151,10 +151,10 @@ export default function VerificacaoDFD() {
         </div>
         <div className="flex-1">
           <div className="mb-1 font-display text-panel font-extrabold text-on-dark">
-            Fase 1 — Verificação do DFD pela IA
+            Etapa Inicial — Verificação do DFD pela IA
           </div>
           <p className="m-0 text-base text-on-dark-60">
-            O modelo analisará o DFD quanto à completude, conformidade legal e compatibilidade com o PCA antes de iniciar a elaboração do ETP e TR.
+            O modelo analisará o DFD quanto à completude, conformidade legal e compatibilidade com o PCA antes de iniciar a elaboração dos documentos do processo.
           </p>
         </div>
       </div>

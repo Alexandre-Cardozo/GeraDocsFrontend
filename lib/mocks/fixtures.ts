@@ -139,7 +139,7 @@ export const processos: Processo[] = [
     responsavel: "Pedro Ramos",
     criadoEm: "2024-06-29",
     atualizadoEm: "2024-06-29",
-    fases: { verificacaoDFD: false, retificacao: true },
+    fases: { verificacaoDFD: false, retificacao: false },
     urgente: true,
   },
   {

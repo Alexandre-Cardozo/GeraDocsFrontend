@@ -145,3 +145,11 @@ A formatação passou a ser **do componente**, não do chamador: a máscara agru
 Consequência no contrato: `onChange` entrega **a string já formatada**, e não o `ChangeEvent` — mesmo padrão que o `Dropdown` já usava. Foi uma quebra de API deliberada, com 4 pontos de uso, porque o contrato anterior permitia que uma tela esquecesse de mascarar (e permitia mesmo: era exatamente o bug).
 
 As primitivas de formatação ficam em `lib/format.ts` (`mascaraValorBR`, `normalizaValorBR`, `parseValorBR`, `formatNumeroBR`), ao lado de `formatBRL` — **nenhuma tela deve reimplementar parse ou máscara de valor**. Valores só de leitura (totais, estimativas) não são campos: renderize com `formatBRL` em monospace.
+
+## 19. Verificação do DFD desacoplada do ETP; toggle de retificação removido
+
+Dois ajustes de conformidade no fluxo do wizard.
+
+**Verificação do DFD pela IA** deixou de ser apresentada como "Antes do ETP". Ela é a **etapa inicial** de qualquer processo: o que se verifica é a qualidade da *demanda* (DFD), que fundamenta qualquer documento subsequente — não só o ETP. Passou a ser **gateada na presença do DFD anexado**, não na seleção do ETP: sem DFD anexado (só Objeto da Demanda), o card aparece desabilitado com dica para anexar. Todos os textos que citavam ETP foram desacoplados ("antes de elaborar os documentos"). A mecânica de redirect já era desacoplada (vai para o primeiro documento do fluxo). Fundamentação em [`fluxo-contratacao.md`](fluxo-contratacao.md#verificação-do-dfd-pela-ia--quando-aparece).
+
+**"Fase de Retificação"** era um toggle no wizard que gravava `Processo.fases.retificacao` e **nunca era lido** — flag morto prometendo uma fase inexistente (retificação-com-versionamento é Fase 2, ver §12 do plano e as lacunas em `fluxo-contratacao.md`). O toggle foi **removido do wizard**; o campo permanece no domínio como slot da Fase 2 (sempre `false` por ora). Não confundir com "Solicitar Retificação" na tela de Aprovações, que é decisão de aprovação e **funciona** — essa permaneceu intacta.

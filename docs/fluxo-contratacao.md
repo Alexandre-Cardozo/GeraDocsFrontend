@@ -17,7 +17,18 @@ A Lei 14.133/21 organiza a contratação em três fases. O GeraDocs atua na **pr
 ## Insumos que não são documentos gerados
 
 - **PCA — Plano de Contratações Anual** (Art. 12, VII): toda contratação deve estar nele previstas. No produto é **configuração do órgão** (`Tenant.pca`), usada como contexto de conformidade — o ETP demonstra a previsão (inciso II) e a verificação do DFD cruza com ele.
-- **DFD — Documento de Formalização da Demanda** (Art. 6º): é o artefato que **instaura** o processo, elaborado pelo setor requisitante. No produto é **anexo** + uma fase opcional de verificação por IA. Não é gerado pela plataforma.
+- **DFD — Documento de Formalização da Demanda** (Art. 6º): é o artefato que **instaura** o processo, elaborado pelo setor requisitante. No produto é **anexo** + uma verificação inicial opcional por IA. Não é gerado pela plataforma.
+
+### Verificação do DFD pela IA — quando aparece
+
+É a **etapa inicial** do processo, não uma fase atrelada ao ETP. A IA analisa o DFD anexado quanto à completude, à conformidade legal e à compatibilidade com o PCA, e emite um parecer persistido por processo (`ParecerDFD`).
+
+Regras de conformidade:
+
+- **Desacoplada do ETP.** O valor da verificação é a qualidade da *demanda*, que fundamenta qualquer documento subsequente — não só o ETP. Uma Inexigibilidade que gere apenas o TR também se beneficia. Por isso nenhuma tela deve dizer "antes do ETP"; o correto é "antes de elaborar os documentos".
+- **Gate na presença do DFD, não na seleção do ETP.** A verificação só é oferecida quando há um DFD anexado (o que se verifica é o documento). Se o processo informa apenas o Objeto da Demanda, o wizard mostra o card desabilitado com a dica para anexar o DFD.
+- **Dentro do processo, como primeira etapa.** Fica no processo (e não como ferramenta avulsa) porque o parecer é contextual e persistido por processo. Uma ferramenta avulsa de "verificar qualquer DFD" seria outra funcionalidade.
+- Depois da verificação, o fluxo segue para o **primeiro documento do processo** na ordem canônica — que nem sempre é o ETP (numa Dispensa/Inexigibilidade sem ETP, é o TR).
 
 ## Ordem canônica dos documentos
 
@@ -83,10 +94,14 @@ Uma seção pode declarar `painel` e o editor genérico renderiza um formulário
 
 Levantadas na análise que originou esta fase e **deliberadamente não implementadas** aqui. São reais e comprometem a fidelidade do fluxo:
 
-### Retificação não existe de fato
-`Processo.fases.retificacao` é ligada no wizard e **nunca lida em lugar nenhum** — não há rota, card nem ramo de código. A fase que o wizard anuncia é um flag morto.
+### Retificação: há duas, não confundir
 
-Como funciona na realidade, e o que o produto precisaria:
+1. **"Solicitar Retificação" na tela de Aprovações** — *funciona hoje*. É uma decisão de aprovação (`DecisaoAprovacao === "retificar"`) que devolve o processo para "Em Revisão" e registra na trilha de auditoria (`aprovacoes/page.tsx`, `client.ts`). Não é lacuna.
+2. **"Fase de Retificação" (fase preparatória, com versionamento)** — *é a lacuna da Fase 2*. Era um toggle no wizard que gravava `Processo.fases.retificacao` e **nunca era lido** para acionar comportamento nenhum — um flag morto que prometia uma fase inexistente.
+
+**Estado atual (conformidade aplicada):** o toggle morto foi **removido do wizard**. O campo `Processo.fases.retificacao` permanece no domínio como *slot* da Fase 2 (sempre `false` por ora). **Fase 2 reintroduz o controle**, agora ligado ao comportamento real descrito abaixo.
+
+Como a fase preparatória de retificação funciona na realidade, e o que o produto precisaria:
 
 - **Na fase preparatória (interna):** o documento volta ao elaborador com apontamentos (do jurídico, da comissão, do controle interno), é corrigido e reenviado. Cada ciclo deveria gerar **nova versão** do documento e registrar os apontamentos **por seção** — hoje o parecer é um texto livre único.
 - **Depois de publicado o edital:** vira republicação/errata. O Art. 55, § 1º exige nova divulgação e reabertura dos prazos, salvo se a alteração não afetar a formulação das propostas.

@@ -202,7 +202,12 @@ export default function NovoProcesso() {
     TipoDocumento[]
   >([]);
   const [includeDFDVerification, setIncludeDFDVerification] = useState(false);
-  const [includeRetificacao, setIncludeRetificacao] = useState(false);
+
+  // A verificação analisa o DFD anexado — é a etapa inicial de qualquer
+  // processo que tenha um DFD, independente de gerar ETP. Sem DFD anexado
+  // (só Objeto da Demanda), não há o que verificar.
+  const temDFD = dfdFile !== null;
+  const verificarDFD = includeDFDVerification && temDFD;
 
   // Os documentos cabíveis dependem da modalidade: a contratação direta não gera
   // edital de licitação e o ETP nela é dispensável (Art. 18, § 2º c/c Art. 72, I).
@@ -261,16 +266,18 @@ export default function NovoProcesso() {
             : null,
         documentos: documentosEscolhidos,
         fases: {
-          verificacaoDFD: includeDFDVerification,
-          retificacao: includeRetificacao,
+          verificacaoDFD: verificarDFD,
+          // Fase de retificação: implementação real fica para a Fase 2 (com
+          // versionamento). O campo permanece no domínio como slot; o wizard
+          // não oferece o controle enquanto a fase não existe de fato.
+          retificacao: false,
         },
       },
       {
         onSuccess: (processo) => {
           // Verificação do DFD primeiro, quando pedida; senão, o primeiro
           // documento do fluxo — que nem sempre é o ETP (contratação direta).
-          if (includeDFDVerification)
-            return router.push(`/processos/${processo.id}/dfd`);
+          if (verificarDFD) return router.push(`/processos/${processo.id}/dfd`);
           const primeiro = documentosEscolhidos[0];
           router.push(
             primeiro
@@ -283,7 +290,7 @@ export default function NovoProcesso() {
   };
 
   const primeiroDocumento = documentosEscolhidos[0];
-  const destinoAposCriar = includeDFDVerification
+  const destinoAposCriar = verificarDFD
     ? "à verificação do DFD pela IA"
     : primeiroDocumento
       ? `ao preenchimento do ${CATALOGO[primeiroDocumento].titulo}`
@@ -605,12 +612,12 @@ export default function NovoProcesso() {
                 )}
               </div>
 
-              {/* Fases opcionais */}
+              {/* Fase inicial opcional — verificação do DFD pela IA */}
               <div className="mb-5">
                 <span className={`mb-3 block ${labelClasses}`}>
-                  Fases Opcionais do Processo
+                  Etapa Inicial do Processo
                 </span>
-                <div className="flex flex-col gap-2.5">
+                {temDFD ? (
                   <div
                     className={`rounded-card border bg-surface px-4.5 py-4 transition-colors ${
                       includeDFDVerification ? "border-royal" : "border-border"
@@ -629,48 +636,30 @@ export default function NovoProcesso() {
                           <span className="font-display text-md font-bold text-text-1">
                             Verificação do DFD pela IA
                           </span>
-                          <Tag tone="info">Antes do ETP</Tag>
+                          <Tag tone="info">Etapa Inicial</Tag>
                         </div>
                         <p className="m-0 mt-1 text-base text-text-3">
-                          Antes de iniciar o ETP, o DFD será analisado pela IA
-                          que fornecerá parecer sobre qualidade, completude e
-                          compatibilidade com a legislação.
+                          Antes de elaborar os documentos, o DFD anexado será
+                          analisado pela IA, que emitirá parecer sobre qualidade,
+                          completude e conformidade com a legislação e o PCA.
                         </p>
                       </div>
                     </div>
                   </div>
-
-                  <div
-                    className={`rounded-card border bg-surface px-4.5 py-4 transition-colors ${
-                      includeRetificacao ? "border-violet" : "border-border"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="pt-0.5">
-                        <Toggle
-                          checked={includeRetificacao}
-                          onChange={setIncludeRetificacao}
-                          tone="violet"
-                          label="Fase de Retificação"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-display text-md font-bold text-text-1">
-                            Fase de Retificação
-                          </span>
-                          <Tag tone="violet">Opcional</Tag>
-                        </div>
-                        <p className="m-0 mt-1 text-base text-text-3">
-                          Inclui uma fase de retificação no fluxo do processo,
-                          permitindo a correção de documentos após a geração
-                          quando identificadas inconsistências ou necessidade de
-                          ajustes.
-                        </p>
-                      </div>
+                ) : (
+                  <div className="rounded-card border border-dashed border-border bg-surface px-4.5 py-4 opacity-80">
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-md font-bold text-text-2">
+                        Verificação do DFD pela IA
+                      </span>
+                      <Tag tone="neutral">Requer DFD</Tag>
                     </div>
+                    <p className="m-0 mt-1 text-base text-text-3">
+                      A verificação analisa o DFD anexado. Anexe o DFD na etapa de
+                      Identificação para habilitar esta análise.
+                    </p>
                   </div>
-                </div>
+                )}
               </div>
 
               <InfoBanner tone="warning">
@@ -758,16 +747,13 @@ export default function NovoProcesso() {
                   </dd>
                 </div>
               ))}
-              {(includeDFDVerification || includeRetificacao) && (
+              {verificarDFD && (
                 <div>
                   <dt className="text-2xs font-semibold tracking-caps text-text-muted uppercase">
-                    Fases opcionais
+                    Etapa inicial
                   </dt>
                   <dd className="m-0 mt-1 flex flex-wrap gap-1.5">
-                    {includeDFDVerification && (
-                      <Tag tone="info">Verificação do DFD</Tag>
-                    )}
-                    {includeRetificacao && <Tag tone="violet">Retificação</Tag>}
+                    <Tag tone="info">Verificação do DFD</Tag>
                   </dd>
                 </div>
               )}
