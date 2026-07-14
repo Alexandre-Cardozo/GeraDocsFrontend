@@ -4,8 +4,10 @@ import type {
   ItemAprovacao,
   ParecerDFD,
   Processo,
+  ResumoDocumentos,
   SecaoETP,
   Tenant,
+  TipoDocumento,
   UsuarioAtual,
 } from "@/lib/types";
 
@@ -34,10 +36,20 @@ export const estatisticas: EstatisticasDashboard = {
   taxaConclusao: 89,
 };
 
+/** Indicadores da tela de Documentos — base do órgão; crescem a cada geração. */
+export const resumoDocumentos: ResumoDocumentos = {
+  total: 141,
+  esteMes: 14,
+  armazenamentoMB: 51,
+};
+
 export const processos: Processo[] = [
   {
     id: "PROC-2024-089",
     objeto: "Aquisição de Equipamentos de TI",
+    objetoDemanda:
+      "Aquisição de 150 microcomputadores tipo desktop e periféricos para modernização dos laboratórios de informática das unidades escolares da rede municipal.",
+    documentos: ["ETP", "TR"],
     secretaria: "Secretaria de Educação",
     modalidade: "Pregão Eletrônico",
     status: "em_revisao",
@@ -53,6 +65,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-088",
     objeto: "Contratação de Serviços de Limpeza",
+    documentos: ["ETP", "TR"],
     secretaria: "Secretaria de Obras",
     modalidade: "Pregão Eletrônico",
     status: "aguardando",
@@ -68,6 +81,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-087",
     objeto: "Fornecimento de Material de Escritório",
+    documentos: ["ETP", "TR", "Cotação"],
     secretaria: "Administração Central",
     modalidade: "Dispensa Art. 75",
     status: "aprovado",
@@ -83,6 +97,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-086",
     objeto: "Serviços de Manutenção Predial",
+    documentos: ["ETP"],
     secretaria: "Secretaria de Saúde",
     modalidade: "Concorrência",
     status: "rascunho",
@@ -97,6 +112,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-085",
     objeto: "Aquisição de Veículos Oficiais",
+    documentos: ["ETP", "TR"],
     secretaria: "Frota Municipal",
     modalidade: "Pregão Eletrônico",
     status: "concluido",
@@ -111,6 +127,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-084",
     objeto: "Sistema de Gestão de RH",
+    documentos: ["ETP", "TR"],
     secretaria: "Secretaria de Adm.",
     modalidade: "Inexigibilidade",
     status: "aguardando",
@@ -126,6 +143,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-083",
     objeto: "Reforma Escola Municipal Centro",
+    documentos: ["ETP"],
     secretaria: "Secretaria de Educação",
     modalidade: "Concorrência",
     status: "aguardando",
@@ -140,6 +158,7 @@ export const processos: Processo[] = [
   {
     id: "PROC-2024-082",
     objeto: "Aquisição de Uniformes Escolares",
+    documentos: ["ETP", "TR"],
     secretaria: "Secretaria de Educação",
     modalidade: "Pregão Eletrônico",
     status: "rejeitado",
@@ -153,7 +172,7 @@ export const processos: Processo[] = [
   },
 ];
 
-/** As 12 seções do ETP na ordem do protótipo, com inciso do Art. 18. */
+/** As 11 seções do ETP na ordem do protótipo, com inciso do Art. 18. */
 export const secoesETPBase: SecaoETP[] = [
   {
     id: "1",
@@ -187,24 +206,15 @@ export const secoesETPBase: SecaoETP[] = [
   },
   {
     id: "4",
-    titulo: "Estimativa das Quantidades",
+    titulo: "Estimativa das Quantidades e do Valor",
     status: "Em andamento",
     obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, IV, Lei 14.133/21",
-    hint: "Informe as quantidades estimadas com base no histórico de consumo, demanda projetada ou levantamentos realizados pela área técnica.",
+    incisoArt18: "Art. 18, § 1º, IV e VI, Lei 14.133/21",
+    hint: "Informe as quantidades estimadas e a estimativa de valor, com base em histórico de consumo, demanda projetada e pesquisa de preços.",
     conteudo: "",
   },
   {
     id: "5",
-    titulo: "Estimativa do Valor",
-    status: "Em andamento",
-    obrigatoria: true,
-    incisoArt18: "Art. 18, § 1º, VI, Lei 14.133/21",
-    hint: "Baseie-se em pesquisas de mercado, contratos anteriores ou painel de preços do governo federal.",
-    conteudo: "",
-  },
-  {
-    id: "6",
     titulo: "Soluções Disponíveis no Mercado",
     status: "Não iniciado",
     obrigatoria: true,
@@ -213,7 +223,7 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
   {
-    id: "7",
+    id: "6",
     titulo: "Justificativa para Contratação",
     status: "Não iniciado",
     obrigatoria: true,
@@ -222,7 +232,7 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
   {
-    id: "8",
+    id: "7",
     titulo: "Análise da Viabilidade",
     status: "Não iniciado",
     obrigatoria: true,
@@ -231,7 +241,7 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
   {
-    id: "9",
+    id: "8",
     titulo: "Declaração de Viabilidade",
     status: "Não iniciado",
     obrigatoria: true,
@@ -240,7 +250,7 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
   {
-    id: "10",
+    id: "9",
     titulo: "Responsável Técnico",
     status: "Não iniciado",
     obrigatoria: true,
@@ -249,7 +259,7 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
   {
-    id: "11",
+    id: "10",
     titulo: "Sustentabilidade",
     status: "Não iniciado",
     obrigatoria: false,
@@ -258,7 +268,7 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
   {
-    id: "12",
+    id: "11",
     titulo: "Posicionamento Conclusivo",
     status: "Não iniciado",
     obrigatoria: false,
@@ -267,6 +277,65 @@ export const secoesETPBase: SecaoETP[] = [
     conteudo: "",
   },
 ];
+
+/** Monta seções zeradas a partir de uma lista de (título, referência, hint). */
+function secoes(defs: Array<[string, string, string]>, opcionaisAPartirDe = Infinity): SecaoETP[] {
+  return defs.map(([titulo, incisoArt18, hint], i) => ({
+    id: String(i + 1),
+    titulo,
+    status: "Não iniciado",
+    obrigatoria: i + 1 < opcionaisAPartirDe,
+    incisoArt18,
+    hint,
+    conteudo: "",
+  }))
+}
+
+/** Seções do Termo de Referência (Art. 6º, XXIII, Lei 14.133/21). */
+const secoesTRBase: SecaoETP[] = secoes(
+  [
+    ["Definição do Objeto", "Art. 6º, XXIII, 'a', Lei 14.133/21", "Defina o objeto de forma precisa, suficiente e clara, com quantitativos e unidades de medida."],
+    ["Fundamentação da Contratação", "Art. 6º, XXIII, 'b', Lei 14.133/21", "Referencie o ETP e demonstre a necessidade pública que motiva a contratação."],
+    ["Descrição da Solução", "Art. 6º, XXIII, 'c', Lei 14.133/21", "Descreva a solução como um todo, considerando o ciclo de vida do objeto."],
+    ["Requisitos da Contratação", "Art. 6º, XXIII, 'd', Lei 14.133/21", "Especifique requisitos de sustentabilidade, garantia, prazos e obrigações das partes."],
+    ["Modelo de Execução do Objeto", "Art. 6º, XXIII, 'e', Lei 14.133/21", "Defina como o contrato deverá produzir os resultados pretendidos (rotinas, prazos, locais)."],
+    ["Modelo de Gestão do Contrato", "Art. 6º, XXIII, 'f', Lei 14.133/21", "Descreva a fiscalização, o recebimento e a gestão contratual."],
+    ["Critérios de Medição e Pagamento", "Art. 6º, XXIII, 'g', Lei 14.133/21", "Estabeleça os critérios de medição, aferição de resultados e condições de pagamento."],
+    ["Seleção do Fornecedor", "Art. 6º, XXIII, 'h', Lei 14.133/21", "Indique a forma de seleção, o critério de julgamento e as exigências de habilitação."],
+    ["Estimativa do Valor da Contratação", "Art. 23, Lei 14.133/21", "Apresente o valor estimado acompanhado dos preços unitários referenciais."],
+    ["Adequação Orçamentária", "Art. 6º, XXIII, 'j', Lei 14.133/21", "Informe a dotação orçamentária e a previsão no PCA vigente."],
+  ],
+  10, // "Adequação Orçamentária" opcional
+);
+
+/** Seções da Cotação de Mercado (pesquisa de preços — Art. 23, Lei 14.133/21). */
+const secoesCotacaoBase: SecaoETP[] = secoes(
+  [
+    ["Objeto da Pesquisa de Preços", "Art. 23, Lei 14.133/21", "Delimite o objeto e as especificações que balizam a coleta de preços."],
+    ["Fornecedores e Fontes Consultadas", "Art. 23, § 1º, Lei 14.133/21", "Liste as fontes utilizadas (painel de preços, contratos, fornecedores)."],
+    ["Preços Coletados", "Art. 23, § 2º, Lei 14.133/21", "Registre os preços obtidos por fonte, com datas e validade das propostas."],
+    ["Metodologia e Preço de Referência", "IN SEGES 65/2021", "Explicite a metodologia (média, mediana, menor preço) e o valor de referência apurado."],
+  ],
+);
+
+/** Seções do Mapa de Riscos (gestão de riscos — Art. 18, X, Lei 14.133/21). */
+const secoesMapaBase: SecaoETP[] = secoes(
+  [
+    ["Identificação dos Riscos", "Art. 18, X, Lei 14.133/21", "Liste os riscos das fases de planejamento, seleção e execução do contrato."],
+    ["Análise de Probabilidade e Impacto", "Art. 18, X, Lei 14.133/21", "Classifique cada risco quanto à probabilidade e ao impacto."],
+    ["Ações Preventivas", "Art. 18, X, Lei 14.133/21", "Defina medidas para reduzir a probabilidade de ocorrência dos riscos."],
+    ["Ações de Contingência", "Art. 18, X, Lei 14.133/21", "Estabeleça respostas caso o risco se concretize."],
+    ["Responsáveis e Monitoramento", "Art. 18, X, Lei 14.133/21", "Aponte os responsáveis pelo monitoramento e a periodicidade de revisão."],
+  ],
+);
+
+/** Seções por tipo de documento — fonte única do editor de seções. */
+export const secoesPorTipoBase: Record<TipoDocumento, SecaoETP[]> = {
+  ETP: secoesETPBase,
+  TR: secoesTRBase,
+  "Cotação": secoesCotacaoBase,
+  Mapa: secoesMapaBase,
+};
 
 /** Achados do parecer da IA sobre o DFD (protótipo DFDReview). */
 export const parecerDFDBase: Omit<ParecerDFD, "processoId" | "arquivo"> = {

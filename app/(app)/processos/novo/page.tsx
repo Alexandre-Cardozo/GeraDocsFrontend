@@ -57,7 +57,7 @@ const documentosGeraveis = [
     titulo: "Estudo Técnico Preliminar (ETP)",
     desc: "Fundamenta a necessidade e os requisitos técnicos da contratação",
     obrig: true,
-    secoes: 12,
+    secoes: 11,
     selecionado: "border-doc-etp bg-doc-etp-bg",
     chipSelecionado: "border-doc-etp bg-doc-etp-bg text-doc-etp",
     checkSelecionado: "border-doc-etp bg-doc-etp",
@@ -67,7 +67,7 @@ const documentosGeraveis = [
     titulo: "Termo de Referência (TR)",
     desc: "Define as condições para execução do objeto da licitação",
     obrig: true,
-    secoes: 15,
+    secoes: 10,
     selecionado: "border-doc-tr bg-doc-tr-bg",
     chipSelecionado: "border-doc-tr bg-doc-tr-bg text-doc-tr",
     checkSelecionado: "border-doc-tr bg-doc-tr",
@@ -116,6 +116,7 @@ export default function NovoProcesso() {
   // Passo 2 — identificação
   const [secretaria, setSecretaria] = useState("")
   const [objeto, setObjeto] = useState("")
+  const [objetoDemanda, setObjetoDemanda] = useState("")
   const [dfdFile, setDFDFile] = useState<string | null>(null)
   const [valorRef, setValorRef] = useState("")
   const [fundamento, setFundamento] = useState("")
@@ -130,11 +131,9 @@ export default function NovoProcesso() {
     setDocsSelected((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
-  const dfdOrObjeto = dfdFile !== null || objeto.trim() !== ""
-
   const canProceed =
     (step === 1 && modalidade !== "" && (!isAdesaoATA || (ataMode !== "" && ataMotivo.trim() !== ""))) ||
-    (step === 2 && secretaria !== "" && dfdOrObjeto) ||
+    (step === 2 && secretaria !== "" && objeto.trim() !== "") ||
     step === 3
 
   const numeroProcesso = proximoNumero ?? "PROC-2024-090"
@@ -146,6 +145,7 @@ export default function NovoProcesso() {
     criarProcesso.mutate(
       {
         objeto: objeto.trim(),
+        objetoDemanda: objetoDemanda.trim() || undefined,
         modalidade: modalidadeSelecionada.valor,
         secretaria,
         valorEstimado: valorNumerico,
@@ -267,7 +267,7 @@ export default function NovoProcesso() {
       {step === 2 && (
         <div>
           <h2 className={headingClasses}>Identificação do Processo</h2>
-          <p className={subtextClasses}>Informe os dados básicos. É obrigatório preencher ao menos o DFD ou o Objeto da Contratação.</p>
+          <p className={subtextClasses}>Informe os dados básicos. A descrição do processo é obrigatória e identifica-o no painel e nos documentos.</p>
 
           <div className="flex flex-col gap-4.5">
             <FormField label="Secretaria Requisitante" required>
@@ -282,6 +282,24 @@ export default function NovoProcesso() {
               />
             </FormField>
 
+            <FormField
+              label="Descrição do Processo"
+              required
+              hint="Nomenclatura que identifica o processo no painel, nas listagens e nos documentos gerados."
+            >
+              <Textarea
+                value={objeto}
+                onChange={(e) => setObjeto(e.target.value)}
+                placeholder="Ex: Modernização dos laboratórios de informática das escolas municipais"
+                rows={2}
+              />
+              {objeto.trim() === "" && (
+                <div className="mt-2">
+                  <ValidationMsg type="error" msg="Informe a descrição do processo para continuar." />
+                </div>
+              )}
+            </FormField>
+
             {/* Upload do DFD */}
             <div className="rounded-card border border-border bg-surface px-5 py-4.5">
               <div className="mb-3">
@@ -290,7 +308,7 @@ export default function NovoProcesso() {
                   <Tag tone="warning">Recomendado</Tag>
                 </span>
                 <p className="m-0 mt-1 text-sm text-text-3">
-                  O DFD alimentará automaticamente as seções do ETP. Caso não possua, preencha o campo Objeto abaixo.
+                  O DFD alimentará automaticamente as seções do ETP. Caso não possua, informe o Objeto da Demanda abaixo.
                 </p>
               </div>
               <FileUpload
@@ -307,19 +325,16 @@ export default function NovoProcesso() {
             </div>
 
             <FormField
-              label="Objeto da Contratação"
-              required={!dfdFile}
-              hint={dfdFile ? "Opcional quando o DFD é inserido — use como complemento ou detalhamento" : "Obrigatório quando o DFD não é inserido"}
+              label="Objeto da Demanda"
+              hint="Objeto da contratação em si — trabalha junto com o DFD e alimenta as seções do ETP. Complementar ao DFD."
             >
               <Textarea
-                value={objeto}
-                onChange={(e) => setObjeto(e.target.value)}
-                placeholder="Ex: Aquisição de equipamentos de informática para as unidades escolares da rede municipal..."
+                value={objetoDemanda}
+                onChange={(e) => setObjetoDemanda(e.target.value)}
+                placeholder="Ex: Aquisição de 150 microcomputadores tipo desktop e periféricos para os laboratórios..."
                 rows={3}
               />
             </FormField>
-
-            {!dfdOrObjeto && <ValidationMsg type="error" msg="Preencha ao menos o DFD ou o Objeto da Contratação para continuar." />}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Valor de Referência Estimado">
@@ -476,9 +491,10 @@ export default function NovoProcesso() {
               {[
                 { rotulo: "Modalidade", valor: modalidadeSel?.label },
                 { rotulo: "Secretaria", valor: secretaria },
+                { rotulo: "Descrição", valor: objeto.trim() },
                 {
-                  rotulo: "Objeto",
-                  valor: objeto.trim() || (dfdFile ? "Definido pelo DFD anexado" : ""),
+                  rotulo: "Objeto da demanda",
+                  valor: objetoDemanda.trim() || (dfdFile ? "Definido pelo DFD anexado" : ""),
                 },
                 { rotulo: "Valor de referência", valor: valorRef.trim() ? `R$ ${valorRef}` : "" },
                 {

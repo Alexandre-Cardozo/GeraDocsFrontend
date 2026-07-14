@@ -6,10 +6,11 @@ import "client-only"
 import {
   aprovacoes as aprovacoesFixture,
   documentos as documentosFixture,
-  estatisticas,
+  estatisticas as estatisticasFixture,
   parecerDFDBase,
   processos as processosFixture,
-  secoesETPBase,
+  resumoDocumentos as resumoDocumentosFixture,
+  secoesPorTipoBase,
   tenant as tenantFixture,
   usuarioAtual,
 } from "@/lib/mocks/fixtures"
@@ -22,9 +23,11 @@ import type {
   NovoProcessoInput,
   ParecerDFD,
   Processo,
+  ResumoDocumentos,
   SecaoETP,
   StatusProcesso,
   Tenant,
+  TipoDocumento,
   TransicaoAprovacao,
   UsuarioAtual,
 } from "@/lib/types"
@@ -38,6 +41,9 @@ import type {
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T
 
+/** Ano-série dos identificadores do órgão (PROC-/DOC-). Mantém a numeração coerente com o acervo. */
+const ANO_SERIE = "2024"
+
 function delay(ms = 350 + Math.random() * 350): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -46,23 +52,28 @@ function delay(ms = 350 + Math.random() * 350): Promise<void> {
 const db = {
   usuario: clone(usuarioAtual),
   processos: clone(processosFixture),
-  secoesETP: new Map<string, SecaoETP[]>(),
+  /** Seções por documento — chave `${processoId}:${tipo}`. */
+  secoes: new Map<string, SecaoETP[]>(),
   pareceresDFD: new Map<string, ParecerDFD>(),
   aprovacoes: clone(aprovacoesFixture),
   documentos: clone(documentosFixture),
+  estatisticas: clone(estatisticasFixture),
+  resumoDocumentos: clone(resumoDocumentosFixture),
   tenant: clone(tenantFixture),
   seqProcesso: 90,
+  seqDocumento: 189,
 }
 
-function secoesDoProcesso(id: string): SecaoETP[] {
-  let secoes = db.secoesETP.get(id)
+function secoesDoDocumento(processoId: string, tipo: TipoDocumento): SecaoETP[] {
+  const chave = `${processoId}:${tipo}`
+  let secoes = db.secoes.get(chave)
   if (!secoes) {
-    secoes = clone(secoesETPBase)
-    // Processos que não o de referência começam com o ETP zerado.
-    if (id !== "PROC-2024-089") {
+    secoes = clone(secoesPorTipoBase[tipo])
+    // Só o ETP do processo de referência começa com seções pré-preenchidas.
+    if (!(tipo === "ETP" && processoId === "PROC-2024-089")) {
       secoes = secoes.map((s) => ({ ...s, status: "Não iniciado", conteudo: "" }))
     }
-    db.secoesETP.set(id, secoes)
+    db.secoes.set(chave, secoes)
   }
   return secoes
 }
@@ -83,7 +94,7 @@ export async function atualizarAvatar(avatarDataUrl: string | null): Promise<Usu
 
 export async function getEstatisticas(): Promise<EstatisticasDashboard> {
   await delay()
-  return clone(estatisticas)
+  return clone(db.estatisticas)
 }
 
 /* ── Processos ─────────────────────────────────────────────────────────────── */
@@ -130,16 +141,17 @@ export async function getProcesso(id: string): Promise<Processo> {
 
 export async function getProximoNumeroProcesso(): Promise<string> {
   await delay(150)
-  return `PROC-2024-${String(db.seqProcesso).padStart(3, "0")}`
+  return `PROC-${ANO_SERIE}-${String(db.seqProcesso).padStart(3, "0")}`
 }
 
 export async function criarProcesso(input: NovoProcessoInput): Promise<Processo> {
   await delay(600)
-  const id = `PROC-2024-${String(db.seqProcesso++).padStart(3, "0")}`
+  const id = `PROC-${ANO_SERIE}-${String(db.seqProcesso++).padStart(3, "0")}`
   const hoje = dataBrasiliaISO()
   const processo: Processo = {
     id,
     objeto: input.objeto || "Novo Processo de Contratação",
+    objetoDemanda: input.objetoDemanda,
     modalidade: input.modalidade,
     secretaria: input.secretaria,
     status: "rascunho",
@@ -149,6 +161,7 @@ export async function criarProcesso(input: NovoProcessoInput): Promise<Processo>
     atualizadoEm: hoje,
     etpStatus: "Não iniciado",
     trStatus: "Não iniciado",
+    documentos: input.documentos,
     fundamentoLegal: input.fundamentoLegal,
     ata: input.ata ?? null,
     fases: input.fases,
@@ -156,6 +169,29 @@ export async function criarProcesso(input: NovoProcessoInput): Promise<Processo>
   }
   db.processos.unshift(processo)
   return clone(processo)
+}
+
+export interface AtualizarProcessoInput {
+  id: string
+  secretaria?: string
+  objeto?: string
+  objetoDemanda?: string
+  dfdArquivo?: string | null
+  documentos?: Array<TipoDocumento>
+}
+
+/** Edições feitas no hub do processo (secretaria, descrição, objeto da demanda, DFD, documentos). */
+export async function atualizarProcesso(input: AtualizarProcessoInput): Promise<Processo> {
+  await delay(400)
+  const proc = db.processos.find((p) => p.id === input.id)
+  if (!proc) throw new Error(`Processo ${input.id} não encontrado`)
+  if (input.secretaria !== undefined) proc.secretaria = input.secretaria
+  if (input.objeto !== undefined) proc.objeto = input.objeto
+  if (input.objetoDemanda !== undefined) proc.objetoDemanda = input.objetoDemanda
+  if (input.dfdArquivo !== undefined) proc.dfdArquivo = input.dfdArquivo
+  if (input.documentos !== undefined) proc.documentos = input.documentos
+  proc.atualizadoEm = dataBrasiliaISO()
+  return clone(proc)
 }
 
 /* ── Verificação do DFD ────────────────────────────────────────────────────── */
@@ -176,42 +212,44 @@ export async function getParecerDFD(processoId: string): Promise<ParecerDFD | nu
   return parecer ? clone(parecer) : null
 }
 
-/* ── ETP ───────────────────────────────────────────────────────────────────── */
+/* ── Seções de documento (ETP, TR, Cotação, Mapa) ──────────────────────────── */
 
-export async function getSecoesETP(processoId: string): Promise<SecaoETP[]> {
+export async function getSecoes(processoId: string, tipo: TipoDocumento): Promise<SecaoETP[]> {
   await delay()
-  return clone(secoesDoProcesso(processoId))
+  return clone(secoesDoDocumento(processoId, tipo))
 }
 
 export interface AtualizarSecaoInput {
   processoId: string
+  tipo: TipoDocumento
   secaoId: string
   conteudo: string
   status?: SecaoETP["status"]
 }
 
-export async function atualizarSecaoETP(input: AtualizarSecaoInput): Promise<SecaoETP> {
+export async function atualizarSecao(input: AtualizarSecaoInput): Promise<SecaoETP> {
   await delay(400)
-  const secoes = secoesDoProcesso(input.processoId)
+  const secoes = secoesDoDocumento(input.processoId, input.tipo)
   const secao = secoes.find((s) => s.id === input.secaoId)
   if (!secao) throw new Error(`Seção ${input.secaoId} não encontrada`)
   secao.conteudo = input.conteudo
   // Esvaziar uma seção antes concluída volta o status para "Não iniciado" —
-  // senão o rail e o percentual do ETP contariam seção vazia como completa.
+  // senão o rail e o percentual do documento contariam seção vazia como completa.
   secao.status = input.status ?? (input.conteudo.trim() ? "Completo" : "Não iniciado")
   return clone(secao)
 }
 
 /** Geração de conteúdo por IA — simulada com delay maior. */
-export async function gerarSecaoETP(processoId: string, secaoId: string): Promise<SecaoETP> {
+export async function gerarSecao(processoId: string, tipo: TipoDocumento, secaoId: string): Promise<SecaoETP> {
   await delay(1800)
-  const secoes = secoesDoProcesso(processoId)
+  const secoes = secoesDoDocumento(processoId, tipo)
   const secao = secoes.find((s) => s.id === secaoId)
   if (!secao) throw new Error(`Seção ${secaoId} não encontrada`)
   const processo = db.processos.find((p) => p.id === processoId)
+  const objeto = processo?.objetoDemanda || processo?.objeto || "objeto da contratação"
   secao.conteudo =
     `[Conteúdo gerado pela IA] ${secao.titulo} referente ao processo ${processoId} — ` +
-    `${processo?.objeto ?? "objeto da contratação"}. Elaborado em conformidade com o ` +
+    `${objeto}. Elaborado em conformidade com o ` +
     `${secao.incisoArt18}, considerando o DFD anexado, o PCA vigente e as informações prestadas pela ${processo?.secretaria ?? "secretaria demandante"}.`
   secao.status = "Completo"
   return clone(secao)
@@ -258,6 +296,57 @@ export async function decidirAprovacao(input: DecisaoInput): Promise<ItemAprovac
 export async function getDocumentos(): Promise<DocumentoGerado[]> {
   await delay()
   return clone(db.documentos)
+}
+
+export async function getResumoDocumentos(): Promise<ResumoDocumentos> {
+  await delay()
+  return clone(db.resumoDocumentos)
+}
+
+/** Tamanho aproximado por tipo de documento (KB) — usado no registro gerado. */
+const TAMANHO_POR_TIPO: Record<TipoDocumento, number> = { ETP: 312, TR: 348, "Cotação": 196, Mapa: 128 }
+
+export interface GerarDocumentoInput {
+  processoId: string
+  tipo: TipoDocumento
+}
+
+/**
+ * Finaliza um documento do processo: cria o registro em Documentos Gerados,
+ * atualiza os indicadores (total, mês, armazenamento) e o painel do dashboard.
+ */
+export async function gerarDocumento(input: GerarDocumentoInput): Promise<DocumentoGerado> {
+  await delay(700)
+  const processo = db.processos.find((p) => p.id === input.processoId)
+  const objeto = processo?.objeto ?? "Processo de Contratação"
+  const tamanhoKB = TAMANHO_POR_TIPO[input.tipo]
+  const doc: DocumentoGerado = {
+    id: `DOC-${ANO_SERIE}-${String(++db.seqDocumento).padStart(4, "0")}`,
+    processoId: input.processoId,
+    titulo: `${input.tipo} — ${objeto}`,
+    tipo: input.tipo,
+    formato: input.tipo === "Mapa" ? "PDF" : "DOCX + PDF",
+    geradoEm: dataHoraBrasiliaISO(),
+    tamanho: `${tamanhoKB} KB`,
+    status: "final",
+  }
+  db.documentos.unshift(doc)
+
+  // Indicadores da tela de Documentos e do dashboard acompanham a geração.
+  db.resumoDocumentos.total += 1
+  db.resumoDocumentos.esteMes += 1
+  db.resumoDocumentos.armazenamentoMB = Math.round((db.resumoDocumentos.armazenamentoMB + tamanhoKB / 1024) * 10) / 10
+  db.estatisticas.documentosGerados += 1
+  db.estatisticas.documentosSemana += 1
+  if (input.tipo === "ETP") db.estatisticas.etpsConcluidos += 1
+
+  // Reflete a conclusão no processo de origem.
+  if (processo) {
+    if (input.tipo === "ETP") processo.etpStatus = "Completo"
+    if (input.tipo === "TR") processo.trStatus = "Completo"
+    processo.atualizadoEm = dataBrasiliaISO()
+  }
+  return clone(doc)
 }
 
 /* ── Configurações do tenant ───────────────────────────────────────────────── */

@@ -59,7 +59,10 @@ export interface ConfigATA {
 export interface Processo {
   /** Formato PROC-AAAA-NNN. */
   id: string
+  /** Descrição/nomenclatura do processo — identifica-o no painel, listas e documentos. */
   objeto: string
+  /** Objeto da demanda (contratação em si) — trabalha junto com o DFD e alimenta o ETP. */
+  objetoDemanda?: string
   modalidade: Modalidade
   secretaria: string
   status: StatusProcesso
@@ -70,6 +73,8 @@ export interface Processo {
   atualizadoEm: string
   etpStatus: StatusDocumento
   trStatus: StatusDocumento
+  /** Documentos solicitados para o processo (definidos no wizard, editáveis no hub). */
+  documentos: Array<TipoDocumento>
   fundamentoLegal?: string
   /** Flags do modo de ATA (anexar / delegar busca à IA / combinado). */
   ata?: ConfigATA | null
@@ -83,6 +88,7 @@ export interface Processo {
 
 export interface NovoProcessoInput {
   objeto: string
+  objetoDemanda?: string
   modalidade: Modalidade
   secretaria: string
   valorEstimado?: number
@@ -248,4 +254,14 @@ export interface EstatisticasDashboard {
   documentosSemana: number
   etpsConcluidos: number
   taxaConclusao: number
+}
+
+/** Indicadores do topo da tela de Documentos Gerados. */
+export interface ResumoDocumentos {
+  /** Total de documentos armazenados no órgão. */
+  total: number
+  /** Documentos gerados no mês vigente. */
+  esteMes: number
+  /** Armazenamento usado, em megabytes. */
+  armazenamentoMB: number
 }

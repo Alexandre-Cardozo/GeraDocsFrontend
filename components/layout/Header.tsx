@@ -15,6 +15,7 @@ function tituloDaRota(pathname: string): string {
   if (pathname === "/processos/novo") return "Novo Processo"
   if (/^\/processos\/[^/]+\/dfd/.test(pathname)) return "Verificação do DFD pela IA"
   if (/^\/processos\/[^/]+\/etp/.test(pathname)) return "Estudo Técnico Preliminar"
+  if (/^\/processos\/[^/]+$/.test(pathname)) return "Progresso do Processo"
   if (pathname.startsWith("/aprovacoes")) return "Aprovações"
   if (pathname.startsWith("/documentos")) return "Documentos Gerados"
   if (pathname.startsWith("/configuracoes")) return "Configurações da Prefeitura"
@@ -47,7 +48,7 @@ function BuscaGlobal() {
   const irPara = (id: string) => {
     setAberto(false)
     setQ("")
-    router.push(`/processos/${id}/etp`)
+    router.push(`/processos/${id}`)
   }
 
   return (

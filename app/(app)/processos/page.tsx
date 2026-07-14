@@ -99,7 +99,7 @@ export default function Processos() {
                 {itens.map((p, i) => (
                   <tr
                     key={p.id}
-                    onClick={() => router.push(`/processos/${p.id}/etp`)}
+                    onClick={() => router.push(`/processos/${p.id}`)}
                     className={`cursor-pointer transition-colors hover:bg-ice ${i < itens.length - 1 ? "border-b border-ice" : ""}`}
                   >
                     <td className="px-4 py-3.5">
@@ -129,7 +129,7 @@ export default function Processos() {
                         aria-label={`Abrir processo ${p.id}`}
                         onClick={(e) => {
                           e.stopPropagation()
-                          router.push(`/processos/${p.id}/etp`)
+                          router.push(`/processos/${p.id}`)
                         }}
                         className="flex size-7 cursor-pointer items-center justify-center rounded-sm border border-border bg-ice text-text-3"
                       >

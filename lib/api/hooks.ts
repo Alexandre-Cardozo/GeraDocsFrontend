@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import * as api from "@/lib/api/client"
 import type { ListaProcessosParams } from "@/lib/api/client"
-import type { Tenant } from "@/lib/types"
+import type { TipoDocumento, Tenant } from "@/lib/types"
 
 /**
  * Hooks de dados — única porta de entrada das views para a camada de API.
@@ -18,9 +18,10 @@ export const chaves = {
   processo: (id: string) => ["processo", id] as const,
   proximoNumero: ["processos", "proximo-numero"] as const,
   parecerDFD: (id: string) => ["parecer-dfd", id] as const,
-  secoesETP: (id: string) => ["secoes-etp", id] as const,
+  secoes: (id: string, tipo: TipoDocumento) => ["secoes", id, tipo] as const,
   aprovacoes: ["aprovacoes"] as const,
   documentos: ["documentos"] as const,
+  resumoDocumentos: ["documentos", "resumo"] as const,
   tenant: ["tenant"] as const,
 }
 
@@ -73,6 +74,17 @@ export function useCriarProcesso() {
   })
 }
 
+export function useAtualizarProcesso() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: api.AtualizarProcessoInput) => api.atualizarProcesso(input),
+    onSuccess: (processo) => {
+      queryClient.setQueryData(chaves.processo(processo.id), processo)
+      void queryClient.invalidateQueries({ queryKey: ["processos"] })
+    },
+  })
+}
+
 export function useParecerDFD(processoId: string) {
   return useQuery({
     queryKey: chaves.parecerDFD(processoId),
@@ -91,31 +103,31 @@ export function useAnalisarDFD(processoId: string) {
   })
 }
 
-export function useSecoesETP(processoId: string) {
+export function useSecoes(processoId: string, tipo: TipoDocumento) {
   return useQuery({
-    queryKey: chaves.secoesETP(processoId),
-    queryFn: () => api.getSecoesETP(processoId),
+    queryKey: chaves.secoes(processoId, tipo),
+    queryFn: () => api.getSecoes(processoId, tipo),
     enabled: processoId !== "",
   })
 }
 
-export function useAtualizarSecaoETP(processoId: string) {
+export function useAtualizarSecao(processoId: string, tipo: TipoDocumento) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: { secaoId: string; conteudo: string; status?: import("@/lib/types").StatusDocumento }) =>
-      api.atualizarSecaoETP({ processoId, ...input }),
+      api.atualizarSecao({ processoId, tipo, ...input }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: chaves.secoesETP(processoId) })
+      void queryClient.invalidateQueries({ queryKey: chaves.secoes(processoId, tipo) })
     },
   })
 }
 
-export function useGerarSecaoETP(processoId: string) {
+export function useGerarSecao(processoId: string, tipo: TipoDocumento) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (secaoId: string) => api.gerarSecaoETP(processoId, secaoId),
+    mutationFn: (secaoId: string) => api.gerarSecao(processoId, tipo, secaoId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: chaves.secoesETP(processoId) })
+      void queryClient.invalidateQueries({ queryKey: chaves.secoes(processoId, tipo) })
     },
   })
 }
@@ -137,6 +149,23 @@ export function useDecidirAprovacao() {
 
 export function useDocumentos() {
   return useQuery({ queryKey: chaves.documentos, queryFn: api.getDocumentos })
+}
+
+export function useResumoDocumentos() {
+  return useQuery({ queryKey: chaves.resumoDocumentos, queryFn: api.getResumoDocumentos })
+}
+
+export function useGerarDocumento() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: api.GerarDocumentoInput) => api.gerarDocumento(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: chaves.documentos })
+      void queryClient.invalidateQueries({ queryKey: chaves.resumoDocumentos })
+      void queryClient.invalidateQueries({ queryKey: chaves.estatisticas })
+      void queryClient.invalidateQueries({ queryKey: ["processos"] })
+    },
+  })
 }
 
 export function useConfigTenant() {

@@ -352,7 +352,7 @@ export default function VerificacaoDFD() {
             <ol className="flex flex-col">
               {[
                 { label: "Verificação do DFD", sub: "Análise pela IA", estado: "atual" },
-                { label: "Estudo Técnico Preliminar (ETP)", sub: "12 seções", estado: "proxima" },
+                { label: "Estudo Técnico Preliminar (ETP)", sub: "11 seções", estado: "proxima" },
                 { label: "Termo de Referência (TR)", sub: "Após o ETP", estado: "proxima" },
               ].map((f, i, arr) => (
                 <li key={f.label} className="flex gap-3">

@@ -1,10 +1,12 @@
 "use client"
 
+import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 
 import { Button, ChoiceCard, Dropdown, FileUpload, FormField, InfoBanner, Input, MoneyInput, ProgressBar, QuantityInput, SectionBlock, Textarea, ValidationMsg } from "@/components/ui"
 import {
+  IconArrowRight,
   IconCheck,
   IconCheckCircle,
   IconDownload,
@@ -15,9 +17,12 @@ import {
 } from "@/components/ui/icons"
 import { ErrorState, InlineSpinner, LoadingState } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
-import { useAtualizarSecaoETP, useGerarSecaoETP, useProcesso, useSecoesETP } from "@/lib/api/hooks"
+import { useAtualizarSecao, useGerarDocumento, useGerarSecao, useProcesso, useSecoes } from "@/lib/api/hooks"
 import { formatBRL } from "@/lib/format"
 import type { ModoATA, SecaoETP, StatusDocumento } from "@/lib/types"
+
+/** Documento gerado por este editor — o rótulo do botão final varia por fluxo. */
+const TIPO_DOCUMENTO = "ETP" as const
 
 /** Classes de cor do rail por status da seção. */
 const statusRail: Record<StatusDocumento, { dot: string; chip: string }> = {
@@ -41,9 +46,10 @@ export default function EditorETP() {
   const processoId = params.id
 
   const processo = useProcesso(processoId)
-  const secoes = useSecoesETP(processoId)
-  const salvar = useAtualizarSecaoETP(processoId)
-  const gerar = useGerarSecaoETP(processoId)
+  const secoes = useSecoes(processoId, "ETP")
+  const salvar = useAtualizarSecao(processoId, "ETP")
+  const gerar = useGerarSecao(processoId, "ETP")
+  const gerarDocumento = useGerarDocumento()
 
   const [activeSection, setActiveSection] = useState("1")
   const [rascunho, setRascunho] = useState("")
@@ -132,6 +138,15 @@ export default function EditorETP() {
       {/* Rail de seções — 280px no laptop; faixa horizontal rolável no celular */}
       <div className="flex w-full shrink-0 flex-col overflow-hidden border-b border-border bg-surface lg:w-70 lg:min-w-70 lg:border-r lg:border-b-0">
         <div className="border-b border-border-soft px-4.5 pt-4.5 pb-3.5">
+          <Link
+            href={`/processos/${processoId}`}
+            className="mb-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-text-3 no-underline"
+          >
+            <span className="rotate-180">
+              <IconArrowRight size={12} strokeWidth={2.5} />
+            </span>
+            Voltar ao Processo
+          </Link>
           <div className="mb-3.5">
             <div className="font-mono text-xs text-text-muted">{processo.data.id}</div>
             <div className="mt-0.5 text-base leading-snug font-bold text-text-1">{processo.data.objeto}</div>
@@ -216,7 +231,7 @@ export default function EditorETP() {
 
         {/* Conteúdo */}
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {active && (active.id === "4" || active.id === "5") ? (
+          {active && active.titulo.startsWith("Estimativa") ? (
             <EstimativasSecao rascunho={rascunho} setRascunho={setRascunho} />
           ) : active ? (
             <SectionBlock title={active.titulo} hint={active.hint}>
@@ -268,8 +283,8 @@ export default function EditorETP() {
             </SectionBlock>
           ) : null}
 
-          {/* Banner de ATA — seção 6 (Soluções Disponíveis no Mercado) */}
-          {activeSection === "6" && (
+          {/* Banner de ATA — seção Soluções Disponíveis no Mercado */}
+          {active?.titulo === "Soluções Disponíveis no Mercado" && (
             <div className="mt-5">
               <div className="on-dark flex flex-wrap items-start gap-4 rounded-card px-5 py-4.5 gradient-panel">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-on-dark-electric-chip text-electric">
@@ -394,9 +409,20 @@ export default function EditorETP() {
                 <Button
                   variant="success"
                   icon={<IconDownload size={14} strokeWidth={2.5} />}
-                  onClick={() => router.push("/documentos")}
+                  disabled={gerarDocumento.isPending}
+                  onClick={() =>
+                    gerarDocumento.mutate(
+                      { processoId, tipo: TIPO_DOCUMENTO },
+                      {
+                        onSuccess: () => {
+                          showToast(`${TIPO_DOCUMENTO} gerado e disponível em Documentos.`)
+                          router.push(`/processos/${processoId}`)
+                        },
+                      }
+                    )
+                  }
                 >
-                  Finalizar e Gerar Documento
+                  {gerarDocumento.isPending ? `Gerando ${TIPO_DOCUMENTO}...` : `Finalizar e Gerar ${TIPO_DOCUMENTO}`}
                 </Button>
               ) : (
                 <Button disabled={salvar.isPending} onClick={() => handleSave(true)}>
@@ -423,7 +449,7 @@ function EstimativasSecao({
   const [unidade, setUnidade] = useState("Unidade")
   const [vigencia, setVigencia] = useState("12 meses")
   const [valorUnit, setValorUnit] = useState("3.233,33")
-  const [fontes, setFontes] = useState<Record<string, boolean>>({ painel: true, contratos: false, cotacoes: false, outro: false })
+  const [fonte, setFonte] = useState("painel")
   const [outroTexto, setOutroTexto] = useState("")
 
   // Total derivado dos campos ao lado (quantidade × valor unitário).
@@ -493,21 +519,22 @@ function EstimativasSecao({
           </FormField>
         </div>
         <div className="mt-4">
-          <FormField label="Fonte de Pesquisa de Preços" required>
+          <FormField label="Fonte de Pesquisa de Preços" required hint="Selecione a fonte principal utilizada na estimativa.">
             <div className="flex flex-col gap-2">
               {fontesOpcoes.map((opt) => (
                 <label key={opt.key} className="flex cursor-pointer items-center gap-2.5 text-base text-text-2">
                   <input
-                    type="checkbox"
-                    checked={fontes[opt.key] ?? false}
-                    onChange={(e) => setFontes((f) => ({ ...f, [opt.key]: e.target.checked }))}
+                    type="radio"
+                    name="fonte-pesquisa-precos"
+                    checked={fonte === opt.key}
+                    onChange={() => setFonte(opt.key)}
                     className="size-3.75 accent-royal"
                   />
                   {opt.label}
                 </label>
               ))}
             </div>
-            {fontes.outro && (
+            {fonte === "outro" && (
               <div className="mt-2.5">
                 <Input
                   value={outroTexto}

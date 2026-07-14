@@ -163,7 +163,9 @@ export default function Configuracoes() {
     setSecretarias(tenant.data.secretarias);
     setPcaFile(tenant.data.pca.arquivo);
     // Sem PCA importado → abre no ano vigente; com PCA, mostra o ano configurado.
-    setPcaYear(tenant.data.pca.arquivo ? tenant.data.pca.ano : String(anoAtual));
+    setPcaYear(
+      tenant.data.pca.arquivo ? tenant.data.pca.ano : String(anoAtual),
+    );
   }
 
   if (tenant.isPending) {
@@ -206,7 +208,10 @@ export default function Configuracoes() {
 
   const addSecretaria = () => {
     const nome = novaSecretaria.trim();
-    if (nome === "") return;
+    if (nome === "") {
+      showToast("Informe o nome da secretaria para adicionar.");
+      return;
+    }
     const nova: Secretaria = { id: `sec-${Date.now()}`, nome };
     const lista = [...secretarias, nova];
     setSecretarias(lista);
@@ -461,11 +466,10 @@ export default function Configuracoes() {
             </div>
             <Button
               icon={<IconPlus size={14} strokeWidth={2.5} />}
-              disabled={novaSecretaria.trim() === ""}
               onClick={addSecretaria}
               className="h-9.5"
             >
-              Adicionar Secretaria
+              Adicionar Nova Secretaria
             </Button>
           </div>
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -525,7 +529,8 @@ export default function Configuracoes() {
                         {pcaFile}
                       </span>
                       <span className="mt-0.5 block text-xs text-text-muted">
-                        PCA {pcaYear} · Importado em {formatData(dataBrasiliaISO())}
+                        PCA {pcaYear} · Importado em{" "}
+                        {formatData(dataBrasiliaISO())}
                       </span>
                     </span>
                     <Tag tone="success">Ativo</Tag>

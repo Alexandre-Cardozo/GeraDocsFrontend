@@ -8,7 +8,7 @@ import { IconCalendar, IconDatabase, IconDownload, IconEye, IconFileText, IconPl
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
 import { useToast } from "@/components/shared/providers"
-import { useDocumentos } from "@/lib/api/hooks"
+import { useDocumentos, useResumoDocumentos } from "@/lib/api/hooks"
 import { formatDataHora } from "@/lib/format"
 import type { TipoDocumento } from "@/lib/types"
 
@@ -23,14 +23,15 @@ const tiposDoc: Record<TipoDocumento, string> = {
 export default function Documentos() {
   const showToast = useToast()
   const documentos = useDocumentos()
+  const resumoDados = useResumoDocumentos()
   const [filtroTipo, setFiltroTipo] = useState<TipoDocumento | null>(null)
 
   const docs = (documentos.data ?? []).filter((d) => filtroTipo === null || d.tipo === filtroTipo)
 
   const resumo = [
-    { label: "Total de Documentos", value: "141", icon: <IconFileText size={22} /> },
-    { label: "Gerados este Mês", value: "14", icon: <IconCalendar size={22} /> },
-    { label: "Armazenamento Usado", value: "51 MB", icon: <IconDatabase size={22} /> },
+    { label: "Total de Documentos", value: resumoDados.data ? String(resumoDados.data.total) : "—", icon: <IconFileText size={22} /> },
+    { label: "Gerados este Mês", value: resumoDados.data ? String(resumoDados.data.esteMes) : "—", icon: <IconCalendar size={22} /> },
+    { label: "Armazenamento Usado", value: resumoDados.data ? `${resumoDados.data.armazenamentoMB} MB` : "—", icon: <IconDatabase size={22} /> },
   ]
 
   return (
