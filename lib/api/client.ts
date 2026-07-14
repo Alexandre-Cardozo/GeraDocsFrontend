@@ -69,8 +69,12 @@ function secoesDoDocumento(processoId: string, tipo: TipoDocumento): SecaoETP[] 
   let secoes = db.secoes.get(chave)
   if (!secoes) {
     secoes = clone(secoesPorTipoBase[tipo])
-    // Só o ETP do processo de referência começa com seções pré-preenchidas.
-    if (!(tipo === "ETP" && processoId === "PROC-2024-089")) {
+    const jaGerado = db.documentos.some((d) => d.processoId === processoId && d.tipo === tipo)
+    if (jaGerado) {
+      // Documento já gerado → todas as seções contam como concluídas (progresso 100%).
+      secoes = secoes.map((s) => ({ ...s, status: "Completo" }))
+    } else if (!(tipo === "ETP" && processoId === "PROC-2024-089")) {
+      // Só o ETP do processo de referência começa com seções pré-preenchidas.
       secoes = secoes.map((s) => ({ ...s, status: "Não iniciado", conteudo: "" }))
     }
     db.secoes.set(chave, secoes)
@@ -312,14 +316,30 @@ export interface GerarDocumentoInput {
 }
 
 /**
- * Finaliza um documento do processo: cria o registro em Documentos Gerados,
- * atualiza os indicadores (total, mês, armazenamento) e o painel do dashboard.
+ * Finaliza um documento do processo: cria (ou, se já existir do mesmo tipo,
+ * substitui) o registro em Documentos Gerados e atualiza os indicadores.
  */
 export async function gerarDocumento(input: GerarDocumentoInput): Promise<DocumentoGerado> {
   await delay(700)
   const processo = db.processos.find((p) => p.id === input.processoId)
   const objeto = processo?.objeto ?? "Processo de Contratação"
   const tamanhoKB = TAMANHO_POR_TIPO[input.tipo]
+
+  // Documento finalizado → todas as suas seções ficam concluídas (inclui a última).
+  for (const secao of secoesDoDocumento(input.processoId, input.tipo)) secao.status = "Completo"
+
+  const existente = db.documentos.find((d) => d.processoId === input.processoId && d.tipo === input.tipo)
+
+  if (existente) {
+    // Regeração — substitui a versão anterior no lugar; não altera os indicadores.
+    existente.titulo = `${input.tipo} — ${objeto}`
+    existente.geradoEm = dataHoraBrasiliaISO()
+    existente.tamanho = `${tamanhoKB} KB`
+    existente.status = "final"
+    if (processo) processo.atualizadoEm = dataBrasiliaISO()
+    return clone(existente)
+  }
+
   const doc: DocumentoGerado = {
     id: `DOC-${ANO_SERIE}-${String(++db.seqDocumento).padStart(4, "0")}`,
     processoId: input.processoId,
@@ -332,7 +352,7 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
   }
   db.documentos.unshift(doc)
 
-  // Indicadores da tela de Documentos e do dashboard acompanham a geração.
+  // Indicadores da tela de Documentos e do dashboard acompanham a nova geração.
   db.resumoDocumentos.total += 1
   db.resumoDocumentos.esteMes += 1
   db.resumoDocumentos.armazenamentoMB = Math.round((db.resumoDocumentos.armazenamentoMB + tamanhoKB / 1024) * 10) / 10

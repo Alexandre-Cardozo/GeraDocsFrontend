@@ -20,7 +20,7 @@ import { ErrorState, LoadingState } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
 import { useAnalisarDFD, useParecerDFD, useProcesso } from "@/lib/api/hooks"
 import { formatDataHora } from "@/lib/format"
-import type { AchadoDFD } from "@/lib/types"
+import type { AchadoDFD, TipoDocumento } from "@/lib/types"
 
 const etapasAnalise = [
   "Leitura e estruturação do documento",
@@ -28,6 +28,14 @@ const etapasAnalise = [
   "Cruzamento com PCA 2025",
   "Geração do parecer",
 ]
+
+/** Título completo e nº de seções por documento — alimenta o painel "Fases do Processo". */
+const META_FASE: Record<TipoDocumento, { titulo: string; secoes: number }> = {
+  ETP: { titulo: "Estudo Técnico Preliminar (ETP)", secoes: 11 },
+  TR: { titulo: "Termo de Referência (TR)", secoes: 10 },
+  "Cotação": { titulo: "Cotação de Mercado", secoes: 4 },
+  Mapa: { titulo: "Mapa de Riscos", secoes: 5 },
+}
 
 /** Classes de cor por severidade do achado. */
 function severidadeCfg(achado: AchadoDFD) {
@@ -352,8 +360,11 @@ export default function VerificacaoDFD() {
             <ol className="flex flex-col">
               {[
                 { label: "Verificação do DFD", sub: "Análise pela IA", estado: "atual" },
-                { label: "Estudo Técnico Preliminar (ETP)", sub: "11 seções", estado: "proxima" },
-                { label: "Termo de Referência (TR)", sub: "Após o ETP", estado: "proxima" },
+                ...(processo.data?.documentos ?? []).map((tipo) => ({
+                  label: META_FASE[tipo].titulo,
+                  sub: `${META_FASE[tipo].secoes} seções`,
+                  estado: "proxima",
+                })),
               ].map((f, i, arr) => (
                 <li key={f.label} className="flex gap-3">
                   <div className="flex flex-col items-center">

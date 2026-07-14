@@ -10,6 +10,7 @@ import {
   IconCheck,
   IconCheckCircle,
   IconDownload,
+  IconEye,
   IconFileText,
   IconHelp,
   IconSave,
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/icons"
 import { ErrorState, InlineSpinner, LoadingState } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
-import { useAtualizarSecao, useGerarDocumento, useGerarSecao, useProcesso, useSecoes } from "@/lib/api/hooks"
+import { useAtualizarSecao, useDocumentos, useGerarDocumento, useGerarSecao, useProcesso, useSecoes } from "@/lib/api/hooks"
 import { formatBRL } from "@/lib/format"
 import type { ModoATA, SecaoETP, StatusDocumento } from "@/lib/types"
 
@@ -47,13 +48,17 @@ export default function EditorETP() {
 
   const processo = useProcesso(processoId)
   const secoes = useSecoes(processoId, "ETP")
+  const documentos = useDocumentos()
   const salvar = useAtualizarSecao(processoId, "ETP")
   const gerar = useGerarSecao(processoId, "ETP")
   const gerarDocumento = useGerarDocumento()
 
+  const jaGerado = (documentos.data ?? []).some((d) => d.processoId === processoId && d.tipo === TIPO_DOCUMENTO)
+
   const [activeSection, setActiveSection] = useState("1")
   const [rascunho, setRascunho] = useState("")
   const [saved, setSaved] = useState(false)
+  const [confirmarRegerar, setConfirmarRegerar] = useState(false)
   // Espelho da seção ativa para callbacks assíncronos (evita closure stale).
   const secaoAtivaRef = useRef("1")
   const trocarSecao = (id: string) => {
@@ -391,46 +396,73 @@ export default function EditorETP() {
           )}
 
           {/* Navegação entre seções */}
-          <div className="mt-6 flex flex-wrap justify-between gap-2.5">
-            <Button
-              variant="secondary"
-              disabled={activeSection === "1"}
-              onClick={() => {
-                const idx = lista.findIndex((s) => s.id === activeSection)
-                const anterior = lista[idx - 1]
-                if (anterior) trocarSecao(anterior.id)
-              }}
-              className={activeSection === "1" ? "opacity-40" : ""}
-            >
-              ← Seção Anterior
-            </Button>
-            <div className="flex gap-2.5">
-              {activeSection === lista[lista.length - 1]?.id ? (
-                <Button
-                  variant="success"
-                  icon={<IconDownload size={14} strokeWidth={2.5} />}
-                  disabled={gerarDocumento.isPending}
-                  onClick={() =>
-                    gerarDocumento.mutate(
-                      { processoId, tipo: TIPO_DOCUMENTO },
-                      {
-                        onSuccess: () => {
-                          showToast(`${TIPO_DOCUMENTO} gerado e disponível em Documentos.`)
-                          router.push(`/processos/${processoId}`)
-                        },
-                      }
-                    )
-                  }
-                >
-                  {gerarDocumento.isPending ? `Gerando ${TIPO_DOCUMENTO}...` : `Finalizar e Gerar ${TIPO_DOCUMENTO}`}
-                </Button>
-              ) : (
-                <Button disabled={salvar.isPending} onClick={() => handleSave(true)}>
-                  Salvar e Avançar →
-                </Button>
-              )}
-            </div>
-          </div>
+          {(() => {
+            const isLast = activeSection === lista[lista.length - 1]?.id
+            const finalizar = (regerar: boolean) =>
+              gerarDocumento.mutate(
+                { processoId, tipo: TIPO_DOCUMENTO },
+                {
+                  onSuccess: () => {
+                    showToast(`${TIPO_DOCUMENTO} ${regerar ? "regerado" : "gerado"} e disponível em Documentos.`)
+                    router.push(`/processos/${processoId}`)
+                  },
+                }
+              )
+            return (
+              <div className="mt-6 flex flex-col gap-3">
+                {isLast && jaGerado && confirmarRegerar && (
+                  <InfoBanner tone="warning">
+                    Ao regerar o {TIPO_DOCUMENTO}, o documento gerado anteriormente será <strong>substituído</strong> por esta nova versão.
+                  </InfoBanner>
+                )}
+                <div className="flex flex-wrap justify-between gap-2.5">
+                  <Button
+                    variant="secondary"
+                    disabled={activeSection === "1"}
+                    onClick={() => {
+                      const idx = lista.findIndex((s) => s.id === activeSection)
+                      const anterior = lista[idx - 1]
+                      if (anterior) trocarSecao(anterior.id)
+                    }}
+                    className={activeSection === "1" ? "opacity-40" : ""}
+                  >
+                    ← Seção Anterior
+                  </Button>
+                  <div className="flex flex-wrap gap-2.5">
+                    {!isLast ? (
+                      <Button disabled={salvar.isPending} onClick={() => handleSave(true)}>
+                        Salvar e Avançar →
+                      </Button>
+                    ) : jaGerado ? (
+                      confirmarRegerar ? (
+                        <>
+                          <Button variant="secondary" disabled={gerarDocumento.isPending} onClick={() => setConfirmarRegerar(false)}>
+                            Cancelar
+                          </Button>
+                          <Button variant="dark" disabled={gerarDocumento.isPending} onClick={() => finalizar(true)}>
+                            {gerarDocumento.isPending ? "Regerando..." : "Confirmar e Regerar"}
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button variant="secondary" icon={<IconEye size={14} />} onClick={() => router.push("/documentos")}>
+                            Visualizar Documento
+                          </Button>
+                          <Button variant="dark" onClick={() => setConfirmarRegerar(true)}>
+                            Regerar {TIPO_DOCUMENTO}
+                          </Button>
+                        </>
+                      )
+                    ) : (
+                      <Button variant="success" icon={<IconDownload size={14} strokeWidth={2.5} />} disabled={gerarDocumento.isPending} onClick={() => finalizar(false)}>
+                        {gerarDocumento.isPending ? `Gerando ${TIPO_DOCUMENTO}...` : `Finalizar e Gerar ${TIPO_DOCUMENTO}`}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </div>
     </div>

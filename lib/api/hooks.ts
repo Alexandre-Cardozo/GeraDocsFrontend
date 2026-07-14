@@ -164,6 +164,7 @@ export function useGerarDocumento() {
       void queryClient.invalidateQueries({ queryKey: chaves.resumoDocumentos })
       void queryClient.invalidateQueries({ queryKey: chaves.estatisticas })
       void queryClient.invalidateQueries({ queryKey: ["processos"] })
+      void queryClient.invalidateQueries({ queryKey: ["secoes"] })
     },
   })
 }

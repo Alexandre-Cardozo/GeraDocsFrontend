@@ -131,9 +131,12 @@ export default function NovoProcesso() {
     setDocsSelected((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
+  // Ao menos um entre DFD e Objeto da Demanda alimenta o ETP — um dos dois é obrigatório.
+  const dfdOuObjeto = dfdFile !== null || objetoDemanda.trim() !== ""
+
   const canProceed =
     (step === 1 && modalidade !== "" && (!isAdesaoATA || (ataMode !== "" && ataMotivo.trim() !== ""))) ||
-    (step === 2 && secretaria !== "" && objeto.trim() !== "") ||
+    (step === 2 && secretaria !== "" && objeto.trim() !== "" && dfdOuObjeto) ||
     step === 3
 
   const numeroProcesso = proximoNumero ?? "PROC-2024-090"
@@ -326,7 +329,8 @@ export default function NovoProcesso() {
 
             <FormField
               label="Objeto da Demanda"
-              hint="Objeto da contratação em si — trabalha junto com o DFD e alimenta as seções do ETP. Complementar ao DFD."
+              required={!dfdFile}
+              hint="Objeto da contratação em si — trabalha junto com o DFD e alimenta as seções do ETP. Obrigatório caso não anexe o DFD."
             >
               <Textarea
                 value={objetoDemanda}
@@ -334,6 +338,11 @@ export default function NovoProcesso() {
                 placeholder="Ex: Aquisição de 150 microcomputadores tipo desktop e periféricos para os laboratórios..."
                 rows={3}
               />
+              {!dfdOuObjeto && (
+                <div className="mt-2">
+                  <ValidationMsg type="error" msg="Anexe o DFD ou preencha o Objeto da Demanda para continuar." />
+                </div>
+              )}
             </FormField>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
