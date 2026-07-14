@@ -19,6 +19,7 @@ import {
 import { ErrorState, LoadingState } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
 import { useAnalisarDFD, useParecerDFD, useProcesso } from "@/lib/api/hooks"
+import { formatDataHora } from "@/lib/format"
 import type { AchadoDFD } from "@/lib/types"
 
 const etapasAnalise = [
@@ -119,7 +120,7 @@ export default function VerificacaoDFD() {
   ]
 
   return (
-    <div className="max-w-review p-4 sm:p-5 lg:p-7">
+    <div className="max-w-content p-4 sm:p-5 lg:p-7">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-2">
         <Link href="/processos" className="text-base text-text-3 no-underline">
@@ -136,7 +137,7 @@ export default function VerificacaoDFD() {
       </div>
 
       {/* Indicador de fase */}
-      <div className="on-dark mb-7 flex flex-wrap items-center gap-5 rounded-[14px] px-6 py-5 gradient-hero">
+      <div className="on-dark mb-6 flex items-center gap-5 rounded-[14px] px-6 py-5 gradient-hero">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-card bg-on-dark-electric-chip text-electric">
           <IconHelp size={22} />
         </div>
@@ -148,22 +149,10 @@ export default function VerificacaoDFD() {
             O modelo analisará o DFD quanto à completude, conformidade legal e compatibilidade com o PCA antes de iniciar a elaboração do ETP e TR.
           </p>
         </div>
-        <div className="flex shrink-0 flex-col gap-1.5">
-          {[
-            { label: "Verificação DFD", active: true },
-            { label: "ETP", active: false },
-            { label: "TR", active: false },
-          ].map((ph) => (
-            <div key={ph.label} className="flex items-center gap-2">
-              <span className={`size-2 rounded-full ${ph.active ? "bg-electric" : "bg-on-dark-20"}`} />
-              <span className={`text-xs ${ph.active ? "font-semibold text-on-dark" : "font-normal text-on-dark-40"}`}>
-                {ph.label}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
 
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div>
       {/* ── Estado: Upload ── */}
       {upload && (
         <div className="flex flex-col gap-4.5">
@@ -276,7 +265,9 @@ export default function VerificacaoDFD() {
             <div className="mb-5 flex items-start gap-5">
               <div className="flex-1">
                 <h3 className="m-0 mb-1 font-display text-lg font-bold text-text-1">Parecer da IA — DFD Analisado</h3>
-                <p className="m-0 text-base text-text-3">{parecer.data.arquivo} · Analisado em 09/07/2025 às 14:38</p>
+                <p className="m-0 text-base text-text-3">
+                  {parecer.data.arquivo} · Analisado em {formatDataHora(parecer.data.analisadoEm).replace(" — ", " às ")}
+                </p>
               </div>
               <div className="shrink-0 rounded-xl border border-tint-warning-border bg-tint-warning-bg px-4.5 py-2.5 text-center">
                 <div className="font-display text-score font-extrabold tracking-stat text-tint-warning-fg">
@@ -352,6 +343,46 @@ export default function VerificacaoDFD() {
           </div>
         </div>
       )}
+        </div>
+
+        {/* Fases do processo — painel lateral */}
+        <aside className="lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-card border border-border bg-surface p-5">
+            <h3 className="m-0 mb-3.5 font-display text-base font-bold text-text-1">Fases do Processo</h3>
+            <ol className="flex flex-col">
+              {[
+                { label: "Verificação do DFD", sub: "Análise pela IA", estado: "atual" },
+                { label: "Estudo Técnico Preliminar (ETP)", sub: "12 seções", estado: "proxima" },
+                { label: "Termo de Referência (TR)", sub: "Após o ETP", estado: "proxima" },
+              ].map((f, i, arr) => (
+                <li key={f.label} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={`flex size-6 shrink-0 items-center justify-center rounded-full text-2xs font-bold ${
+                        f.estado === "atual" ? "bg-royal text-on-dark" : "border border-border bg-surface text-text-muted"
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
+                    {i < arr.length - 1 && <span className="w-0.5 flex-1 bg-border-soft" />}
+                  </div>
+                  <div className={i < arr.length - 1 ? "pb-4" : ""}>
+                    <div className={`text-base font-semibold ${f.estado === "atual" ? "text-text-1" : "text-text-3"}`}>
+                      {f.label}
+                    </div>
+                    <div className="text-xs text-text-muted">{f.sub}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4 border-t border-border-soft pt-4">
+              <p className="m-0 text-sm text-text-3">
+                A verificação do DFD é opcional. Você pode prosseguir direto ao ETP a qualquer momento.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   )
 }

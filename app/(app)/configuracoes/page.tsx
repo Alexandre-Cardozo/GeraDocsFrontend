@@ -26,7 +26,7 @@ import { ErrorState, LoadingState } from "@/components/shared/estados";
 import { Th } from "@/components/shared/tabela";
 import { useToast } from "@/components/shared/providers";
 import { useAtualizarConfigTenant, useConfigTenant } from "@/lib/api/hooks";
-import { anoBrasilia } from "@/lib/format";
+import { anoBrasilia, dataBrasiliaISO, formatData } from "@/lib/format";
 import type { Secretaria } from "@/lib/types";
 
 /** Opções de ano do PCA: últimos 3 anos + o ano vigente (Brasília). */
@@ -64,7 +64,7 @@ function PreviewDocumento({
   timbrado: boolean;
 }) {
   const rodapeResolvido = rodape
-    .replace("{data}", "09/07/2025")
+    .replace("{data}", formatData(dataBrasiliaISO()))
     .replace("{numero}", "PROC-2024-090")
     .replace("{pagina}", "1");
 
@@ -525,7 +525,7 @@ export default function Configuracoes() {
                         {pcaFile}
                       </span>
                       <span className="mt-0.5 block text-xs text-text-muted">
-                        PCA {pcaYear} · Importado em 09/07/2025
+                        PCA {pcaYear} · Importado em {formatData(dataBrasiliaISO())}
                       </span>
                     </span>
                     <Tag tone="success">Ativo</Tag>

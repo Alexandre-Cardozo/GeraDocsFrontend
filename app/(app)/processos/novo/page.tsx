@@ -6,24 +6,39 @@ import { useState } from "react"
 import {
   Button,
   ChoiceCard,
+  Dropdown,
   FileUpload,
   FormField,
   InfoBanner,
+  MoneyInput,
   Input,
-  Select,
   StepIndicator,
   Tag,
   Textarea,
   Toggle,
   ValidationMsg,
 } from "@/components/ui"
-import { IconBuilding, IconCart, IconCheck, IconClipboard, IconFile, IconLock, IconZap } from "@/components/ui/icons"
+import {
+  IconBuilding,
+  IconCart,
+  IconCheck,
+  IconClipboard,
+  IconFile,
+  IconGavel,
+  IconLock,
+  IconMessageCircle,
+  IconTrophy,
+  IconZap,
+} from "@/components/ui/icons"
 import { useConfigTenant, useCriarProcesso, useProximoNumeroProcesso } from "@/lib/api/hooks"
 import type { Modalidade, ModoATA } from "@/lib/types"
 
 const modalidades: Array<{ key: string; valor: Modalidade; label: string; desc: string; icon: React.ReactNode }> = [
   { key: "pregao", valor: "Pregão Eletrônico", label: "Pregão Eletrônico", desc: "Para aquisição de bens e serviços comuns", icon: <IconCart size={22} /> },
   { key: "concorrencia", valor: "Concorrência", label: "Concorrência", desc: "Para obras, serviços e compras de grande vulto", icon: <IconBuilding size={22} /> },
+  { key: "concurso", valor: "Concurso", label: "Concurso", desc: "Para escolha de trabalho técnico, científico ou artístico", icon: <IconTrophy size={22} /> },
+  { key: "leilao", valor: "Leilão", label: "Leilão", desc: "Para alienação de bens móveis ou imóveis", icon: <IconGavel size={22} /> },
+  { key: "dialogo", valor: "Diálogo Competitivo", label: "Diálogo Competitivo", desc: "Para contratações de inovação técnica ou complexidade elevada", icon: <IconMessageCircle size={22} /> },
   { key: "dispensa", valor: "Dispensa Art. 75", label: "Dispensa de Licitação", desc: "Casos previstos no Art. 75 da Lei 14.133/21", icon: <IconZap size={22} /> },
   { key: "inexigibilidade", valor: "Inexigibilidade", label: "Inexigibilidade", desc: "Quando a competição é inviável", icon: <IconLock size={22} /> },
   { key: "credenciamento", valor: "Credenciamento", label: "Credenciamento", desc: "Para seleção de prestadores de serviços", icon: <IconClipboard size={22} /> },
@@ -153,12 +168,17 @@ export default function NovoProcesso() {
     )
   }
 
+  const modalidadeSel = modalidades.find((m) => m.key === modalidade)
+  const docsSelecionados = documentosGeraveis.filter((d) => docsSelected[d.key])
+
   return (
-    <div className="max-w-wizard p-4 sm:p-5 lg:p-7">
+    <div className="max-w-content p-4 sm:p-5 lg:p-7">
       <div className="mb-8">
         <StepIndicator steps={["Modalidade", "Identificação", "Documentos"]} current={step} />
       </div>
 
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div>
       {/* ── Passo 1 ── */}
       {step === 1 && (
         <div>
@@ -251,14 +271,15 @@ export default function NovoProcesso() {
 
           <div className="flex flex-col gap-4.5">
             <FormField label="Secretaria Requisitante" required>
-              <Select value={secretaria} onChange={(e) => setSecretaria(e.target.value)}>
-                <option value="">Selecione a secretaria...</option>
-                {(tenant?.secretarias ?? []).map((s) => (
-                  <option key={s.id} value={s.nome}>
-                    {s.nome}
-                  </option>
-                ))}
-              </Select>
+              <Dropdown
+                value={secretaria}
+                onChange={setSecretaria}
+                ariaLabel="Secretaria requisitante"
+                options={[
+                  { value: "", label: "Selecione a secretaria..." },
+                  ...(tenant?.secretarias ?? []).map((s) => ({ value: s.nome, label: s.nome })),
+                ]}
+              />
             </FormField>
 
             {/* Upload do DFD */}
@@ -302,7 +323,7 @@ export default function NovoProcesso() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Valor de Referência Estimado">
-                <Input value={valorRef} onChange={(e) => setValorRef(e.target.value)} placeholder="R$ 0,00" />
+                <MoneyInput value={valorRef} onChange={(e) => setValorRef(e.target.value)} />
               </FormField>
               <FormField label="Fundamento Legal">
                 <Input value={fundamento} onChange={(e) => setFundamento(e.target.value)} placeholder="Ex: Art. 75, II, Lei 14.133/21" />
@@ -441,6 +462,49 @@ export default function NovoProcesso() {
                 : "Criar Processo e Iniciar ETP →"
               : "Continuar →"}
         </Button>
+      </div>
+        </div>
+
+        {/* Resumo do processo — acompanha as escolhas do wizard */}
+        <aside className="lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-card border border-border bg-surface p-5">
+            <h3 className="m-0 mb-1 font-display text-base font-bold text-text-1">Resumo do Processo</h3>
+            <p className="m-0 mb-4 text-sm text-text-3">
+              Número <span className="font-mono font-semibold text-royal">{numeroProcesso}</span>
+            </p>
+            <dl className="flex flex-col gap-3">
+              {[
+                { rotulo: "Modalidade", valor: modalidadeSel?.label },
+                { rotulo: "Secretaria", valor: secretaria },
+                {
+                  rotulo: "Objeto",
+                  valor: objeto.trim() || (dfdFile ? "Definido pelo DFD anexado" : ""),
+                },
+                { rotulo: "Valor de referência", valor: valorRef.trim() ? `R$ ${valorRef}` : "" },
+                {
+                  rotulo: "Documentos",
+                  valor: docsSelecionados.length ? docsSelecionados.map((d) => d.key.toUpperCase()).join(" · ") : "",
+                },
+              ].map((item) => (
+                <div key={item.rotulo}>
+                  <dt className="text-2xs font-semibold tracking-caps text-text-muted uppercase">{item.rotulo}</dt>
+                  <dd className="m-0 mt-0.5 text-base text-text-1">
+                    {item.valor ? item.valor : <span className="text-text-faint">Não definido</span>}
+                  </dd>
+                </div>
+              ))}
+              {(includeDFDVerification || includeRetificacao) && (
+                <div>
+                  <dt className="text-2xs font-semibold tracking-caps text-text-muted uppercase">Fases opcionais</dt>
+                  <dd className="m-0 mt-1 flex flex-wrap gap-1.5">
+                    {includeDFDVerification && <Tag tone="info">Verificação do DFD</Tag>}
+                    {includeRetificacao && <Tag tone="violet">Retificação</Tag>}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        </aside>
       </div>
     </div>
   )

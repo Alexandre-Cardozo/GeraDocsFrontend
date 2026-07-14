@@ -216,6 +216,13 @@ export const IconImage = makeIcon("IconImage", (
   </>
 ))
 
+export const IconCamera = makeIcon("IconCamera", (
+  <>
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+    <circle cx="12" cy="13" r="4" />
+  </>
+))
+
 export const IconCalendar = makeIcon("IconCalendar", (
   <>
     <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -293,4 +300,30 @@ export const IconClipboardList = makeIcon("IconClipboardList", (
     <line x1="8" y1="11" x2="8.01" y2="11" />
     <line x1="8" y1="16" x2="8.01" y2="16" />
   </>
+))
+
+/* Modalidades adicionais da Lei 14.133 */
+export const IconTrophy = makeIcon("IconTrophy", (
+  <>
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path d="M4 22h16" />
+    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+  </>
+))
+
+export const IconGavel = makeIcon("IconGavel", (
+  <>
+    <path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8" />
+    <path d="m16 16 6-6" />
+    <path d="m8 8 6-6" />
+    <path d="m9 7 8 8" />
+    <path d="m21 11-8-8" />
+  </>
+))
+
+export const IconMessageCircle = makeIcon("IconMessageCircle", (
+  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
 ))

@@ -34,13 +34,15 @@ export type StatusDocumento =
 export type TagProcesso = "Obrigatório" | "Opcional" | "Recomendado" | "Urgente"
 
 /**
- * Modalidades da Lei 14.133/21 cobertas pelo MVP.
- * "Credenciamento" preserva a quinta opção do wizard do protótipo
- * (ver docs/decisions.md).
+ * Modalidades de licitação da Lei 14.133/21 (Art. 28) + formas de contratação
+ * direta e procedimento auxiliar tratados como opções no wizard.
  */
 export type Modalidade =
   | "Pregão Eletrônico"
   | "Concorrência"
+  | "Concurso"
+  | "Leilão"
+  | "Diálogo Competitivo"
   | "Dispensa Art. 75"
   | "Inexigibilidade"
   | "Credenciamento"
@@ -233,6 +235,8 @@ export interface UsuarioAtual {
   iniciais: string
   papel: PapelUsuario
   descricao: string
+  /** Foto de perfil em data URL; null = usa o avatar padrão (iniciais). */
+  avatarDataUrl: string | null
 }
 
 export interface EstatisticasDashboard {

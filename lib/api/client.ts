@@ -13,6 +13,7 @@ import {
   tenant as tenantFixture,
   usuarioAtual,
 } from "@/lib/mocks/fixtures"
+import { dataBrasiliaISO, dataHoraBrasiliaISO } from "@/lib/format"
 import type {
   DecisaoAprovacao,
   DocumentoGerado,
@@ -43,6 +44,7 @@ function delay(ms = 350 + Math.random() * 350): Promise<void> {
 
 /* ── Estado em memória (persiste durante a sessão) ─────────────────────────── */
 const db = {
+  usuario: clone(usuarioAtual),
   processos: clone(processosFixture),
   secoesETP: new Map<string, SecaoETP[]>(),
   pareceresDFD: new Map<string, ParecerDFD>(),
@@ -69,7 +71,14 @@ function secoesDoProcesso(id: string): SecaoETP[] {
 
 export async function getUsuarioAtual(): Promise<UsuarioAtual> {
   await delay(120)
-  return clone(usuarioAtual)
+  return clone(db.usuario)
+}
+
+/** Atualiza a foto de perfil do usuário (data URL ou null para voltar ao padrão). */
+export async function atualizarAvatar(avatarDataUrl: string | null): Promise<UsuarioAtual> {
+  await delay(200)
+  db.usuario = { ...db.usuario, avatarDataUrl }
+  return clone(db.usuario)
 }
 
 export async function getEstatisticas(): Promise<EstatisticasDashboard> {
@@ -127,7 +136,7 @@ export async function getProximoNumeroProcesso(): Promise<string> {
 export async function criarProcesso(input: NovoProcessoInput): Promise<Processo> {
   await delay(600)
   const id = `PROC-2024-${String(db.seqProcesso++).padStart(3, "0")}`
-  const hoje = new Date().toISOString().slice(0, 10)
+  const hoje = dataBrasiliaISO()
   const processo: Processo = {
     id,
     objeto: input.objeto || "Novo Processo de Contratação",
@@ -135,7 +144,7 @@ export async function criarProcesso(input: NovoProcessoInput): Promise<Processo>
     secretaria: input.secretaria,
     status: "rascunho",
     valorEstimado: input.valorEstimado ?? 0,
-    responsavel: usuarioAtual.nome,
+    responsavel: db.usuario.nome,
     criadoEm: hoje,
     atualizadoEm: hoje,
     etpStatus: "Não iniciado",
@@ -154,7 +163,8 @@ export async function criarProcesso(input: NovoProcessoInput): Promise<Processo>
 /** Dispara a análise mockada do DFD (a UI mostra o progresso ~1s). */
 export async function analisarDFD(processoId: string, arquivo: string): Promise<ParecerDFD> {
   await delay(900)
-  const parecer: ParecerDFD = { ...clone(parecerDFDBase), processoId, arquivo }
+  // Registra a data/hora real da análise (fuso de Brasília).
+  const parecer: ParecerDFD = { ...clone(parecerDFDBase), processoId, arquivo, analisadoEm: dataHoraBrasiliaISO() }
   db.pareceresDFD.set(processoId, parecer)
   return clone(parecer)
 }
@@ -224,7 +234,7 @@ export async function decidirAprovacao(input: DecisaoInput): Promise<ItemAprovac
   await delay(500)
   const item = db.aprovacoes.find((a) => a.processoId === input.processoId)
   if (!item) throw new Error(`Item de aprovação ${input.processoId} não encontrado`)
-  const agora = new Date().toISOString().slice(0, 10)
+  const agora = dataBrasiliaISO()
   const para: StatusProcesso =
     input.decisao === "aprovar" ? "aprovado" : input.decisao === "rejeitar" ? "rejeitado" : "em_revisao"
   const transicao: TransicaoAprovacao = {

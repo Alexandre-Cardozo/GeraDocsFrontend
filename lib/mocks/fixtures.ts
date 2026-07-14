@@ -20,6 +20,7 @@ export const usuarioAtual: UsuarioAtual = {
   iniciais: "MC",
   papel: "servidor_compras",
   descricao: "Servidor · Compras",
+  avatarDataUrl: null,
 };
 
 export const estatisticas: EstatisticasDashboard = {

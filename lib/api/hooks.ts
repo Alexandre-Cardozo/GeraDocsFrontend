@@ -28,6 +28,16 @@ export function useUsuarioAtual() {
   return useQuery({ queryKey: chaves.usuario, queryFn: api.getUsuarioAtual, staleTime: Infinity })
 }
 
+export function useAtualizarAvatar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (avatarDataUrl: string | null) => api.atualizarAvatar(avatarDataUrl),
+    onSuccess: (usuario) => {
+      queryClient.setQueryData(chaves.usuario, usuario)
+    },
+  })
+}
+
 export function useEstatisticas() {
   return useQuery({ queryKey: chaves.estatisticas, queryFn: api.getEstatisticas })
 }
@@ -92,7 +102,7 @@ export function useSecoesETP(processoId: string) {
 export function useAtualizarSecaoETP(processoId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: { secaoId: string; conteudo: string }) =>
+    mutationFn: (input: { secaoId: string; conteudo: string; status?: import("@/lib/types").StatusDocumento }) =>
       api.atualizarSecaoETP({ processoId, ...input }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: chaves.secoesETP(processoId) })

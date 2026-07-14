@@ -50,6 +50,28 @@ export function anoBrasilia(d: Date = new Date()): number {
   return Number(partes.find((p) => p.type === "year")?.value ?? "0")
 }
 
+/** Data atual como ISO "AAAA-MM-DD" no fuso de Brasília (para registrar em fixtures/mocks). */
+export function dataBrasiliaISO(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO_BRASILIA,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d)
+}
+
+/** Data+hora atual como ISO "AAAA-MM-DDTHH:mm:ss" no fuso de Brasília. */
+export function dataHoraBrasiliaISO(d: Date = new Date()): string {
+  const hora = new Intl.DateTimeFormat("en-GB", {
+    timeZone: FUSO_BRASILIA,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(d)
+  return `${dataBrasiliaISO(d)}T${hora}`
+}
+
 /** Data por extenso em pt-BR no fuso de Brasília: "Segunda-feira, 07 de julho de 2024". */
 export function dataPorExtenso(d: Date = new Date()): string {
   const texto = new Intl.DateTimeFormat("pt-BR", {

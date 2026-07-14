@@ -11,6 +11,8 @@ export {
   FilterTabs,
   FormField,
   Input,
+  MoneyInput,
+  QuantityInput,
   SearchInput,
   Select,
   Textarea,

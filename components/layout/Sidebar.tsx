@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import {
   IconBuilding,
+  IconCamera,
   IconCheckCircle,
   IconDashboard,
   IconDownload,
@@ -15,6 +16,7 @@ import {
   IconSettings,
 } from "@/components/ui/icons";
 import {
+  useAtualizarAvatar,
   useConfigTenant,
   useFilaAprovacoes,
   useUsuarioAtual,
@@ -93,6 +95,7 @@ export default function Sidebar({
   const { data: usuario } = useUsuarioAtual();
   const { data: fila } = useFilaAprovacoes();
   const { data: tenant } = useConfigTenant();
+  const atualizarAvatar = useAtualizarAvatar();
 
   const pendentes = fila?.filter((a) => a.status === "aguardando").length;
 
@@ -216,27 +219,53 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Usuário */}
-      <div className="border-t border-on-dark-border px-4 py-3">
-        <button
-          type="button"
-          className="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent p-0 text-left"
+      {/* Usuário — clicar no avatar troca a foto de perfil (círculo); senão, iniciais */}
+      <div className="flex items-center gap-2.5 border-t border-on-dark-border px-4 py-3">
+        <label
+          className="group relative size-8.5 shrink-0 cursor-pointer"
+          title="Alterar foto de perfil"
         >
-          <span className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-base font-bold text-on-dark gradient-user">
-            {usuario?.iniciais ?? "—"}
-          </span>
-          <span className="block min-w-0 flex-1">
-            <span className="block truncate text-base font-semibold text-on-dark">
-              {usuario?.nome ?? "Carregando..."}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const reader = new FileReader();
+              reader.onload = () =>
+                atualizarAvatar.mutate(typeof reader.result === "string" ? reader.result : null);
+              reader.readAsDataURL(f);
+            }}
+          />
+          {usuario?.avatarDataUrl ? (
+            <Image
+              src={usuario.avatarDataUrl}
+              alt="Foto de perfil"
+              width={34}
+              height={34}
+              unoptimized
+              className="size-8.5 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex size-8.5 items-center justify-center rounded-full text-base font-bold text-on-dark gradient-user">
+              {usuario?.iniciais ?? "—"}
             </span>
-            <span className="block text-xs text-on-dark-40">
-              {usuario?.descricao ?? ""}
-            </span>
+          )}
+          {/* Overlay de câmera no hover, indicando que dá para trocar */}
+          <span className="absolute inset-0 flex items-center justify-center rounded-full bg-navy/55 text-on-dark opacity-0 transition-opacity group-hover:opacity-100">
+            <IconCamera size={14} />
           </span>
-          <span className="flex text-on-dark-30">
-            <IconMoreVertical size={14} />
+        </label>
+        <div className="block min-w-0 flex-1">
+          <span className="block truncate text-base font-semibold text-on-dark">
+            {usuario?.nome ?? "Carregando..."}
           </span>
-        </button>
+          <span className="block text-xs text-on-dark-40">{usuario?.descricao ?? ""}</span>
+        </div>
+        <span className="flex text-on-dark-30">
+          <IconMoreVertical size={14} />
+        </span>
       </div>
     </aside>
   );

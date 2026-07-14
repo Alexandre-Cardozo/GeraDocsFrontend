@@ -1,6 +1,15 @@
 "use client"
 
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode, type SelectHTMLAttributes } from "react"
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from "react"
 
 import { IconCheck, IconChevronDown, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
 
@@ -40,6 +49,74 @@ export function Input({
   }
   return (
     <input id={id} value={value} onChange={onChange} placeholder={placeholder} className={`${controleBase} ${className}`} />
+  )
+}
+
+/**
+ * Campo monetário padrão do DS: tag "R$" fixa (indica cotação em reais) e
+ * placeholder "0,00" com duas casas. Use em TODO valor monetário.
+ */
+export function MoneyInput({
+  value,
+  onChange,
+  placeholder = "0,00",
+  className = "",
+  id,
+}: {
+  value?: string
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  className?: string
+  id?: string
+}) {
+  return (
+    <div className="relative">
+      <span className="absolute top-1/2 left-3 -translate-y-1/2 text-base font-semibold text-text-3">R$</span>
+      <input
+        id={id}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        inputMode="decimal"
+        className={`${controleBase} pl-9 ${className}`}
+      />
+    </div>
+  )
+}
+
+/**
+ * Campo de quantidade padrão do DS: placeholder "0,00" com duas casas; sufixo de
+ * unidade opcional (ex.: "un", "m²"). Use em TODO campo de quantidade.
+ */
+export function QuantityInput({
+  value,
+  onChange,
+  placeholder = "0,00",
+  suffix,
+  className = "",
+  id,
+}: {
+  value?: string
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  suffix?: string
+  className?: string
+  id?: string
+}) {
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        inputMode="decimal"
+        className={`${controleBase} ${suffix ? "pr-10" : ""} ${className}`}
+      />
+      {suffix && (
+        <span className="absolute top-1/2 right-3 -translate-y-1/2 text-base font-medium text-text-muted">{suffix}</span>
+      )}
+    </div>
   )
 }
 
@@ -300,6 +377,8 @@ export function SearchInput({
   placeholder = "Buscar...",
   value,
   onChange,
+  onFocus,
+  onKeyDown,
   kbd,
   tone = "ice",
   grow,
@@ -307,6 +386,8 @@ export function SearchInput({
   placeholder?: string
   value?: string
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  onFocus?: (e: FocusEvent<HTMLInputElement>) => void
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
   kbd?: string
   tone?: "ice" | "surface"
   grow?: boolean
@@ -323,6 +404,8 @@ export function SearchInput({
       <input
         value={value}
         onChange={onChange}
+        onFocus={onFocus}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className="w-full border-0 bg-transparent font-body text-base text-text-1"
       />

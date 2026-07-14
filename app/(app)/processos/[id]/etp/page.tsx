@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 
-import { Button, ChoiceCard, FileUpload, FormField, InfoBanner, Input, ProgressBar, SectionBlock, Select, Textarea, ValidationMsg } from "@/components/ui"
+import { Button, ChoiceCard, Dropdown, FileUpload, FormField, InfoBanner, Input, MoneyInput, ProgressBar, QuantityInput, SectionBlock, Textarea, ValidationMsg } from "@/components/ui"
 import {
   IconCheck,
   IconCheckCircle,
@@ -78,8 +78,10 @@ export default function EditorETP() {
 
   const handleSave = (avancar = false) => {
     if (!active) return
+    // Ao avançar, a seção é dada como concluída mesmo sem conteúdo — preencher
+    // todas as seções não é obrigatório; visitar e continuar já marca o check.
     salvar.mutate(
-      { secaoId: active.id, conteudo: rascunho },
+      { secaoId: active.id, conteudo: rascunho, ...(avancar ? { status: "Completo" as const } : {}) },
       {
         onSuccess: () => {
           setSaved(true)
@@ -417,13 +419,24 @@ function EstimativasSecao({
   rascunho: string
   setRascunho: (v: string) => void
 }) {
-  const [qty, setQty] = useState("150")
+  const [qty, setQty] = useState("150,00")
+  const [unidade, setUnidade] = useState("Unidade")
+  const [vigencia, setVigencia] = useState("12 meses")
   const [valorUnit, setValorUnit] = useState("3.233,33")
+  const [fontes, setFontes] = useState<Record<string, boolean>>({ painel: true, contratos: false, cotacoes: false, outro: false })
+  const [outroTexto, setOutroTexto] = useState("")
 
   // Total derivado dos campos ao lado (quantidade × valor unitário).
   const qtyNumero = Number.parseFloat(qty.replace(/\./g, "").replace(",", ".")) || 0
   const valorUnitNumero = Number.parseFloat(valorUnit.replace(/\./g, "").replace(",", ".")) || 0
   const valorTotal = qtyNumero * valorUnitNumero
+
+  const fontesOpcoes = [
+    { key: "painel", label: "Painel de Preços do Governo Federal (gov.br/compras)" },
+    { key: "contratos", label: "Contratos similares celebrados por outros entes" },
+    { key: "cotacoes", label: "Cotações com fornecedores" },
+    { key: "outro", label: "Outro" },
+  ]
 
   return (
     <div className="flex flex-col gap-5">
@@ -433,24 +446,23 @@ function EstimativasSecao({
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FormField label="Quantidade Estimada" required>
-            <Input value={qty} onChange={(e) => setQty(e.target.value)} />
+            <QuantityInput value={qty} onChange={(e) => setQty(e.target.value)} />
           </FormField>
           <FormField label="Unidade de Medida" required>
-            <Select defaultValue="Unidade">
-              <option>Unidade</option>
-              <option>Serviço</option>
-              <option>Metro Quadrado</option>
-              <option>Licença</option>
-            </Select>
+            <Dropdown
+              value={unidade}
+              onChange={setUnidade}
+              ariaLabel="Unidade de medida"
+              options={["Unidade", "Serviço", "Metro Quadrado", "Licença"].map((o) => ({ value: o, label: o }))}
+            />
           </FormField>
           <FormField label="Período de Vigência" required>
-            <Select defaultValue="12 meses">
-              <option>12 meses</option>
-              <option>24 meses</option>
-              <option>36 meses</option>
-              <option>48 meses</option>
-              <option>60 meses</option>
-            </Select>
+            <Dropdown
+              value={vigencia}
+              onChange={setVigencia}
+              ariaLabel="Período de vigência"
+              options={["12 meses", "24 meses", "36 meses", "48 meses", "60 meses"].map((o) => ({ value: o, label: o }))}
+            />
           </FormField>
         </div>
 
@@ -471,10 +483,10 @@ function EstimativasSecao({
         hint="Baseie-se em pesquisas de mercado, contratos anteriores ou painel de preços do governo federal."
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Valor Unitário Estimado (R$)" required>
-            <Input prefix="R$" value={valorUnit} onChange={(e) => setValorUnit(e.target.value)} />
+          <FormField label="Valor Unitário Estimado" required>
+            <MoneyInput value={valorUnit} onChange={(e) => setValorUnit(e.target.value)} />
           </FormField>
-          <FormField label="Valor Total Estimado (R$)">
+          <FormField label="Valor Total Estimado">
             <div className="flex w-full items-center rounded-md border border-border bg-ice px-3.25 py-2.5 font-mono text-md font-bold text-petroleum">
               {formatBRL(valorTotal)}
             </div>
@@ -483,17 +495,27 @@ function EstimativasSecao({
         <div className="mt-4">
           <FormField label="Fonte de Pesquisa de Preços" required>
             <div className="flex flex-col gap-2">
-              {[
-                "Painel de Preços do Governo Federal (paineldeprecos.economia.gov.br)",
-                "Contratos similares celebrados por outros entes",
-                "Cotações com fornecedores",
-              ].map((opt) => (
-                <label key={opt} className="flex cursor-pointer items-center gap-2.5 text-base text-text-2">
-                  <input type="checkbox" defaultChecked={opt.includes("Painel")} className="size-3.75 accent-royal" />
-                  {opt}
+              {fontesOpcoes.map((opt) => (
+                <label key={opt.key} className="flex cursor-pointer items-center gap-2.5 text-base text-text-2">
+                  <input
+                    type="checkbox"
+                    checked={fontes[opt.key] ?? false}
+                    onChange={(e) => setFontes((f) => ({ ...f, [opt.key]: e.target.checked }))}
+                    className="size-3.75 accent-royal"
+                  />
+                  {opt.label}
                 </label>
               ))}
             </div>
+            {fontes.outro && (
+              <div className="mt-2.5">
+                <Input
+                  value={outroTexto}
+                  onChange={(e) => setOutroTexto(e.target.value)}
+                  placeholder="Informe qual foi o meio utilizado na pesquisa de preços"
+                />
+              </div>
+            )}
           </FormField>
         </div>
       </SectionBlock>
