@@ -133,3 +133,15 @@ Dois tokens novos em `@theme` (`app/globals.css`), seguindo o padrão dos quatro
 ## 17. Extensões do barrel registradas (pendência antiga)
 
 `docs/estrutura.md` exige registrar aqui todo componente de `components/ui/` que não esteja no DS. Ficaram sem registro: **`Dropdown`** (+ `DropdownOption`), **`MoneyInput`**, **`QuantityInput`** e **`CheckMark`** — todos em uso e sem `.prompt.md` no DS. Ficam registrados como extensões aprovadas. `CardPanel` é o inverso: está especificado em `SectionBlock.prompt.md` e não é exportado pelo barrel.
+
+> `MoneyInput` e `QuantityInput` deixaram de ser extensões não documentadas: ganharam spec no DS (`components/forms/MoneyInput.prompt.md`) ao virarem componentes com máscara — ver §18.
+
+## 18. Campos valorados se formatam sozinhos
+
+`MoneyInput` e `QuantityInput` eram `<input>` de texto **sem máscara**: o que o usuário digitasse ficava como veio (`500000` continuava `500000`), e cada tela refazia o parse à mão com uma regex própria — três implementações ligeiramente diferentes, todas frágeis.
+
+A formatação passou a ser **do componente**, não do chamador: a máscara agrupa os milhares a cada tecla e o blur fecha o valor em duas casas (`500000` → `500.000,00`). Texto colado sujo é aceito (`R$ 485.000,00` → `485.000,00`).
+
+Consequência no contrato: `onChange` entrega **a string já formatada**, e não o `ChangeEvent` — mesmo padrão que o `Dropdown` já usava. Foi uma quebra de API deliberada, com 4 pontos de uso, porque o contrato anterior permitia que uma tela esquecesse de mascarar (e permitia mesmo: era exatamente o bug).
+
+As primitivas de formatação ficam em `lib/format.ts` (`mascaraValorBR`, `normalizaValorBR`, `parseValorBR`, `formatNumeroBR`), ao lado de `formatBRL` — **nenhuma tela deve reimplementar parse ou máscara de valor**. Valores só de leitura (totais, estimativas) não são campos: renderize com `formatBRL` em monospace.

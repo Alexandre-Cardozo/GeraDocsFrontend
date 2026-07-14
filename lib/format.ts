@@ -11,6 +11,46 @@ export function formatBRL(valor: number): string {
   return brl.format(valor).replace(/ /g, " ")
 }
 
+const numeroBR = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
+/** 485000 → "485.000,00" — o mesmo formato de formatBRL, sem o símbolo da moeda. */
+export function formatNumeroBR(valor: number): string {
+  return numeroBR.format(valor)
+}
+
+/** "485.000,00" → 485000. Aceita texto sujo ("R$ 485.000,00"); vazio ou inválido → 0. */
+export function parseValorBR(texto: string): number {
+  const limpo = texto.replace(/[^\d,]/g, "").replace(",", ".")
+  return Number.parseFloat(limpo) || 0
+}
+
+/**
+ * Máscara aplicada a cada tecla nos campos valorados: mantém só dígitos e uma
+ * vírgula decimal, agrupa os milhares e corta em duas casas.
+ *
+ * Não completa as casas decimais — quem faz isso é `normalizaValorBR`, no blur;
+ * completar durante a digitação atrapalharia quem ainda está digitando.
+ */
+export function mascaraValorBR(texto: string): string {
+  const limpo = texto.replace(/[^\d,]/g, "")
+  const [primeiro = "", ...resto] = limpo.split(",")
+  // Zeros à esquerda saem, mas o "0" sozinho permanece.
+  const inteiro = primeiro.replace(/^0+(?=\d)/, "")
+  const agrupado = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+  if (resto.length === 0) return agrupado
+  const decimais = resto.join("").slice(0, 2)
+  return `${agrupado || "0"},${decimais}`
+}
+
+/** Fecha o campo no formato canônico: "500.000" → "500.000,00". Vazio continua vazio. */
+export function normalizaValorBR(texto: string): string {
+  if (texto.trim() === "") return ""
+  return formatNumeroBR(parseValorBR(texto))
+}
+
 /** ISO "2024-07-05" → "05/07/2024". */
 export function formatData(iso: string): string {
   const [ano, mes, dia] = iso.slice(0, 10).split("-")

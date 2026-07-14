@@ -12,6 +12,7 @@ import {
 } from "react"
 
 import { IconCheck, IconChevronDown, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
+import { mascaraValorBR, normalizaValorBR } from "@/lib/format"
 
 /** Base compartilhada dos controles de formulário (input 14px, raio 8, borda). */
 const controleBase = "w-full rounded-md border border-border bg-surface px-3.25 py-2.5 font-body text-md text-text-1"
@@ -54,7 +55,12 @@ export function Input({
 
 /**
  * Campo monetário padrão do DS: tag "R$" fixa (indica cotação em reais) e
- * placeholder "0,00" com duas casas. Use em TODO valor monetário.
+ * placeholder "0,00". Use em TODO valor monetário.
+ *
+ * A formatação é do componente, não do chamador: a máscara agrupa os milhares a
+ * cada tecla e o blur fecha o valor em duas casas ("500000" → "500.000,00").
+ * Por isso o `onChange` entrega o texto já formatado, e não o evento — mesmo
+ * contrato do `Dropdown`. Para o número, use `parseValorBR` de `lib/format`.
  */
 export function MoneyInput({
   value,
@@ -64,7 +70,7 @@ export function MoneyInput({
   id,
 }: {
   value?: string
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  onChange?: (valor: string) => void
   placeholder?: string
   className?: string
   id?: string
@@ -75,7 +81,8 @@ export function MoneyInput({
       <input
         id={id}
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange?.(mascaraValorBR(e.target.value))}
+        onBlur={(e) => onChange?.(normalizaValorBR(e.target.value))}
         placeholder={placeholder}
         inputMode="decimal"
         className={`${controleBase} pl-9 ${className}`}
@@ -85,8 +92,11 @@ export function MoneyInput({
 }
 
 /**
- * Campo de quantidade padrão do DS: placeholder "0,00" com duas casas; sufixo de
- * unidade opcional (ex.: "un", "m²"). Use em TODO campo de quantidade.
+ * Campo de quantidade padrão do DS: placeholder "0,00"; sufixo de unidade
+ * opcional (ex.: "un", "m²"). Use em TODO campo de quantidade.
+ *
+ * Mesma máscara e mesmo contrato de `onChange` do `MoneyInput` — quantidade e
+ * dinheiro se formatam igual, só o símbolo muda.
  */
 export function QuantityInput({
   value,
@@ -97,7 +107,7 @@ export function QuantityInput({
   id,
 }: {
   value?: string
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  onChange?: (valor: string) => void
   placeholder?: string
   suffix?: string
   className?: string
@@ -108,7 +118,8 @@ export function QuantityInput({
       <input
         id={id}
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange?.(mascaraValorBR(e.target.value))}
+        onBlur={(e) => onChange?.(normalizaValorBR(e.target.value))}
         placeholder={placeholder}
         inputMode="decimal"
         className={`${controleBase} ${suffix ? "pr-10" : ""} ${className}`}

@@ -65,6 +65,7 @@ docs/                   # estrutura.md · decisions.md · fluxo-contratacao.md (
 - **Dados só via hooks**: views nunca importam `lib/mocks`; tudo passa por `lib/api/hooks.ts`, com loading/erro/empty tratados.
 - **DS via barrel**: componentes do DS importados de `@/components/ui` (regra de lint). Antes de mexer em UI, consulte o `readme.md` do DS e o `.prompt.md` do componente.
 - **Conteúdo pt-BR**: Title Case em títulos, imperativos em ações, referências legais literais ("Art. 75, II, Lei 14.133/21"), IDs/valores em monospace, vocabulário de status fixo.
+- **Valores nunca crus**: monetários e quantidades sempre com milhar e duas casas (`500.000,00`). Exibir → `formatBRL`/`formatNumeroBR`; digitar → `MoneyInput`/`QuantityInput`, que mascaram sozinhos. Nunca refaça a máscara ou o parse na tela.
 - **Zero emoji**: ícones de linha estilo Lucide em `components/ui/icons.tsx`.
 - **Responsivo mobile-first**: variantes Tailwind `xs`(480)/`sm`(640)/`md`(768)/`lg`(1024) no `className`. Sidebar vira drawer abaixo de `lg`; tabelas largas rolam dentro de `overflow-x-auto` com `min-w-[...]`; nunca deixe a página estourar horizontalmente.
 

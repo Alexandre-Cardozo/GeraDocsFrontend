@@ -42,6 +42,7 @@ import {
   ordenar,
   totalSecoes,
 } from "@/lib/documentos";
+import { formatBRL, parseValorBR } from "@/lib/format";
 import type { Modalidade, ModoATA, TipoDocumento } from "@/lib/types";
 
 const modalidades: Array<{
@@ -244,8 +245,7 @@ export default function NovoProcesso() {
 
   const handleCreate = () => {
     if (!modalidadeSel) return;
-    const valorNumerico =
-      Number.parseFloat(valorRef.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+    const valorNumerico = parseValorBR(valorRef);
     criarProcesso.mutate(
       {
         objeto: objeto.trim(),
@@ -501,10 +501,7 @@ export default function NovoProcesso() {
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField label="Valor de Referência Estimado">
-                    <MoneyInput
-                      value={valorRef}
-                      onChange={(e) => setValorRef(e.target.value)}
-                    />
+                    <MoneyInput value={valorRef} onChange={setValorRef} />
                   </FormField>
                   <FormField label="Fundamento Legal">
                     <Input
@@ -741,7 +738,7 @@ export default function NovoProcesso() {
                 },
                 {
                   rotulo: "Valor de referência",
-                  valor: valorRef.trim() ? `R$ ${valorRef}` : "",
+                  valor: valorRef.trim() ? formatBRL(parseValorBR(valorRef)) : "",
                 },
                 {
                   rotulo: "Documentos",

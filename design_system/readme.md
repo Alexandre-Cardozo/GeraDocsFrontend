@@ -23,6 +23,7 @@ Note: the prototype's sidebar wordmark reads "ContrataDoc"; per the user, the pr
 - **Legal precision:** cites law verbatim — "Art. 75, II, Lei 14.133/21", "Art. 86 da Lei 14.133/21". Never paraphrases legal references.
 - **Guidance-heavy:** every field/section has a hint sentence explaining what to write and why ("Baseie-se em pesquisas de mercado, contratos anteriores ou painel de preços…"). The user should always know the next step ("Após a criação você será direcionado ao preenchimento do ETP.").
 - **IDs & money:** monospace, exact formats — `PROC-2024-089`, `R$ 485.000,00`, dates `05/07/2024`.
+- **Numbers are never shown raw.** Every monetary value and quantity — displayed *or* typed — carries **thousand separators and exactly two decimals**: `500.000,00`, never `500000` or `500.000`. Displayed values go through `formatBRL` (`R$ 485.000,00`) or `formatNumeroBR` (`485.000,00`, no symbol). Typed values go through `MoneyInput`/`QuantityInput`, which mask as the user types and close the value to two decimals on blur — **the caller never masks, and a plain `<Input prefix="R$">` must not be used for money**. See `components/forms/MoneyInput.prompt.md`.
 - **Micro-labels:** uppercase 10px with wide tracking ("ÓRGÃO ATUAL", "PRINCIPAL", table headers).
 - **Arrows in CTAs:** "Continuar →", "Ver todos →", "← Seção Anterior".
 - **Emoji:** not used. All icons are monochrome Lucide-style line SVGs (stroke currentColor).
@@ -66,7 +67,7 @@ All three families are Google Fonts, loaded via `@import` in `tokens/typography.
 - `styles.css` — global entry; imports everything under `tokens/`.
 - `tokens/` — `colors.css`, `typography.css`, `layout.css` (spacing, radii, borders, motion).
 - `assets/` — `geradocs-logo.png`, `lahhm-mark.png`, `lahhm-logo.png`.
-- `components/core/` — Button, StatusBadge, DocPill, Tag, Toggle, Input, Textarea, Select, FormField, FileUpload, ChoiceCard, StatCard, SectionBlock, ValidationMsg, StepIndicator, ProgressBar, SearchInput, FilterTabs.
+- `components/core/` — Button, StatusBadge, DocPill, Tag, Toggle, Input, Textarea, Select, MoneyInput, QuantityInput, FormField, FileUpload, ChoiceCard, StatCard, SectionBlock, ValidationMsg, StepIndicator, ProgressBar, SearchInput, FilterTabs.
 - `components/chrome/` — Sidebar, Header (app shell).
 - `ui_kits/geradocs/` — interactive recreation of the app (Dashboard, Processos, Novo Processo wizard, ETP editor).
 - `guidelines/` — foundation specimen cards shown in the Design System tab.
@@ -75,7 +76,8 @@ All three families are Google Fonts, loaded via `@import` in `tokens/typography.
 ### Intentional additions
 
 - `ProgressBar`, `SearchInput`, `FilterTabs` — extracted from repeated inline patterns in the source views (ETP progress, header/list search, ProcessList status filter), not inventions.
-- App-side extensions with no `.prompt.md` here, approved and registered in the app's `docs/decisions.md` §17: `Dropdown` (+ `DropdownOption`), `MoneyInput`, `QuantityInput`, `CheckMark`. Conversely, `CardPanel` is specified in `SectionBlock.prompt.md` but is not exported by the app barrel.
+- `MoneyInput` / `QuantityInput` — the masked pt-BR money and quantity fields (`components/forms/MoneyInput.prompt.md`). They own the formatting so no screen can forget it.
+- App-side extensions with no `.prompt.md` here, approved and registered in the app's `docs/decisions.md` §17: `Dropdown` (+ `DropdownOption`), `CheckMark`. Conversely, `CardPanel` is specified in `SectionBlock.prompt.md` but is not exported by the app barrel.
 
 ### Known gaps
 

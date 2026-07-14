@@ -18,7 +18,7 @@ import {
 import { IconCheck, IconCheckCircle, IconFileText } from "@/components/ui/icons"
 import { InlineSpinner } from "@/components/shared/estados"
 import { useToast } from "@/components/shared/providers"
-import { formatBRL } from "@/lib/format"
+import { formatBRL, parseValorBR } from "@/lib/format"
 import type { ModoATA, PainelSecao, SecaoDocumento } from "@/lib/types"
 
 /**
@@ -54,7 +54,7 @@ function PainelQuantidades({ secao, rascunho, setRascunho }: PainelProps) {
     <SectionBlock title={secao.titulo} hint={secao.hint}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <FormField label="Quantidade Estimada" required>
-          <QuantityInput value={qty} onChange={(e) => setQty(e.target.value)} />
+          <QuantityInput value={qty} onChange={setQty} />
         </FormField>
         <FormField label="Unidade de Medida" required>
           <Dropdown
@@ -100,9 +100,7 @@ function PainelValor({ secao, rascunho, setRascunho }: PainelProps) {
   const [outroTexto, setOutroTexto] = useState("")
 
   // Total derivado dos campos ao lado (quantidade × valor unitário).
-  const qtyNumero = Number.parseFloat(qty.replace(/\./g, "").replace(",", ".")) || 0
-  const valorUnitNumero = Number.parseFloat(valorUnit.replace(/\./g, "").replace(",", ".")) || 0
-  const valorTotal = qtyNumero * valorUnitNumero
+  const valorTotal = parseValorBR(qty) * parseValorBR(valorUnit)
 
   // Ordem de preferência das fontes de pesquisa de preços (IN SEGES 65/2021, Art. 5º).
   const fontesOpcoes = [
@@ -117,10 +115,10 @@ function PainelValor({ secao, rascunho, setRascunho }: PainelProps) {
     <SectionBlock title={secao.titulo} hint={secao.hint}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <FormField label="Quantidade" required>
-          <QuantityInput value={qty} onChange={(e) => setQty(e.target.value)} />
+          <QuantityInput value={qty} onChange={setQty} />
         </FormField>
         <FormField label="Valor Unitário Estimado" required>
-          <MoneyInput value={valorUnit} onChange={(e) => setValorUnit(e.target.value)} />
+          <MoneyInput value={valorUnit} onChange={setValorUnit} />
         </FormField>
         <FormField label="Valor Total Estimado">
           <div className="flex w-full items-center rounded-md border border-border bg-ice px-3.25 py-2.5 font-mono text-md font-bold text-petroleum">
