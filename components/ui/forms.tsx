@@ -1,8 +1,8 @@
 "use client"
 
-import type { ChangeEvent, ReactNode, SelectHTMLAttributes } from "react"
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode, type SelectHTMLAttributes } from "react"
 
-import { IconCheck, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
+import { IconCheck, IconChevronDown, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
 
 /** Base compartilhada dos controles de formulário (input 14px, raio 8, borda). */
 const controleBase = "w-full rounded-md border border-border bg-surface px-3.25 py-2.5 font-body text-md text-text-1"
@@ -79,6 +79,94 @@ export function Select({
     <select className={`${controleBase} ${className}`} {...rest}>
       {children}
     </select>
+  )
+}
+
+export interface DropdownOption {
+  value: string
+  label: string
+}
+
+/**
+ * Dropdown padronizado do DS (não usa o `<select>` nativo do SO): botão com o
+ * valor selecionado + chevron e um popover de opções estilizado. Fecha ao clicar
+ * fora ou com Esc.
+ */
+export function Dropdown({
+  value,
+  onChange,
+  options,
+  ariaLabel,
+  className = "",
+}: {
+  value: string
+  onChange: (v: string) => void
+  options: DropdownOption[]
+  ariaLabel?: string
+  className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selecionada = options.find((o) => o.value === value)
+
+  useEffect(() => {
+    if (!open) return
+    const aoClicarFora = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("pointerdown", aoClicarFora)
+    return () => document.removeEventListener("pointerdown", aoClicarFora)
+  }, [open])
+
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setOpen(false)
+        }}
+        className="flex h-9.5 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border bg-surface px-3.25 font-body text-md text-text-1"
+      >
+        <span className="truncate">{selecionada?.label ?? "Selecione..."}</span>
+        <span className={`flex shrink-0 text-text-muted transition-transform ${open ? "rotate-180" : ""}`}>
+          <IconChevronDown size={16} />
+        </span>
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-md"
+        >
+          {options.map((o) => {
+            const ativa = o.value === value
+            return (
+              <li key={o.value}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={ativa}
+                  onClick={() => {
+                    onChange(o.value)
+                    setOpen(false)
+                  }}
+                  className={`flex w-full cursor-pointer items-center justify-between gap-2 px-3 py-2 text-left text-base transition-colors ${
+                    ativa ? "bg-tint-royal-bg font-semibold text-royal" : "text-text-1 hover:bg-ice"
+                  }`}
+                >
+                  <span className="truncate">{o.label}</span>
+                  {ativa && <IconCheck size={14} strokeWidth={2.5} />}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
   )
 }
 

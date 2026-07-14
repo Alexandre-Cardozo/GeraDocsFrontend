@@ -27,8 +27,6 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname();
   const [busca, setBusca] = useState("");
 
-  const showNewProcess = pathname === "/" || pathname === "/processos";
-
   return (
     <header className="flex h-15 min-w-0 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:px-7">
       {/* Hambúrguer — abre o drawer da sidebar abaixo de 1024px */}
@@ -66,17 +64,16 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         <span className="absolute top-1.75 right-1.75 size-1.75 rounded-full border-2 border-ice bg-danger" />
       </button>
 
-      {showNewProcess && (
-        <Link
-          href="/processos/novo"
-          aria-label="Novo"
-          className="flex h-9 shrink-0 items-center gap-1.75 rounded-md bg-royal px-3 text-base font-semibold text-surface no-underline transition-colors hover:bg-royal-hover"
-        >
-          <IconPlus size={14} strokeWidth={2.5} />
-          {/* Rótulo some no celular — fica só o ícone */}
-          <span className="hidden sm:inline">Novo</span>
-        </Link>
-      )}
+      {/* Ação global — presente em todas as páginas (header único compartilhado) */}
+      <Link
+        href="/processos/novo"
+        aria-label="Novo Processo de Contratação"
+        className="flex h-9 shrink-0 items-center gap-1.75 rounded-md bg-royal px-3 text-base font-semibold text-surface no-underline transition-colors hover:bg-royal-hover"
+      >
+        <IconPlus size={14} strokeWidth={2.5} />
+        {/* Rótulo some no celular — fica só o ícone */}
+        <span className="hidden sm:inline">Novo Processo</span>
+      </Link>
     </header>
   );
 }

@@ -44,6 +44,12 @@ export function saudacao(d: Date = new Date()): string {
   return "Boa noite"
 }
 
+/** Ano vigente (4 dígitos) no fuso de Brasília. */
+export function anoBrasilia(d: Date = new Date()): number {
+  const partes = new Intl.DateTimeFormat("en-US", { timeZone: FUSO_BRASILIA, year: "numeric" }).formatToParts(d)
+  return Number(partes.find((p) => p.type === "year")?.value ?? "0")
+}
+
 /** Data por extenso em pt-BR no fuso de Brasília: "Segunda-feira, 07 de julho de 2024". */
 export function dataPorExtenso(d: Date = new Date()): string {
   const texto = new Intl.DateTimeFormat("pt-BR", {
