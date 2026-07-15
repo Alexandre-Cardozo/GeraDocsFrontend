@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation"
 
+export function generateStaticParams() {
+  return [{ id: "1" }]
+}
+
 /**
  * O ETP passou a usar o editor genérico de documentos, como os demais tipos.
  * Esta rota permanece só para não quebrar links já existentes.
