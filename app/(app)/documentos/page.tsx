@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
-import { DocPill, StatCard } from "@/components/ui"
+import { DocPill, Dropdown, StatCard } from "@/components/ui"
 import { IconCalendar, IconDatabase, IconDownload, IconEye, IconFileText, IconPlus } from "@/components/ui/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
@@ -11,15 +11,52 @@ import { useToast } from "@/components/shared/providers"
 import { useDocumentos, useResumoDocumentos } from "@/lib/api/hooks"
 import { CATALOGO, ORDEM_FLUXO } from "@/lib/documentos"
 import { formatDataHora } from "@/lib/format"
-import type { TipoDocumento } from "@/lib/types"
+import type { DocumentoGerado, TipoDocumento } from "@/lib/types"
+
+/**
+ * Nome do processo a partir do título do documento. O título segue o padrão
+ * `<Tipo> — <objeto do processo>`; a coluna Tipo já informa o tipo, então aqui
+ * exibimos apenas o processo (sem o prefixo redundante).
+ */
+function nomeProcesso(doc: DocumentoGerado): string {
+  const partes = doc.titulo.split(" — ")
+  return partes.length > 1 ? partes.slice(1).join(" — ") : doc.titulo
+}
 
 export default function Documentos() {
   const showToast = useToast()
   const documentos = useDocumentos()
   const resumoDados = useResumoDocumentos()
   const [filtroTipo, setFiltroTipo] = useState<TipoDocumento | null>(null)
+  const [filtroProcesso, setFiltroProcesso] = useState("")
+  const [filtroVersao, setFiltroVersao] = useState("")
 
-  const docs = (documentos.data ?? []).filter((d) => filtroTipo === null || d.tipo === filtroTipo)
+  const todos = useMemo(() => documentos.data ?? [], [documentos.data])
+
+  // Opções dos filtros derivadas dos documentos carregados (sem duplicatas).
+  const opcoesProcesso = useMemo(() => {
+    const vistos = new Map<string, string>()
+    for (const d of todos) if (!vistos.has(d.processoId)) vistos.set(d.processoId, nomeProcesso(d))
+    return [
+      { value: "", label: "Todos os processos" },
+      ...[...vistos.entries()].map(([id, nome]) => ({ value: id, label: `${nome} · ${id}` })),
+    ]
+  }, [todos])
+
+  const opcoesVersao = useMemo(() => {
+    const versoes = [...new Set(todos.map((d) => d.versao))].sort((a, b) => a - b)
+    return [
+      { value: "", label: "Todas as versões" },
+      ...versoes.map((v) => ({ value: String(v), label: `v${v}` })),
+    ]
+  }, [todos])
+
+  const docs = todos.filter(
+    (d) =>
+      (filtroTipo === null || d.tipo === filtroTipo) &&
+      (filtroProcesso === "" || d.processoId === filtroProcesso) &&
+      (filtroVersao === "" || String(d.versao) === filtroVersao),
+  )
 
   const r = resumoDados.data
 
@@ -34,38 +71,58 @@ export default function Documentos() {
 
       {/* Tabela */}
       <div className="overflow-hidden rounded-card border border-border bg-surface">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border-soft px-5 py-4">
-          <h3 className="m-0 font-display text-lg font-bold text-text-1">Documentos Gerados</h3>
-          <div className="flex flex-wrap gap-2">
-            {ORDEM_FLUXO.map((f) => {
-              const ativo = filtroTipo === f
-              return (
-                <button
-                  key={f}
-                  type="button"
-                  aria-pressed={ativo}
-                  onClick={() => setFiltroTipo(ativo ? null : f)}
-                  className={`cursor-pointer rounded-sm px-3 py-1.25 text-sm font-semibold transition-colors ${
-                    ativo ? "border border-royal bg-tint-royal-bg text-royal" : "border border-border bg-ice text-text-3"
-                  }`}
-                >
-                  {f}
-                </button>
-              )
-            })}
+        <div className="flex flex-col gap-3 border-b border-border-soft px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <h3 className="m-0 font-display text-lg font-bold text-text-1">Documentos Gerados</h3>
+            <div className="flex flex-wrap gap-2">
+              {ORDEM_FLUXO.map((f) => {
+                const ativo = filtroTipo === f
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    aria-pressed={ativo}
+                    onClick={() => setFiltroTipo(ativo ? null : f)}
+                    className={`cursor-pointer rounded-sm px-3 py-1.25 text-sm font-semibold transition-colors ${
+                      ativo ? "border border-royal bg-tint-royal-bg text-royal" : "border border-border bg-ice text-text-3"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="w-full sm:w-64">
+              <Dropdown
+                value={filtroProcesso}
+                onChange={setFiltroProcesso}
+                ariaLabel="Filtrar por processo"
+                options={opcoesProcesso}
+              />
+            </div>
+            <div className="w-full sm:w-40">
+              <Dropdown
+                value={filtroVersao}
+                onChange={setFiltroVersao}
+                ariaLabel="Filtrar por versão"
+                options={opcoesVersao}
+              />
+            </div>
           </div>
         </div>
 
         {documentos.isPending && <SkeletonRows rows={7} />}
         {documentos.isError && <ErrorState onRetry={() => void documentos.refetch()} />}
-        {documentos.isSuccess && docs.length === 0 && <EmptyState message="Nenhum documento encontrado para o filtro selecionado" />}
+        {documentos.isSuccess && docs.length === 0 && <EmptyState message="Nenhum documento encontrado para os filtros selecionados" />}
 
         {documentos.isSuccess && docs.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] border-collapse">
+            <table className="w-full min-w-[760px] border-collapse">
               <thead>
                 <tr className="border-b border-border bg-ice">
-                  {["Documento", "Processo", "Tipo", "Formato", "Gerado em", "Tamanho", "Status", ""].map((h, i) => (
+                  {["Processo", "Tipo", "Formato", "Gerado em", "Tamanho", "Status", ""].map((h, i) => (
                     <Th key={h === "" ? `vazio-${i}` : h}>{h}</Th>
                   ))}
                 </tr>
@@ -74,16 +131,13 @@ export default function Documentos() {
                 {docs.map((doc, i) => (
                   <tr key={doc.id} className={`transition-colors hover:bg-ice ${i < docs.length - 1 ? "border-b border-ice" : ""}`}>
                     <td className="px-4 py-3.25">
-                      <div className="text-base font-semibold text-text-1">{doc.titulo}</div>
+                      <div className="text-base font-semibold text-text-1">{nomeProcesso(doc)}</div>
                       <div className="mt-0.5 flex items-center gap-2">
-                        <span className="font-mono text-xs text-text-muted">{doc.id}</span>
+                        <span className="font-mono text-xs font-semibold text-royal">{doc.processoId}</span>
                         <span className="rounded-sm bg-border-soft px-1.5 py-0.5 font-mono text-2xs font-semibold text-slate-strong">
                           v{doc.versao}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3.25">
-                      <span className="font-mono text-xs font-semibold text-royal">{doc.processoId}</span>
                     </td>
                     <td className="px-4 py-3.25">
                       <DocPill status={doc.tipo} classes={CATALOGO[doc.tipo].chip} />

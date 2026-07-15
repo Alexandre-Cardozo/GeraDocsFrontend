@@ -241,10 +241,14 @@ export async function getEstatisticas(): Promise<EstatisticasDashboard> {
   const ativos = meus.filter((p) => !["concluido", "rejeitado"].includes(p.status)).length
   const aguardando = meus.filter((p) => p.status === "aguardando").length
   const etps = docs.filter((d) => d.tipo === "ETP").length
+  // Urgentes pela mesma métrica da fila (curadoria OU prazo em ≤ DIAS_LIMITE_URGENCIA).
+  const hoje = referenciaHoje(meus.filter((p) => PIPELINE.includes(p.status)))
+  const aguardandoUrgentes = meus.filter((p) => p.status === "aguardando" && ehProcessoUrgente(p, hoje)).length
   return {
     ...clone(db.estatisticas),
     processosAtivos: ativos,
     aguardandoAprovacao: aguardando,
+    aguardandoUrgentes,
     documentosGerados: docs.length,
     etpsConcluidos: etps,
   }
@@ -566,20 +570,64 @@ function projetarAprovacao(processo: Processo): ItemAprovacao {
 }
 
 /**
+ * Prazo (em dias corridos) a partir do qual um processo entra como urgente.
+ * Único ponto de verdade da métrica — ajuste aqui para mudar o limiar.
+ */
+export const DIAS_LIMITE_URGENCIA = 3
+
+/**
+ * Referência de "hoje" para a Fase 1 (sem clock de backend): o envio mais
+ * recente do conjunto de processos. Em produção, troque por `new Date()`.
+ */
+function referenciaHoje(processos: Processo[]): string {
+  return processos.reduce((max, p) => {
+    const d = p.enviadoEm ?? p.criadoEm
+    return d > max ? d : max
+  }, "")
+}
+
+/** Dias corridos entre duas datas ISO (negativo quando `ate` já passou). */
+function diasCorridos(de: string, ate: string): number {
+  return Math.round((Date.parse(ate.slice(0, 10)) - Date.parse(de.slice(0, 10))) / 86_400_000)
+}
+
+/**
+ * Um processo é urgente quando, **estando pendente de decisão** (Em Revisão ou
+ * Aguardando — em que o prazo ainda corre), é marcado manualmente (curadoria) OU
+ * tem prazo de análise a `DIAS_LIMITE_URGENCIA` dias corridos ou menos, incluindo
+ * prazo vencido. Processos já decididos (aprovado/rejeitado/concluído) nunca são
+ * urgentes. É a métrica de tempo única, usada na fila e no dashboard.
+ */
+export function ehProcessoUrgente(processo: Processo, hoje: string): boolean {
+  if (processo.status !== "aguardando" && processo.status !== "em_revisao") return false
+  if (processo.urgente) return true
+  if (!processo.prazo || hoje === "") return false
+  return diasCorridos(hoje, processo.prazo) <= DIAS_LIMITE_URGENCIA
+}
+
+/**
  * Fila de aprovação — derivada dos processos no pipeline (não é mais fixture
- * própria). Ordena por urgência e por estágio (aguardando primeiro).
+ * própria). Ordena por prioridade e por data: urgentes primeiro, depois pelo
+ * prazo mais próximo (data crescente) e, por fim, pelo estágio do fluxo.
  */
 export async function getFilaAprovacoes(): Promise<ItemAprovacao[]> {
   await delay()
   const escopo = escopoPrefeituras()
   const ordemStatus: Record<string, number> = { aguardando: 0, em_revisao: 1, aprovado: 2, rejeitado: 3 }
-  const itens = db.processos
-    .filter((p) => PIPELINE.includes(p.status) && (!escopo || escopo.includes(p.prefeituraId)))
+  const pipeline = db.processos.filter(
+    (p) => PIPELINE.includes(p.status) && (!escopo || escopo.includes(p.prefeituraId)),
+  )
+  const hoje = referenciaHoje(pipeline)
+  const itens = pipeline
+    .map((p) => ({ ...projetarAprovacao(p), urgente: ehProcessoUrgente(p, hoje) }))
     .sort((a, b) => {
+      // 1) prioridade: urgentes no topo
       if ((b.urgente ? 1 : 0) !== (a.urgente ? 1 : 0)) return (b.urgente ? 1 : 0) - (a.urgente ? 1 : 0)
+      // 2) data: prazo mais próximo primeiro (ISO YYYY-MM-DD ordena como string)
+      if (a.prazo !== b.prazo) return a.prazo < b.prazo ? -1 : 1
+      // 3) desempate estável pelo estágio do fluxo
       return (ordemStatus[a.status] ?? 9) - (ordemStatus[b.status] ?? 9)
     })
-    .map(projetarAprovacao)
   return clone(itens)
 }
 
