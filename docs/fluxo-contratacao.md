@@ -90,34 +90,48 @@ Uma seção pode declarar `painel` e o editor genérico renderiza um formulário
 
 ---
 
-## Lacunas conhecidas — Fase 2
+## Fluxo de aprovação e retificação (Fase 2 — implementada)
 
-Levantadas na análise que originou esta fase e **deliberadamente não implementadas** aqui. São reais e comprometem a fidelidade do fluxo:
+A máquina de estados, o envio para aprovação, o parecer jurídico, a conclusão, o versionamento e a retificação por seção foram implementados. A fonte da máquina de estados é `lib/processos/fluxo.ts`.
 
-### Retificação: há duas, não confundir
+### Máquina de estados
 
-1. **"Solicitar Retificação" na tela de Aprovações** — *funciona hoje*. É uma decisão de aprovação (`DecisaoAprovacao === "retificar"`) que devolve o processo para "Em Revisão" e registra na trilha de auditoria (`aprovacoes/page.tsx`, `client.ts`). Não é lacuna.
-2. **"Fase de Retificação" (fase preparatória, com versionamento)** — *é a lacuna da Fase 2*. Era um toggle no wizard que gravava `Processo.fases.retificacao` e **nunca era lido** para acionar comportamento nenhum — um flag morto que prometia uma fase inexistente.
+Usa apenas os seis status fixos de `StatusProcesso` (o vocabulário é normativo — nenhum status novo foi inventado):
 
-**Estado atual (conformidade aplicada):** o toggle morto foi **removido do wizard**. O campo `Processo.fases.retificacao` permanece no domínio como *slot* da Fase 2 (sempre `false` por ora). **Fase 2 reintroduz o controle**, agora ligado ao comportamento real descrito abaixo.
+```
+Rascunho ──envio(servidor)──▶ Em Revisão ──envio(comissão)──▶ Aguardando ──aprovação(gestor)──▶ Aprovado ──conclusão──▶ Concluído
+                                   ▲                                │
+                                   └──────retificação(gestor)───────┘        Aguardando ──rejeição──▶ Rejeitado (terminal)
+```
 
-Como a fase preparatória de retificação funciona na realidade, e o que o produto precisaria:
+- **Envio** (`rascunho → em_revisao`): no hub, botão "Enviar para Aprovação", **travado até os documentos obrigatórios da modalidade estarem gerados**.
+- **Parecer jurídico** (Art. 53): registrado no estágio *Em Revisão* pelo papel Jurídico. Como o vocabulário de status é fixo, **não é um status** — é um gate no checklist de conformidade, exigido para encaminhar.
+- **Encaminhamento** (`em_revisao → aguardando`): pela comissão, **exige parecer jurídico favorável**.
+- **Decisão** (`aguardando →`): o gestor Aprova, Rejeita ou Solicita Retificação. A aprovação exige o checklist integralmente atendido.
+- **Conclusão** (`aprovado → concluido`): homologação, encerra o processo.
 
-- **Na fase preparatória (interna):** o documento volta ao elaborador com apontamentos (do jurídico, da comissão, do controle interno), é corrigido e reenviado. Cada ciclo deveria gerar **nova versão** do documento e registrar os apontamentos **por seção** — hoje o parecer é um texto livre único.
-- **Depois de publicado o edital:** vira republicação/errata. O Art. 55, § 1º exige nova divulgação e reabertura dos prazos, salvo se a alteração não afetar a formulação das propostas.
-- **Durante a execução:** vira termo aditivo (Art. 124) ou apostilamento (Art. 136).
+### Fila de aprovação derivada
 
-### Não há versionamento — e isso quebra a trilha
-`gerarDocumento` (`lib/api/client.ts`) **substitui o documento no lugar** quando ele já existe. A retificação existe justamente para produzir rastreabilidade; sobrescrever destrói a trilha de auditoria que os órgãos de controle esperam. Fase 2: `DocumentoGerado.versao` + histórico de versões.
+`getFilaAprovacoes` projeta os processos no pipeline (`db.processos` filtrado por status), **não é mais uma fixture desacoplada**. `ItemAprovacao.tipo` (a antiga taxonomia `"ETP" | "TR" | "ETP + TR"`) foi substituída por `documentos: TipoDocumento[]`. O checklist é **computado** do estado do processo (obrigatórios gerados + parecer jurídico + ausência de apontamentos abertos).
 
-### O processo nunca é enviado para aprovação
-Não existe a transição `envio` (`rascunho → em_revisao`) em lugar nenhum do código: processos criados ficam presos em `rascunho`, sem botão de submeter. E **nada produz `concluido`**. A máquina de estados está declarada só como comentário em `lib/types.ts`, sem tabela de transições nem guarda.
+### Retificação por seção + versionamento
 
-### A fila de aprovações é desacoplada
-`db.aprovacoes` é uma fixture própria, não derivada de `db.processos` — aprovar um item não se reflete na lista de processos do usuário. E `ItemAprovacao.tipo` é uma **terceira taxonomia** (`"ETP" | "TR" | "ETP + TR"`), incompatível com `TipoDocumento` e que não escala para seis tipos.
+- O gestor cria **apontamentos por documento e seção** (`ApontamentoRetificacao`) ao solicitar retificação; o processo volta para *Em Revisão*.
+- O elaborador vê os apontamentos **no editor** do documento e os resolve.
+- `gerarDocumento` **incrementa a versão** (`DocumentoGerado.versao`) e guarda a anterior no histórico (`VersaoDocumento`) — **nunca sobrescreve sem rastro**. Regerar após retificação resolve os apontamentos abertos do documento.
+- A tela de Documentos mostra `v{n}`; o hub sinaliza apontamentos pendentes.
 
-### Falta o parecer jurídico (Art. 53)
-O controle prévio de legalidade pela assessoria jurídica é **etapa obrigatória** antes da publicação do edital. O papel `juridico` está tipado em `PapelUsuario` e nunca é usado.
+---
+
+## Lacunas conhecidas (backlog futuro)
+
+Itens reais que permanecem fora do escopo do produto (fase de planejamento) ou de fases seguintes:
+
+### Retificação pós-publicação
+Conceito distinto da retificação interna acima. Depois de publicado o edital, alteração vira republicação/errata (Art. 55, § 1º: nova divulgação e reabertura de prazos, salvo se não afetar as propostas). Na execução, vira termo aditivo (Art. 124) ou apostilamento (Art. 136). Fora do escopo — o produto encerra na fase preparatória.
+
+### Autenticação e papéis reais
+O mock opera como usuário único (Maria Costa, servidor de compras) e permite exercer todos os papéis do fluxo para demonstração. A separação real de papéis (servidor / comissão / jurídico / gestor) e o controle de acesso entram com a autenticação da fase de backend.
 
 ### Regime da Lei 13.303/16
 Empresas estatais seguem regime próprio (RILC), não a 14.133/21. Hoje o produto assume 14.133 em todas as referências legais. Suportar estatais exigiria um campo de regime no `Tenant` e um mapa de fundamentos por regime.

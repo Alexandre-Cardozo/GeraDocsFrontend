@@ -4,7 +4,6 @@
 import "client-only"
 
 import {
-  aprovacoes as aprovacoesFixture,
   conteudoDemoETP,
   documentos as documentosFixture,
   estatisticas as estatisticasFixture,
@@ -14,15 +13,21 @@ import {
   tenant as tenantFixture,
   usuarioAtual,
 } from "@/lib/mocks/fixtures"
-import { CATALOGO, secoesPorTipoBase } from "@/lib/documentos"
+import { CATALOGO, REGRA_MODALIDADE, ordenar, secoesPorTipoBase } from "@/lib/documentos"
+import { proximoStatus, transicaoDe } from "@/lib/processos/fluxo"
 import { dataBrasiliaISO, dataHoraBrasiliaISO } from "@/lib/format"
 import type {
+  ApontamentoRetificacao,
   DecisaoAprovacao,
   DocumentoGerado,
   EstatisticasDashboard,
+  EventoAprovacao,
   ItemAprovacao,
+  ItemChecklist,
   NovoProcessoInput,
   ParecerDFD,
+  ParecerJuridico,
+  PapelUsuario,
   Processo,
   ResumoDocumentos,
   SecaoDocumento,
@@ -31,6 +36,7 @@ import type {
   TipoDocumento,
   TransicaoAprovacao,
   UsuarioAtual,
+  VersaoDocumento,
 } from "@/lib/types"
 
 /**
@@ -56,13 +62,26 @@ const db = {
   /** Seções por documento — chave `${processoId}:${tipo}`. */
   secoes: new Map<string, SecaoDocumento[]>(),
   pareceresDFD: new Map<string, ParecerDFD>(),
-  aprovacoes: clone(aprovacoesFixture),
   documentos: clone(documentosFixture),
+  /** Histórico de versões por documento — chave `${processoId}:${tipo}`. */
+  versoes: new Map<string, VersaoDocumento[]>(),
+  /** Apontamentos de retificação (por seção) abertos e resolvidos. */
+  apontamentos: [] as ApontamentoRetificacao[],
   estatisticas: clone(estatisticasFixture),
   resumoDocumentos: clone(resumoDocumentosFixture),
   tenant: clone(tenantFixture),
   seqProcesso: 90,
-  seqDocumento: 191,
+  // Acima do maior id gerado pelas fixtures (evita colisão com novos documentos).
+  seqDocumento: 200,
+  seqApontamento: 0,
+}
+
+// Semeia o histórico de versões (v1) dos documentos já existentes nas fixtures,
+// para que getHistoricoVersoes seja coerente desde o início.
+for (const doc of db.documentos) {
+  db.versoes.set(`${doc.processoId}:${doc.tipo}`, [
+    { versao: doc.versao, geradoEm: doc.geradoEm, tamanho: doc.tamanho, nota: "Geração inicial" },
+  ])
 }
 
 function secoesDoDocumento(processoId: string, tipo: TipoDocumento): SecaoDocumento[] {
@@ -175,6 +194,7 @@ export async function criarProcesso(input: NovoProcessoInput): Promise<Processo>
     ata: input.ata ?? null,
     fases: input.fases,
     dfdArquivo: input.dfdArquivo ?? null,
+    trilha: [],
   }
   db.processos.unshift(processo)
   return clone(processo)
@@ -264,40 +284,228 @@ export async function gerarSecao(processoId: string, tipo: TipoDocumento, secaoI
   return clone(secao)
 }
 
+/* ── Fluxo de status: envio, encaminhamento, decisão, conclusão ────────────── */
+
+const PIPELINE: StatusProcesso[] = ["em_revisao", "aguardando", "aprovado", "rejeitado"]
+
+function processoOuErro(processoId: string): Processo {
+  const processo = db.processos.find((p) => p.id === processoId)
+  if (!processo) throw new Error(`Processo ${processoId} não encontrado`)
+  return processo
+}
+
+function docsGeradosDo(processoId: string): TipoDocumento[] {
+  return db.documentos.filter((d) => d.processoId === processoId).map((d) => d.tipo)
+}
+
+/** Documentos obrigatórios da modalidade ainda não gerados — trava o envio. */
+function obrigatoriosPendentes(processo: Processo): TipoDocumento[] {
+  const gerados = docsGeradosDo(processo.id)
+  return REGRA_MODALIDADE[processo.modalidade].obrigatorios
+    .filter((t) => processo.documentos.includes(t) && !gerados.includes(t))
+}
+
+/**
+ * Checklist de conformidade — derivado do estado do processo (não é mais uma
+ * fixture). Cada obrigatório gerado, o parecer jurídico (Art. 53) e a
+ * verificação do DFD viram itens verificáveis.
+ */
+function montarChecklist(processo: Processo): ItemChecklist[] {
+  const gerados = docsGeradosDo(processo.id)
+  const itens: ItemChecklist[] = ordenar(
+    REGRA_MODALIDADE[processo.modalidade].obrigatorios.filter((t) => processo.documentos.includes(t))
+  ).map((tipo) => ({
+    ok: gerados.includes(tipo),
+    texto: `${CATALOGO[tipo].titulo} gerado e finalizado`,
+  }))
+  itens.push({
+    ok: processo.parecerJuridico?.favoravel === true,
+    texto: "Parecer jurídico favorável (Art. 53, Lei 14.133/21)",
+  })
+  const semApontamentos = !db.apontamentos.some((a) => a.processoId === processo.id && !a.resolvido)
+  itens.push({ ok: semApontamentos, texto: "Nenhum apontamento de retificação pendente" })
+  return itens
+}
+
+function empurrarTransicao(processo: Processo, evento: EventoAprovacao, papel: PapelUsuario, comentario: string): void {
+  const para = proximoStatus(processo.status, evento)
+  if (!para) throw new Error(`Transição inválida: ${evento} a partir de ${processo.status}`)
+  const transicao: TransicaoAprovacao = {
+    evento,
+    de: processo.status,
+    para,
+    autor: db.usuario.nome,
+    papel,
+    data: dataBrasiliaISO(),
+    comentario,
+  }
+  processo.trilha.push(transicao)
+  processo.status = para
+  processo.atualizadoEm = dataBrasiliaISO()
+}
+
+/** Prazo de análise: 7 dias a partir de hoje (fuso de Brasília). */
+function prazoAnalise(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 7)
+  return dataBrasiliaISO(d)
+}
+
+/** Envia o processo para análise: rascunho → em_revisao. Exige os obrigatórios gerados. */
+export async function enviarParaAprovacao(processoId: string, comentario: string): Promise<Processo> {
+  await delay(500)
+  const processo = processoOuErro(processoId)
+  if (!transicaoDe(processo.status, "envio")) {
+    throw new Error(`O processo não pode ser enviado a partir de "${processo.status}".`)
+  }
+  const pendentes = obrigatoriosPendentes(processo)
+  if (processo.status === "rascunho" && pendentes.length > 0) {
+    throw new Error(`Gere os documentos obrigatórios antes de enviar: ${pendentes.join(", ")}.`)
+  }
+  processo.enviadoEm = dataBrasiliaISO()
+  processo.prazo = prazoAnalise()
+  empurrarTransicao(processo, "envio", "servidor_compras", comentario || "Documentos concluídos; enviado para análise.")
+  return clone(processo)
+}
+
+/** Registra o parecer jurídico de controle prévio de legalidade (Art. 53). */
+export async function registrarParecerJuridico(
+  processoId: string,
+  favoravel: boolean,
+  comentario: string
+): Promise<Processo> {
+  await delay(450)
+  const processo = processoOuErro(processoId)
+  const parecer: ParecerJuridico = { favoravel, autor: db.usuario.nome, data: dataBrasiliaISO(), comentario }
+  processo.parecerJuridico = parecer
+  processo.atualizadoEm = dataBrasiliaISO()
+  return clone(processo)
+}
+
+/** Encaminha ao gestor aprovador: em_revisao → aguardando. Exige parecer jurídico favorável. */
+export async function encaminharParaAprovacao(processoId: string, comentario: string): Promise<Processo> {
+  await delay(500)
+  const processo = processoOuErro(processoId)
+  if (proximoStatus(processo.status, "envio") !== "aguardando") {
+    throw new Error(`O processo não pode ser encaminhado a partir de "${processo.status}".`)
+  }
+  if (processo.parecerJuridico?.favoravel !== true) {
+    throw new Error("Registre um parecer jurídico favorável (Art. 53) antes de encaminhar ao gestor.")
+  }
+  empurrarTransicao(processo, "envio", "comissao", comentario || "Documentação conferida; segue para decisão do gestor.")
+  return clone(processo)
+}
+
+/** Conclui o processo aprovado: aprovado → concluido. */
+export async function concluirProcesso(processoId: string, comentario: string): Promise<Processo> {
+  await delay(450)
+  const processo = processoOuErro(processoId)
+  if (proximoStatus(processo.status, "conclusao") !== "concluido") {
+    throw new Error(`Só é possível concluir um processo aprovado (atual: "${processo.status}").`)
+  }
+  empurrarTransicao(processo, "conclusao", "gestor_aprovador", comentario || "Processo homologado e concluído.")
+  return clone(processo)
+}
+
 /* ── Aprovações ────────────────────────────────────────────────────────────── */
 
+/** Projeta um processo do pipeline em item da fila de aprovação. */
+function projetarAprovacao(processo: Processo): ItemAprovacao {
+  return {
+    processoId: processo.id,
+    objeto: processo.objeto,
+    documentos: ordenar(processo.documentos),
+    secretaria: processo.secretaria,
+    responsavel: processo.responsavel,
+    valorEstimado: processo.valorEstimado,
+    modalidade: processo.modalidade,
+    enviadoEm: processo.enviadoEm ?? processo.criadoEm,
+    prazo: processo.prazo ?? processo.criadoEm,
+    urgente: processo.urgente ?? false,
+    status: processo.status,
+    parecerJuridico: processo.parecerJuridico,
+    checklist: montarChecklist(processo),
+    trilha: processo.trilha,
+  }
+}
+
+/**
+ * Fila de aprovação — derivada dos processos no pipeline (não é mais fixture
+ * própria). Ordena por urgência e por estágio (aguardando primeiro).
+ */
 export async function getFilaAprovacoes(): Promise<ItemAprovacao[]> {
   await delay()
-  return clone(db.aprovacoes)
+  const ordemStatus: Record<string, number> = { aguardando: 0, em_revisao: 1, aprovado: 2, rejeitado: 3 }
+  const itens = db.processos
+    .filter((p) => PIPELINE.includes(p.status))
+    .sort((a, b) => {
+      if ((b.urgente ? 1 : 0) !== (a.urgente ? 1 : 0)) return (b.urgente ? 1 : 0) - (a.urgente ? 1 : 0)
+      return (ordemStatus[a.status] ?? 9) - (ordemStatus[b.status] ?? 9)
+    })
+    .map(projetarAprovacao)
+  return clone(itens)
+}
+
+export interface ApontamentoInput {
+  tipo: TipoDocumento
+  secaoId?: string
+  secaoTitulo?: string
+  texto: string
 }
 
 export interface DecisaoInput {
   processoId: string
   decisao: DecisaoAprovacao
   comentario: string
+  /** Apontamentos por seção — obrigatórios quando a decisão é "retificar". */
+  apontamentos?: ApontamentoInput[]
 }
 
 export async function decidirAprovacao(input: DecisaoInput): Promise<ItemAprovacao> {
   await delay(500)
-  const item = db.aprovacoes.find((a) => a.processoId === input.processoId)
-  if (!item) throw new Error(`Item de aprovação ${input.processoId} não encontrado`)
-  const agora = dataBrasiliaISO()
-  const para: StatusProcesso =
-    input.decisao === "aprovar" ? "aprovado" : input.decisao === "rejeitar" ? "rejeitado" : "em_revisao"
-  const transicao: TransicaoAprovacao = {
-    evento: input.decisao === "aprovar" ? "aprovacao" : input.decisao === "rejeitar" ? "rejeicao" : "retificacao",
-    de: item.status,
-    para,
-    autor: usuarioAtual.nome,
-    papel: "gestor_aprovador",
-    data: agora,
-    comentario: input.comentario,
+  const processo = processoOuErro(input.processoId)
+  const evento: EventoAprovacao =
+    input.decisao === "aprovar" ? "aprovacao" : input.decisao === "rejeitar" ? "rejeicao" : "retificacao"
+  if (!transicaoDe(processo.status, evento)) {
+    throw new Error(`Decisão "${input.decisao}" inválida a partir de "${processo.status}".`)
   }
-  item.status = para
-  item.trilha.push(transicao)
-  const processo = db.processos.find((p) => p.id === input.processoId)
-  if (processo) processo.status = para
-  return clone(item)
+  if (input.decisao === "aprovar" && montarChecklist(processo).some((i) => !i.ok)) {
+    throw new Error("O checklist de conformidade precisa estar integralmente atendido para aprovar.")
+  }
+  // Retificação abre apontamentos por seção — a trilha por seção que o TCU espera.
+  if (input.decisao === "retificar") {
+    for (const ap of input.apontamentos ?? []) {
+      db.apontamentos.unshift({
+        id: `APT-${String(++db.seqApontamento).padStart(4, "0")}`,
+        processoId: processo.id,
+        tipo: ap.tipo,
+        secaoId: ap.secaoId,
+        secaoTitulo: ap.secaoTitulo,
+        texto: ap.texto,
+        autor: db.usuario.nome,
+        papel: "gestor_aprovador",
+        data: dataBrasiliaISO(),
+        resolvido: false,
+      })
+    }
+  }
+  empurrarTransicao(processo, evento, "gestor_aprovador", input.comentario)
+  return clone(projetarAprovacao(processo))
+}
+
+/* ── Apontamentos de retificação ───────────────────────────────────────────── */
+
+export async function getApontamentos(processoId: string): Promise<ApontamentoRetificacao[]> {
+  await delay()
+  return clone(db.apontamentos.filter((a) => a.processoId === processoId))
+}
+
+export async function resolverApontamento(id: string): Promise<ApontamentoRetificacao> {
+  await delay(350)
+  const ap = db.apontamentos.find((a) => a.id === id)
+  if (!ap) throw new Error(`Apontamento ${id} não encontrado`)
+  ap.resolvido = true
+  return clone(ap)
 }
 
 /* ── Documentos ────────────────────────────────────────────────────────────── */
@@ -312,14 +520,20 @@ export async function getResumoDocumentos(): Promise<ResumoDocumentos> {
   return clone(db.resumoDocumentos)
 }
 
+export async function getHistoricoVersoes(processoId: string, tipo: TipoDocumento): Promise<VersaoDocumento[]> {
+  await delay()
+  return clone(db.versoes.get(`${processoId}:${tipo}`) ?? [])
+}
+
 export interface GerarDocumentoInput {
   processoId: string
   tipo: TipoDocumento
 }
 
 /**
- * Finaliza um documento do processo: cria (ou, se já existir do mesmo tipo,
- * substitui) o registro em Documentos Gerados e atualiza os indicadores.
+ * Finaliza um documento do processo. Na primeira geração cria o registro; na
+ * regeração **incrementa a versão** e guarda a versão anterior no histórico —
+ * nunca sobrescreve sem deixar rastro (rastreabilidade exigida pelo controle).
  */
 export async function gerarDocumento(input: GerarDocumentoInput): Promise<DocumentoGerado> {
   await delay(700)
@@ -327,18 +541,37 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
   const objeto = processo?.objeto ?? "Processo de Contratação"
   const meta = CATALOGO[input.tipo]
   const tamanhoKB = meta.tamanhoKB
+  const chaveVersao = `${input.processoId}:${input.tipo}`
 
   // Documento finalizado → todas as suas seções ficam concluídas (inclui a última).
   for (const secao of secoesDoDocumento(input.processoId, input.tipo)) secao.status = "Completo"
 
   const existente = db.documentos.find((d) => d.processoId === input.processoId && d.tipo === input.tipo)
+  const geradoEm = dataHoraBrasiliaISO()
 
   if (existente) {
-    // Regeração — substitui a versão anterior no lugar; não altera os indicadores.
+    // Regeração — nova versão. A anterior fica registrada no histórico.
+    const apontamentosAbertos = db.apontamentos.filter(
+      (a) => a.processoId === input.processoId && a.tipo === input.tipo && !a.resolvido
+    )
+    existente.versao += 1
     existente.titulo = `${input.tipo} — ${objeto}`
-    existente.geradoEm = dataHoraBrasiliaISO()
+    existente.geradoEm = geradoEm
     existente.tamanho = `${tamanhoKB} KB`
     existente.status = "final"
+    const historico = db.versoes.get(chaveVersao) ?? []
+    historico.unshift({
+      versao: existente.versao,
+      geradoEm,
+      tamanho: `${tamanhoKB} KB`,
+      nota:
+        apontamentosAbertos.length > 0
+          ? `Retificação: ${apontamentosAbertos.length} apontamento(s) atendido(s)`
+          : "Regeração",
+    })
+    db.versoes.set(chaveVersao, historico)
+    // Regeração após retificação resolve os apontamentos abertos daquele documento.
+    for (const ap of apontamentosAbertos) ap.resolvido = true
     if (processo) processo.atualizadoEm = dataBrasiliaISO()
     return clone(existente)
   }
@@ -349,11 +582,13 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
     titulo: `${input.tipo} — ${objeto}`,
     tipo: input.tipo,
     formato: meta.formato,
-    geradoEm: dataHoraBrasiliaISO(),
+    geradoEm,
     tamanho: `${tamanhoKB} KB`,
     status: "final",
+    versao: 1,
   }
   db.documentos.unshift(doc)
+  db.versoes.set(chaveVersao, [{ versao: 1, geradoEm, tamanho: `${tamanhoKB} KB`, nota: "Geração inicial" }])
 
   // Indicadores da tela de Documentos e do dashboard acompanham a nova geração.
   db.resumoDocumentos.total += 1

@@ -84,6 +84,22 @@ export interface Processo {
   }
   dfdArquivo?: string | null
   urgente?: boolean
+  /** Trilha de auditoria das transições de status (fonte única — a fila de aprovações projeta daqui). */
+  trilha: TransicaoAprovacao[]
+  /** Data de envio para análise (rascunho → em_revisao). Ausente enquanto em rascunho. */
+  enviadoEm?: string
+  /** Prazo de análise, quando o processo está no pipeline de aprovação. */
+  prazo?: string
+  /** Parecer jurídico de controle prévio de legalidade (Art. 53). Gate para encaminhar ao gestor. */
+  parecerJuridico?: ParecerJuridico
+}
+
+/** Parecer jurídico de controle prévio de legalidade — Art. 53, Lei 14.133/21. */
+export interface ParecerJuridico {
+  favoravel: boolean
+  autor: string
+  data: string
+  comentario: string
 }
 
 export interface NovoProcessoInput {
@@ -181,10 +197,21 @@ export interface TransicaoAprovacao {
   comentario: string
 }
 
+/** Item de conformidade do checklist de aprovação (derivado do estado do processo). */
+export interface ItemChecklist {
+  ok: boolean
+  texto: string
+}
+
+/**
+ * Projeção de um processo na fila de aprovação. Montada a partir do `Processo`
+ * (não é mais uma fixture própria) — ver `getFilaAprovacoes`.
+ */
 export interface ItemAprovacao {
   processoId: string
   objeto: string
-  tipo: "ETP" | "TR" | "ETP + TR"
+  /** Documentos do processo, na ordem do fluxo. Substitui a taxonomia antiga "ETP + TR". */
+  documentos: TipoDocumento[]
   secretaria: string
   responsavel: string
   valorEstimado: number
@@ -193,11 +220,31 @@ export interface ItemAprovacao {
   prazo: string
   urgente: boolean
   status: StatusProcesso
-  checklist: Array<{ ok: boolean; texto: string }>
+  parecerJuridico?: ParecerJuridico
+  checklist: ItemChecklist[]
   trilha: TransicaoAprovacao[]
 }
 
 export type DecisaoAprovacao = "aprovar" | "rejeitar" | "retificar"
+
+/**
+ * Apontamento de retificação — a comissão/gestor marca uma seção específica de
+ * um documento como pendente de correção. O elaborador o vê no editor e resolve.
+ * Substitui o "parecer em texto livre único" por rastreabilidade por seção (TCU).
+ */
+export interface ApontamentoRetificacao {
+  id: string
+  processoId: string
+  tipo: TipoDocumento
+  /** Seção apontada; ausente = apontamento do documento como um todo. */
+  secaoId?: string
+  secaoTitulo?: string
+  texto: string
+  autor: string
+  papel: PapelUsuario
+  data: string
+  resolvido: boolean
+}
 
 /**
  * Documentos geráveis pela plataforma, na ordem canônica do fluxo de contratação.
@@ -216,6 +263,17 @@ export interface DocumentoGerado {
   geradoEm: string
   tamanho: string
   status: "final" | "rascunho"
+  /** Versão vigente (1 na primeira geração; incrementa a cada regeração/retificação). */
+  versao: number
+}
+
+/** Entrada do histórico de versões de um documento (rastreabilidade — não sobrescreve). */
+export interface VersaoDocumento {
+  versao: number
+  geradoEm: string
+  tamanho: string
+  /** Motivo da versão: "Geração inicial", "Regeração", "Retificação: <apontamento>". */
+  nota: string
 }
 
 export interface Secretaria {

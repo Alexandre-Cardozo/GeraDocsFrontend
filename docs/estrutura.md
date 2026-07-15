@@ -67,6 +67,8 @@ GeraDocs/
 │   │   │                         #   pendencias, totalSecoes). Metadados por tipo vivem SÓ aqui.
 │   │   ├── secoes.ts             # Estrutura seccional de cada documento, com fundamento legal e hint
 │   │   └── index.ts              # Barrel — importe daqui: import { CATALOGO } from "@/lib/documentos"
+│   ├── processos/                # Máquina de estados do fluxo de aprovação
+│   │   └── fluxo.ts              # TRANSICOES + guardas (envio, aprovação, rejeição, retificação, conclusão)
 │   ├── api/
 │   │   ├── client.ts             # Cliente de API — hoje resolve contra mocks em memória com latência
 │   │   │                         #   simulada; as assinaturas espelham o futuro cliente OpenAPI (Spring)

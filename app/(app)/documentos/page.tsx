@@ -85,7 +85,12 @@ export default function Documentos() {
                   <tr key={doc.id} className={`transition-colors hover:bg-ice ${i < docs.length - 1 ? "border-b border-ice" : ""}`}>
                     <td className="px-4 py-3.25">
                       <div className="text-base font-semibold text-text-1">{doc.titulo}</div>
-                      <div className="mt-0.5 font-mono text-xs text-text-muted">{doc.id}</div>
+                      <div className="mt-0.5 flex items-center gap-2">
+                        <span className="font-mono text-xs text-text-muted">{doc.id}</span>
+                        <span className="rounded-sm bg-border-soft px-1.5 py-0.5 font-mono text-2xs font-semibold text-slate-strong">
+                          v{doc.versao}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3.25">
                       <span className="font-mono text-xs font-semibold text-royal">{doc.processoId}</span>

@@ -169,7 +169,7 @@ export default function Dashboard() {
                   >
                     <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-tint-royal-bg">
                       <span className="font-mono text-2xs font-bold text-royal">
-                        {item.tipo === "ETP + TR" ? "ETP" : item.tipo}
+                        {item.documentos.length}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
