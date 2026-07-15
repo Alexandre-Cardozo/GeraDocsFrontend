@@ -77,6 +77,8 @@ All three families are Google Fonts, loaded via `@import` in `tokens/typography.
 
 - `ProgressBar`, `SearchInput`, `FilterTabs` — extracted from repeated inline patterns in the source views (ETP progress, header/list search, ProcessList status filter), not inventions.
 - `MoneyInput` / `QuantityInput` — the masked pt-BR money and quantity fields (`components/forms/MoneyInput.prompt.md`). They own the formatting so no screen can forget it.
+- **Login / auth screen** — `components/chrome/Login.prompt.md`. Outside the app shell, navy gradient background, product mark + LAHHM credit. `Input` gained `type` (`text`/`password`/`email`), `autoComplete` and `onKeyDown` (backward-compatible) for the credential fields.
+- **Perfil de acesso** — o chip do perfil (`admin_geral`/`coordenador`/`servidor`) usa `Tag` (`warning`/`success`/`neutral`); é distinto do vocabulário de status de processo.
 - App-side extensions with no `.prompt.md` here, approved and registered in the app's `docs/decisions.md` §17: `Dropdown` (+ `DropdownOption`), `CheckMark`. Conversely, `CardPanel` is specified in `SectionBlock.prompt.md` but is not exported by the app barrel.
 
 ### Known gaps

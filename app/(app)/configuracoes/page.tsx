@@ -22,12 +22,19 @@ import {
   IconTrash,
   IconUpload,
 } from "@/components/ui/icons";
-import { ErrorState, LoadingState } from "@/components/shared/estados";
+import { EmptyState, ErrorState, LoadingState, SkeletonRows } from "@/components/shared/estados";
 import { Th } from "@/components/shared/tabela";
 import { useToast } from "@/components/shared/providers";
-import { useAtualizarConfigTenant, useConfigTenant } from "@/lib/api/hooks";
-import { anoBrasilia, dataBrasiliaISO, formatData } from "@/lib/format";
-import type { Secretaria } from "@/lib/types";
+import {
+  useAtualizarConfigTenant,
+  useConfigTenant,
+  useCriarUsuario,
+  useSessao,
+  useUsuarios,
+} from "@/lib/api/hooks";
+import { formatCPF, validaCPF } from "@/lib/auth/cpf";
+import { anoBrasilia, dataBrasiliaISO, formatData, formatDataHora } from "@/lib/format";
+import { PERFIL_ACESSO_LABEL, type PerfilAcesso, type Secretaria } from "@/lib/types";
 
 /** Opções de ano do PCA: últimos 3 anos + o ano vigente (Brasília). */
 const anoAtual = anoBrasilia();
@@ -44,8 +51,6 @@ const tabs = [
   { key: "usuarios", label: "Usuários e Permissões" },
 ];
 
-/** Cores dos avatares de usuário (ciclo por índice). */
-const avatarCores = ["bg-royal", "bg-teal", "bg-violet", "bg-doc-mapa"];
 
 /**
  * Pré-visualização ao vivo do documento timbrado (brasão + cabeçalho + rodapé).
@@ -134,10 +139,22 @@ function PreviewDocumento({
 
 export default function Configuracoes() {
   const showToast = useToast();
+  const { data: sessao } = useSessao();
+  const prefeituraId = sessao?.prefeitura?.id;
   const tenant = useConfigTenant();
   const atualizar = useAtualizarConfigTenant();
+  const servidores = useUsuarios(prefeituraId);
+  const criarServidor = useCriarUsuario();
 
   const [activeTab, setActiveTab] = useState("identidade");
+
+  // Formulário de novo servidor (aba Usuários)
+  const [novoServidor, setNovoServidor] = useState(false);
+  const [nsNome, setNsNome] = useState("");
+  const [nsCpf, setNsCpf] = useState("");
+  const [nsEmail, setNsEmail] = useState("");
+  const [nsCargo, setNsCargo] = useState("");
+  const [nsPerfil, setNsPerfil] = useState<PerfilAcesso>("servidor");
 
   // Estado local dos formulários, semeado quando o tenant carrega.
   const [logoFile, setLogoFile] = useState<string | null>(null);
@@ -614,89 +631,108 @@ export default function Configuracoes() {
 
       {/* ── Usuários ── */}
       {activeTab === "usuarios" && (
-        <div className="overflow-hidden rounded-card border border-border bg-surface">
-          <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
-            <h3 className="m-0 font-display text-lg font-bold text-text-1">
-              Servidores com Acesso
-            </h3>
-            <Button
-              size="sm"
-              icon={<IconPlus size={13} strokeWidth={2.5} />}
-              onClick={() =>
-                showToast(
-                  "Convite de servidores disponível na integração com o backend.",
-                )
-              }
-            >
-              Convidar Servidor
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse">
-              <thead>
-                <tr className="border-b border-border bg-ice">
-                  {[
-                    "Servidor",
-                    "Cargo",
-                    "Perfil de Acesso",
-                    "Último Acesso",
-                    "",
-                  ].map((h, i) => (
-                    <Th key={h === "" ? `vazio-${i}` : h}>{h}</Th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tenant.data.usuarios.map((u, idx) => (
-                  <tr key={u.nome} className="border-b border-ice">
-                    <td className="px-4 py-3.25">
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`flex size-7.5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-surface ${avatarCores[idx % 4]}`}
-                        >
-                          {u.iniciais}
-                        </span>
-                        <span className="text-base font-semibold text-text-1">
-                          {u.nome}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.25 text-sm text-text-3">
-                      {u.cargo}
-                    </td>
-                    <td className="px-4 py-3.25">
-                      <Tag
-                        tone={
-                          u.perfil === "Administrador"
-                            ? "warning"
-                            : u.perfil === "Aprovador"
-                              ? "success"
-                              : "neutral"
-                        }
-                      >
-                        {u.perfil}
-                      </Tag>
-                    </td>
-                    <td className="px-4 py-3.25 text-sm text-text-muted">
-                      {u.ultimoAcesso}
-                    </td>
-                    <td className="px-4 py-3.25">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          showToast(
-                            "Edição de permissões disponível na integração com o backend.",
-                          )
-                        }
-                        className="cursor-pointer border-0 bg-transparent text-sm text-text-3"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div>
+          {novoServidor && (
+            <div className="mb-4 rounded-card border border-border bg-surface p-5">
+              <h3 className="m-0 mb-4 font-display text-md font-bold text-text-1">Adicionar Servidor à Prefeitura</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField label="Nome Completo" required>
+                  <Input value={nsNome} onChange={(e) => setNsNome(e.target.value)} placeholder="Nome do servidor" />
+                </FormField>
+                <FormField label="CPF" required hint={nsCpf !== "" && !validaCPF(nsCpf) ? "CPF inválido." : undefined}>
+                  <Input value={nsCpf} onChange={(e) => setNsCpf(formatCPF(e.target.value))} placeholder="000.000.000-00" />
+                </FormField>
+                <FormField label="E-mail" required>
+                  <Input value={nsEmail} onChange={(e) => setNsEmail(e.target.value)} type="email" placeholder="email@prefeitura.gov.br" />
+                </FormField>
+                <FormField label="Cargo">
+                  <Input value={nsCargo} onChange={(e) => setNsCargo(e.target.value)} placeholder="Ex: Servidor de Compras" />
+                </FormField>
+                <FormField label="Perfil de Acesso" required>
+                  <Dropdown
+                    value={nsPerfil}
+                    onChange={(v) => setNsPerfil(v as PerfilAcesso)}
+                    ariaLabel="Perfil de acesso"
+                    options={[
+                      { value: "servidor", label: PERFIL_ACESSO_LABEL.servidor },
+                      { value: "coordenador", label: PERFIL_ACESSO_LABEL.coordenador },
+                    ]}
+                  />
+                </FormField>
+              </div>
+              <div className="mt-4 flex gap-2.5">
+                <Button variant="secondary" onClick={() => setNovoServidor(false)}>Cancelar</Button>
+                <Button
+                  disabled={criarServidor.isPending || nsNome.trim() === "" || !validaCPF(nsCpf) || nsEmail.trim() === "" || !prefeituraId}
+                  onClick={() =>
+                    criarServidor.mutate(
+                      { nome: nsNome, cpf: nsCpf, email: nsEmail, cargo: nsCargo, perfilAcesso: nsPerfil, prefeituraId: prefeituraId ?? null },
+                      {
+                        onSuccess: () => {
+                          showToast("Servidor cadastrado. Senha inicial: geradocs123");
+                          setNovoServidor(false);
+                          setNsNome(""); setNsCpf(""); setNsEmail(""); setNsCargo(""); setNsPerfil("servidor");
+                        },
+                        onError: (e) => showToast(e instanceof Error ? e.message : "Não foi possível cadastrar."),
+                      }
+                    )
+                  }
+                >
+                  {criarServidor.isPending ? "Salvando..." : "Cadastrar"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-hidden rounded-card border border-border bg-surface">
+            <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+              <h3 className="m-0 font-display text-lg font-bold text-text-1">Servidores da Prefeitura</h3>
+              <Button size="sm" icon={<IconPlus size={13} strokeWidth={2.5} />} onClick={() => setNovoServidor((v) => !v)}>
+                Adicionar Servidor
+              </Button>
+            </div>
+            {servidores.isPending && <SkeletonRows rows={4} />}
+            {servidores.isError && <ErrorState onRetry={() => void servidores.refetch()} />}
+            {servidores.isSuccess && servidores.data.length === 0 && <EmptyState message="Nenhum servidor vinculado a esta prefeitura" />}
+            {servidores.isSuccess && servidores.data.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-ice">
+                      {["Servidor", "Cargo", "Perfil de Acesso", "Último Acesso"].map((h, i) => (
+                        <Th key={h === "" ? `vazio-${i}` : h}>{h}</Th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {servidores.data.map((u, idx) => (
+                      <tr key={u.id} className={idx < servidores.data.length - 1 ? "border-b border-ice" : ""}>
+                        <td className="px-4 py-3.25">
+                          <div className="flex items-center gap-2.5">
+                            <span className="flex size-7.5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-on-dark gradient-user">
+                              {u.iniciais}
+                            </span>
+                            <div>
+                              <div className="text-base font-semibold text-text-1">{u.nome}</div>
+                              <div className="font-mono text-xs text-text-muted">{formatCPF(u.cpf)}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.25 text-sm text-text-3">{u.cargo}</td>
+                        <td className="px-4 py-3.25">
+                          <Tag tone={u.perfilAcesso === "coordenador" ? "success" : "neutral"}>
+                            {PERFIL_ACESSO_LABEL[u.perfilAcesso]}
+                          </Tag>
+                        </td>
+                        <td className="px-4 py-3.25 text-sm text-text-muted">
+                          {u.ultimoAcesso ? formatDataHora(u.ultimoAcesso) : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}

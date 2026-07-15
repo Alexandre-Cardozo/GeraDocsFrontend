@@ -22,6 +22,9 @@ export function Input({
   onChange,
   placeholder,
   prefix,
+  type = "text",
+  autoComplete,
+  onKeyDown,
   className = "",
   id,
 }: {
@@ -29,6 +32,9 @@ export function Input({
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
   placeholder?: string
   prefix?: string
+  type?: "text" | "password" | "email"
+  autoComplete?: string
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
   className?: string
   id?: string
 }) {
@@ -42,14 +48,26 @@ export function Input({
           id={id}
           value={value}
           onChange={onChange}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
+          type={type}
+          autoComplete={autoComplete}
           className={`${controleBase} pl-8 ${className}`}
         />
       </div>
     )
   }
   return (
-    <input id={id} value={value} onChange={onChange} placeholder={placeholder} className={`${controleBase} ${className}`} />
+    <input
+      id={id}
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      type={type}
+      autoComplete={autoComplete}
+      className={`${controleBase} ${className}`}
+    />
   )
 }
 

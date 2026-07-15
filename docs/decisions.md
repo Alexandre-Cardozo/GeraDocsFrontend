@@ -166,3 +166,15 @@ Implementadas as lacunas que a análise da Fase 1 havia registrado. Detalhe de d
 - **Retificação por seção**: `ApontamentoRetificacao` (documento + seção + texto), criado pelo gestor na fila e resolvido pelo elaborador no editor; regerar o documento resolve os apontamentos abertos e cria nova versão. Substitui o "parecer em texto livre único".
 - **Fixtures alinhadas à conformidade**: cada processo do pipeline tem modalidade × documentos coerentes com `REGRA_MODALIDADE`, trilha realista e documentos obrigatórios gerados. Corrigida inconsistência do PROC-2024-087 (era Dispensa com Edital, o que a Lei não admite → passou a Pregão).
 - **`fases.retificacao`** deixou de ser flag morto conceitualmente: a retificação é agora uma transição real da máquina de estados. O campo permanece no domínio; a fase preparatória de retificação é acionada pela decisão do gestor, não por um toggle no wizard.
+
+## 21. Autenticação, multi-prefeitura e perfis de acesso (RBAC)
+
+Login por CPF + senha, várias prefeituras e três perfis de acesso, **mockados** (consistente com a Fase 1 — backend real é fase futura). Detalhe em [`perfis-acesso.md`](perfis-acesso.md).
+
+- **Três conceitos de papel coexistem, sem unificar:** `PerfilAcesso` (novo — `admin_geral`/`coordenador`/`servidor`, controla acesso), `PapelUsuario` (existente — papel no fluxo de aprovação) e (removido) o antigo `UsuarioTenant.perfil`. O identity model (`Usuario` com CPF/e-mail/prefeituraId) e a `Sessao` são novos; `UsuarioAtual`/`UsuarioTenant` saíram.
+- **Multi-tenant:** `Tenant` ganhou `id` e passou a ser a Prefeitura; `Processo`/`DocumentoGerado` ganharam `prefeituraId`. As consultas do client filtram pela prefeitura da sessão (admin vê tudo). Fonte de dados: `db.prefeituras`, `db.usuarios`, `db.credenciais`, `db.sessaoUsuarioId`.
+- **Auth client-side:** sessão em `localStorage` (`geradocs.sessao`); guarda em `components/layout/GuardaSessao.tsx` no `(app)/layout`. Route group novo **`(auth)`** para a tela de login fora do shell. Não há `middleware.ts` — coerente com o mock `client-only`. `validaCPF` valida dígitos; erro de login genérico (anti-enumeração).
+- **RBAC como fonte única** em `lib/auth/acesso.ts` (`rotaPermitida`, `navPrincipal`, `navSistema`). Sidebar e Header derivam do perfil (o admin não vê o fluxo de processos; o servidor não vê Configurações/Admin).
+- **CPFs de demonstração** (`11111111111`…) são sequências repetidas que a validação real reprova; liberados por `CPFS_DEMO` só nesta fase, listados no login.
+- **Telas novas:** `(auth)/login`, `admin/prefeituras`, `admin/servidores`, `admin/PainelAdmin` (painel do sistema), `perfil` (Meu Perfil). A aba "Usuários" de Configurações deixou de ser stub — lista/adiciona servidores reais da prefeitura da sessão.
+- **`Input` do DS ganhou `type`/`autoComplete`/`onKeyDown`** (extensão retrocompatível) para os campos de senha/e-mail do login.

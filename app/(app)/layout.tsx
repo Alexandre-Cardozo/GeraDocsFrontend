@@ -1,8 +1,13 @@
 import type { ReactNode } from "react"
 
 import AppShell from "@/components/layout/AppShell"
+import GuardaSessao from "@/components/layout/GuardaSessao"
 
-/** Shell autenticado: sidebar 240px navy (drawer no mobile) + header 60px + conteúdo rolável. */
+/** Shell autenticado: guarda de sessão/RBAC + sidebar 240px navy + header 60px + conteúdo. */
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return <AppShell>{children}</AppShell>
+  return (
+    <GuardaSessao>
+      <AppShell>{children}</AppShell>
+    </GuardaSessao>
+  )
 }

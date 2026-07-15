@@ -12,7 +12,7 @@ import type { TipoDocumento, Tenant } from "@/lib/types"
  */
 
 export const chaves = {
-  usuario: ["usuario"] as const,
+  sessao: ["sessao"] as const,
   estatisticas: ["estatisticas"] as const,
   processos: (params: ListaProcessosParams) => ["processos", params] as const,
   processo: (id: string) => ["processo", id] as const,
@@ -24,20 +24,62 @@ export const chaves = {
   documentos: ["documentos"] as const,
   resumoDocumentos: ["documentos", "resumo"] as const,
   historicoVersoes: (id: string, tipo: TipoDocumento) => ["versoes", id, tipo] as const,
-  tenant: ["tenant"] as const,
+  tenant: (prefeituraId?: string) => ["tenant", prefeituraId ?? "sessao"] as const,
+  usuarios: (prefeituraId?: string) => ["usuarios", prefeituraId ?? "todos"] as const,
+  prefeituras: ["prefeituras"] as const,
 }
 
-export function useUsuarioAtual() {
-  return useQuery({ queryKey: chaves.usuario, queryFn: api.getUsuarioAtual, staleTime: Infinity })
+/* ── Sessão / autenticação ─────────────────────────────────────────────────── */
+
+export function useSessao() {
+  return useQuery({ queryKey: chaves.sessao, queryFn: api.getSessao, staleTime: Infinity })
+}
+
+export function useLogin() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { cpf: string; senha: string }) => api.login(input.cpf, input.senha),
+    onSuccess: (sessao) => {
+      queryClient.setQueryData(chaves.sessao, sessao)
+      void queryClient.invalidateQueries() // recarrega tudo no escopo do novo usuário
+    },
+  })
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.logout(),
+    onSuccess: () => {
+      queryClient.setQueryData(chaves.sessao, null)
+      queryClient.clear()
+    },
+  })
+}
+
+export function useRecuperarSenha() {
+  return useMutation({ mutationFn: (email: string) => api.recuperarSenha(email) })
+}
+
+/** Perfil de acesso do usuário logado (ou undefined enquanto carrega/deslogado). */
+export function usePerfil() {
+  const { data } = useSessao()
+  return data?.usuario.perfilAcesso
 }
 
 export function useAtualizarAvatar() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (avatarDataUrl: string | null) => api.atualizarAvatar(avatarDataUrl),
-    onSuccess: (usuario) => {
-      queryClient.setQueryData(chaves.usuario, usuario)
-    },
+    onSuccess: (sessao) => queryClient.setQueryData(chaves.sessao, sessao),
+  })
+}
+
+export function useAtualizarMeuPerfil() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: api.MeuPerfilInput) => api.atualizarMeuPerfil(input),
+    onSuccess: (sessao) => queryClient.setQueryData(chaves.sessao, sessao),
   })
 }
 
@@ -243,16 +285,74 @@ export function useGerarDocumento() {
   })
 }
 
-export function useConfigTenant() {
-  return useQuery({ queryKey: chaves.tenant, queryFn: api.getConfigTenant })
+/** Config da prefeitura em foco (sem id = a da sessão). */
+export function useConfigTenant(prefeituraId?: string) {
+  return useQuery({ queryKey: chaves.tenant(prefeituraId), queryFn: () => api.getConfigTenant(prefeituraId) })
 }
 
-export function useAtualizarConfigTenant() {
+export function useAtualizarConfigTenant(prefeituraId?: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (patch: Partial<Tenant>) => api.atualizarConfigTenant(patch),
+    mutationFn: (patch: Partial<Tenant>) => api.atualizarConfigTenant(patch, prefeituraId),
     onSuccess: (tenant) => {
-      queryClient.setQueryData(chaves.tenant, tenant)
+      queryClient.setQueryData(chaves.tenant(prefeituraId), tenant)
+      void queryClient.invalidateQueries({ queryKey: chaves.prefeituras })
+      void queryClient.invalidateQueries({ queryKey: chaves.sessao })
     },
+  })
+}
+
+/* ── Cadastros: prefeituras e usuários ─────────────────────────────────────── */
+
+export function usePrefeituras() {
+  return useQuery({ queryKey: chaves.prefeituras, queryFn: api.getPrefeituras })
+}
+
+export function useCriarPrefeitura() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: api.NovaPrefeituraInput) => api.criarPrefeitura(input),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: chaves.prefeituras }),
+  })
+}
+
+export function useRemoverPrefeitura() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.removerPrefeitura(id),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: chaves.prefeituras }),
+  })
+}
+
+export function useUsuarios(prefeituraId?: string) {
+  return useQuery({ queryKey: chaves.usuarios(prefeituraId), queryFn: () => api.getUsuarios(prefeituraId) })
+}
+
+function invalidarUsuarios(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: ["usuarios"] })
+  void queryClient.invalidateQueries({ queryKey: chaves.prefeituras })
+}
+
+export function useCriarUsuario() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: api.NovoUsuarioInput) => api.criarUsuario(input),
+    onSuccess: () => invalidarUsuarios(queryClient),
+  })
+}
+
+export function useAtualizarUsuario() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: api.AtualizarUsuarioInput) => api.atualizarUsuario(input),
+    onSuccess: () => invalidarUsuarios(queryClient),
+  })
+}
+
+export function useRemoverUsuario() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.removerUsuario(id),
+    onSuccess: () => invalidarUsuarios(queryClient),
   })
 }

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { SearchInput, StatusBadge } from "@/components/ui"
 import { IconBell, IconMenu, IconPlus } from "@/components/ui/icons"
-import { useProcessos } from "@/lib/api/hooks"
+import { usePerfil, useProcessos } from "@/lib/api/hooks"
 
 /** Título do header por rota (equivalente ao viewTitles do protótipo). */
 function tituloDaRota(pathname: string): string {
@@ -19,6 +19,9 @@ function tituloDaRota(pathname: string): string {
   if (pathname.startsWith("/aprovacoes")) return "Aprovações"
   if (pathname.startsWith("/documentos")) return "Documentos Gerados"
   if (pathname.startsWith("/configuracoes")) return "Configurações da Prefeitura"
+  if (pathname.startsWith("/admin/prefeituras")) return "Prefeituras"
+  if (pathname.startsWith("/admin/servidores")) return "Servidores"
+  if (pathname.startsWith("/perfil")) return "Meu Perfil"
   return "GeraDocs"
 }
 
@@ -100,6 +103,9 @@ function BuscaGlobal() {
 
 export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname()
+  const perfil = usePerfil()
+  // O admin geral não opera o fluxo de processos: sem busca de processos nem CTA.
+  const mostraProcessos = perfil !== "admin_geral"
 
   return (
     <header className="flex h-15 min-w-0 shrink-0 items-center gap-3 border-b border-border bg-surface px-4 lg:px-7">
@@ -119,10 +125,12 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         </h1>
       </div>
 
-      {/* Busca global — oculta em telas estreitas */}
-      <div className="hidden md:block">
-        <BuscaGlobal />
-      </div>
+      {/* Busca global de processos — oculta em telas estreitas e para o admin */}
+      {mostraProcessos && (
+        <div className="hidden md:block">
+          <BuscaGlobal />
+        </div>
+      )}
 
       <button
         type="button"
@@ -133,16 +141,17 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         <span className="absolute top-1.75 right-1.75 size-1.75 rounded-full border-2 border-ice bg-danger" />
       </button>
 
-      {/* Ação global — presente em todas as páginas (header único compartilhado) */}
-      <Link
-        href="/processos/novo"
-        aria-label="Novo Processo de Contratação"
-        className="flex h-9 shrink-0 items-center gap-1.75 rounded-md bg-royal px-3 text-base font-semibold text-surface no-underline transition-colors hover:bg-royal-hover"
-      >
-        <IconPlus size={14} strokeWidth={2.5} />
-        {/* Rótulo some no celular — fica só o ícone */}
-        <span className="hidden sm:inline">Novo Processo</span>
-      </Link>
+      {/* Ação global — só para quem opera o fluxo de processos */}
+      {mostraProcessos && (
+        <Link
+          href="/processos/novo"
+          aria-label="Novo Processo de Contratação"
+          className="flex h-9 shrink-0 items-center gap-1.75 rounded-md bg-royal px-3 text-base font-semibold text-surface no-underline transition-colors hover:bg-royal-hover"
+        >
+          <IconPlus size={14} strokeWidth={2.5} />
+          <span className="hidden sm:inline">Novo Processo</span>
+        </Link>
+      )}
     </header>
   )
 }

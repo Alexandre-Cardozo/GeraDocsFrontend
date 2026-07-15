@@ -20,10 +20,13 @@ GeraDocs/
 │   ├── layout.tsx                # Layout raiz: fontes (next/font), metadata, Providers
 │   ├── globals.css               # Tailwind v4 + @theme (tokens do DS = utilities) + base (focus ring/scrollbar)
 │   ├── not-found.tsx             # Página 404
-│   └── (app)/                    # Route group do shell autenticado (parênteses = não vira URL)
-│       ├── layout.tsx            # Monta o AppShell (sidebar + header) em volta de todas as telas
+│   ├── (auth)/                   # Route group SEM shell — telas de autenticação
+│   │   ├── layout.tsx            # Shell mínimo (sem sidebar/header)
+│   │   └── login/page.tsx        # Login CPF + senha .......................... rota  /login
+│   └── (app)/                    # Route group do shell autenticado (guarda de sessão + RBAC)
+│       ├── layout.tsx            # GuardaSessao + AppShell (sidebar + header)
 │       ├── error.tsx             # Error boundary das telas
-│       ├── page.tsx              # Dashboard ................................. rota  /
+│       ├── page.tsx              # Dashboard (ou Painel do Sistema p/ admin) . rota  /
 │       ├── processos/
 │       │   ├── page.tsx          # Lista de processos ........................ rota  /processos
 │       │   ├── novo/page.tsx     # Wizard de novo processo ................... rota  /processos/novo
@@ -35,7 +38,12 @@ GeraDocs/
 │       │       └── etp/page.tsx  # Redirect legado → documento/etp (compat.)
 │       ├── aprovacoes/page.tsx   # Fila de aprovações + trilha de auditoria .. rota  /aprovacoes
 │       ├── documentos/page.tsx   # Repositório de documentos gerados ......... rota  /documentos
-│       └── configuracoes/page.tsx# Configurações do órgão (tenant) ........... rota  /configuracoes
+│       ├── configuracoes/page.tsx# Config da prefeitura (coordenador) ........ rota  /configuracoes
+│       ├── perfil/page.tsx       # Meu Perfil (servidor/coordenador) ......... rota  /perfil
+│       └── admin/               # Área do administrador geral
+│           ├── PainelAdmin.tsx   # Painel do sistema (renderizado por page.tsx quando admin)
+│           ├── prefeituras/page.tsx  # CRUD de prefeituras .................... rota  /admin/prefeituras
+│           └── servidores/page.tsx   # CRUD de servidores .................... rota  /admin/servidores
 │
 ├── components/                   # INTERFACE REUTILIZÁVEL (sem lógica de negócio, sem fetch)
 │   ├── ui/                       # Design System LAHHM/GeraDocs portado para React (primitivos)
@@ -69,6 +77,9 @@ GeraDocs/
 │   │   └── index.ts              # Barrel — importe daqui: import { CATALOGO } from "@/lib/documentos"
 │   ├── processos/                # Máquina de estados do fluxo de aprovação
 │   │   └── fluxo.ts              # TRANSICOES + guardas (envio, aprovação, rejeição, retificação, conclusão)
+│   ├── auth/                     # Autenticação e controle de acesso
+│   │   ├── cpf.ts               # validaCPF (dígitos), formatCPF, CPFS_DEMO
+│   │   └── acesso.ts            # RBAC: rotaPermitida, navPrincipal, navSistema (fonte única)
 │   ├── api/
 │   │   ├── client.ts             # Cliente de API — hoje resolve contra mocks em memória com latência
 │   │   │                         #   simulada; as assinaturas espelham o futuro cliente OpenAPI (Spring)

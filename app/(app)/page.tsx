@@ -16,18 +16,23 @@ import {
 } from "@/components/ui/icons"
 import { ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
-import { useEstatisticas, useFilaAprovacoes, useProcessos, useUsuarioAtual } from "@/lib/api/hooks"
+import { useEstatisticas, useFilaAprovacoes, useProcessos, useSessao } from "@/lib/api/hooks"
 import { dataPorExtenso, formatBRL, formatData, saudacao } from "@/lib/format"
+import PainelAdmin from "@/app/(app)/admin/PainelAdmin"
 
 export default function Dashboard() {
   const router = useRouter()
-  const { data: usuario } = useUsuarioAtual()
+  const { data: sessao } = useSessao()
+  const usuario = sessao?.usuario
   const estatisticas = useEstatisticas()
   const processos = useProcessos({ porPagina: 5 })
   const aprovacoes = useFilaAprovacoes()
 
   const recentes = processos.data?.itens ?? []
   const pendentes = (aprovacoes.data ?? []).filter((a) => a.status === "aguardando")
+
+  // O admin geral vê um painel de sistema (prefeituras e servidores), não o fluxo de processos.
+  if (usuario?.perfilAcesso === "admin_geral") return <PainelAdmin />
 
   return (
     <div className="max-w-content p-4 sm:p-5 lg:p-7">
@@ -40,6 +45,9 @@ export default function Dashboard() {
           <h2 className="m-0 font-display text-3xl font-extrabold tracking-tight text-text-1" suppressHydrationWarning>
             {saudacao()}, {usuario?.primeiroNome ?? "..."}
           </h2>
+          {sessao?.prefeitura && (
+            <p className="m-0 mt-0.5 text-sm text-text-muted">{sessao.prefeitura.orgao}</p>
+          )}
         </div>
         <Link
           href="/processos/novo"

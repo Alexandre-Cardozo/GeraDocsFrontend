@@ -59,6 +59,8 @@ export interface ConfigATA {
 export interface Processo {
   /** Formato PROC-AAAA-NNN. */
   id: string
+  /** Prefeitura dona do processo (escopo multi-tenant). */
+  prefeituraId: string
   /** Descrição/nomenclatura do processo — identifica-o no painel, listas e documentos. */
   objeto: string
   /** Objeto da demanda (contratação em si) — trabalha junto com o DFD e alimenta o ETP. */
@@ -256,6 +258,7 @@ export type TipoDocumento = "Cotação" | "ETP" | "Mapa" | "TR" | "Edital" | "Co
 export interface DocumentoGerado {
   /** Formato DOC-AAAA-NNNN. */
   id: string
+  prefeituraId: string
   processoId: string
   titulo: string
   tipo: TipoDocumento
@@ -282,16 +285,23 @@ export interface Secretaria {
   sigla?: string
 }
 
-export interface UsuarioTenant {
-  nome: string
-  cargo: string
-  perfil: "Administrador" | "Elaborador" | "Aprovador"
-  ultimoAcesso: string
-  iniciais: string
+/**
+ * Perfil de acesso — controla o que o usuário pode ver e fazer no sistema.
+ * Distinto de `PapelUsuario` (papel no fluxo de aprovação): um mesmo usuário
+ * tem um perfil de acesso e atua com papéis de workflow conforme a etapa.
+ */
+export type PerfilAcesso = "admin_geral" | "coordenador" | "servidor"
+
+export const PERFIL_ACESSO_LABEL: Record<PerfilAcesso, string> = {
+  admin_geral: "Administrador Geral",
+  coordenador: "Coordenador",
+  servidor: "Servidor",
 }
 
-/** Dados institucionais do órgão (tenant). */
+/** Dados institucionais de uma prefeitura (tenant). Um tenant = uma prefeitura. */
 export interface Tenant {
+  /** Formato PREF-NNN. */
+  id: string
   orgao: string
   unidade: string
   secretarias: Secretaria[]
@@ -307,17 +317,44 @@ export interface Tenant {
     arquivo: string | null
     itensIndexados: number
   }
-  usuarios: UsuarioTenant[]
 }
 
-export interface UsuarioAtual {
+/** Alias documental — o Tenant é a Prefeitura no domínio multi-tenant. */
+export type Prefeitura = Tenant
+
+/**
+ * Usuário do sistema. A senha nunca trafega aqui — fica só no mapa de
+ * credenciais do mock. `prefeituraId` é null apenas para o admin geral (LAHHM).
+ */
+export interface Usuario {
+  /** Formato USR-NNN. */
+  id: string
   nome: string
   primeiroNome: string
   iniciais: string
+  /** 11 dígitos, sem máscara. */
+  cpf: string
+  email: string
+  cargo: string
+  perfilAcesso: PerfilAcesso
+  /** Papel primário no fluxo de aprovação (autoria/exibição). */
   papel: PapelUsuario
-  descricao: string
+  /** Prefeitura a que pertence. null = admin geral (LAHHM, sem prefeitura). */
+  prefeituraId: string | null
+  /** Secretaria em que atua (nome). */
+  secretaria?: string
   /** Foto de perfil em data URL; null = usa o avatar padrão (iniciais). */
   avatarDataUrl: string | null
+  /** Último acesso em ISO; atualizado no login. */
+  ultimoAcesso: string
+  ativo: boolean
+}
+
+/** Sessão do usuário logado — o que a interface consome. */
+export interface Sessao {
+  usuario: Usuario
+  /** Config da prefeitura do usuário; null para o admin geral. */
+  prefeitura: Tenant | null
 }
 
 export interface EstatisticasDashboard {

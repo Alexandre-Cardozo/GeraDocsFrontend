@@ -5,16 +5,18 @@ import "client-only"
 
 import {
   conteudoDemoETP,
+  credenciais as credenciaisFixture,
   documentos as documentosFixture,
   estatisticas as estatisticasFixture,
   parecerDFDBase,
+  prefeituras as prefeiturasFixture,
   processos as processosFixture,
   resumoDocumentos as resumoDocumentosFixture,
-  tenant as tenantFixture,
-  usuarioAtual,
+  usuarios as usuariosFixture,
 } from "@/lib/mocks/fixtures"
 import { CATALOGO, REGRA_MODALIDADE, ordenar, secoesPorTipoBase } from "@/lib/documentos"
 import { proximoStatus, transicaoDe } from "@/lib/processos/fluxo"
+import { limpaCPF, validaCPF } from "@/lib/auth/cpf"
 import { dataBrasiliaISO, dataHoraBrasiliaISO } from "@/lib/format"
 import type {
   ApontamentoRetificacao,
@@ -28,14 +30,16 @@ import type {
   ParecerDFD,
   ParecerJuridico,
   PapelUsuario,
+  PerfilAcesso,
   Processo,
   ResumoDocumentos,
   SecaoDocumento,
+  Sessao,
   StatusProcesso,
   Tenant,
   TipoDocumento,
   TransicaoAprovacao,
-  UsuarioAtual,
+  Usuario,
   VersaoDocumento,
 } from "@/lib/types"
 
@@ -55,9 +59,16 @@ function delay(ms = 350 + Math.random() * 350): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+/** Chave da sessão persistida no navegador (id do usuário logado). */
+const CHAVE_SESSAO = "geradocs.sessao"
+
 /* ── Estado em memória (persiste durante a sessão) ─────────────────────────── */
 const db = {
-  usuario: clone(usuarioAtual),
+  usuarios: clone(usuariosFixture),
+  credenciais: { ...credenciaisFixture },
+  prefeituras: clone(prefeiturasFixture),
+  /** Id do usuário logado; null = deslogado. Espelhado no localStorage. */
+  sessaoUsuarioId: null as string | null,
   processos: clone(processosFixture),
   /** Seções por documento — chave `${processoId}:${tipo}`. */
   secoes: new Map<string, SecaoDocumento[]>(),
@@ -69,11 +80,35 @@ const db = {
   apontamentos: [] as ApontamentoRetificacao[],
   estatisticas: clone(estatisticasFixture),
   resumoDocumentos: clone(resumoDocumentosFixture),
-  tenant: clone(tenantFixture),
   seqProcesso: 90,
   // Acima do maior id gerado pelas fixtures (evita colisão com novos documentos).
   seqDocumento: 200,
   seqApontamento: 0,
+  seqUsuario: usuariosFixture.length,
+  seqPrefeitura: prefeiturasFixture.length,
+}
+
+// Restaura a sessão persistida (id do usuário logado) ao carregar o módulo.
+if (typeof window !== "undefined") {
+  const salvo = window.localStorage.getItem(CHAVE_SESSAO)
+  if (salvo && db.usuarios.some((u) => u.id === salvo)) db.sessaoUsuarioId = salvo
+}
+
+/** Usuário logado, ou null. */
+function usuarioLogado(): Usuario | null {
+  return db.usuarios.find((u) => u.id === db.sessaoUsuarioId) ?? null
+}
+
+/** Usuário logado ou erro (para operações que exigem sessão). */
+function exigeSessao(): Usuario {
+  const u = usuarioLogado()
+  if (!u) throw new Error("Sessão expirada. Faça login novamente.")
+  return u
+}
+
+/** Prefeitura de um usuário (null para admin geral). */
+function prefeituraDo(usuario: Usuario): Tenant | null {
+  return usuario.prefeituraId ? db.prefeituras.find((p) => p.id === usuario.prefeituraId) ?? null : null
 }
 
 // Semeia o histórico de versões (v1) dos documentos já existentes nas fixtures,
@@ -106,23 +141,113 @@ function secoesDoDocumento(processoId: string, tipo: TipoDocumento): SecaoDocume
   return secoes
 }
 
-/* ── Sessão / dashboard ────────────────────────────────────────────────────── */
+/* ── Autenticação / sessão ─────────────────────────────────────────────────── */
 
-export async function getUsuarioAtual(): Promise<UsuarioAtual> {
+function montarSessao(usuario: Usuario): Sessao {
+  return { usuario: clone(usuario), prefeitura: clone(prefeituraDo(usuario)) }
+}
+
+function persistirSessao(id: string | null): void {
+  db.sessaoUsuarioId = id
+  if (typeof window === "undefined") return
+  if (id) window.localStorage.setItem(CHAVE_SESSAO, id)
+  else window.localStorage.removeItem(CHAVE_SESSAO)
+}
+
+/**
+ * Login por CPF + senha. Valida o CPF, busca o usuário e compara a senha.
+ * Erro **genérico** — não revela se o CPF existe (evita enumeração de contas).
+ */
+export async function login(cpf: string, senha: string): Promise<Sessao> {
+  await delay(600)
+  const cpfLimpo = limpaCPF(cpf)
+  const invalido = new Error("CPF ou senha inválidos.")
+  if (!validaCPF(cpfLimpo)) throw invalido
+  const usuario = db.usuarios.find((u) => u.cpf === cpfLimpo && u.ativo)
+  if (!usuario || db.credenciais[cpfLimpo] !== senha) throw invalido
+  usuario.ultimoAcesso = dataHoraBrasiliaISO()
+  persistirSessao(usuario.id)
+  return montarSessao(usuario)
+}
+
+export async function logout(): Promise<void> {
+  await delay(150)
+  persistirSessao(null)
+}
+
+/** Sessão atual, ou null se ninguém está logado. */
+export async function getSessao(): Promise<Sessao | null> {
   await delay(120)
-  return clone(db.usuario)
+  const u = usuarioLogado()
+  return u ? montarSessao(u) : null
 }
 
-/** Atualiza a foto de perfil do usuário (data URL ou null para voltar ao padrão). */
-export async function atualizarAvatar(avatarDataUrl: string | null): Promise<UsuarioAtual> {
+/**
+ * Recuperação de senha — mock. Resposta sempre genérica (não revela se o e-mail
+ * está cadastrado). A integração real dispara o e-mail de redefinição.
+ */
+export async function recuperarSenha(email: string): Promise<void> {
+  await delay(500)
+  void email // resposta genérica no mock; a integração dispara o e-mail de redefinição
+}
+
+/** Atualiza a foto de perfil do usuário logado (data URL ou null para o padrão). */
+export async function atualizarAvatar(avatarDataUrl: string | null): Promise<Sessao> {
   await delay(200)
-  db.usuario = { ...db.usuario, avatarDataUrl }
-  return clone(db.usuario)
+  const usuario = exigeSessao()
+  usuario.avatarDataUrl = avatarDataUrl
+  return montarSessao(usuario)
 }
 
+/** Edição dos próprios dados (Meu Perfil). CPF e perfil de acesso não mudam aqui. */
+export interface MeuPerfilInput {
+  nome?: string
+  email?: string
+  cargo?: string
+  secretaria?: string
+  avatarDataUrl?: string | null
+}
+
+export async function atualizarMeuPerfil(input: MeuPerfilInput): Promise<Sessao> {
+  await delay(400)
+  const usuario = exigeSessao()
+  if (input.nome != null && input.nome.trim() !== "") {
+    usuario.nome = input.nome.trim()
+    usuario.primeiroNome = usuario.nome.split(" ")[0] ?? usuario.nome
+    usuario.iniciais = iniciaisDe(usuario.nome)
+  }
+  if (input.email != null) usuario.email = input.email.trim()
+  if (input.cargo != null) usuario.cargo = input.cargo.trim()
+  if (input.secretaria !== undefined) usuario.secretaria = input.secretaria
+  if (input.avatarDataUrl !== undefined) usuario.avatarDataUrl = input.avatarDataUrl
+  return montarSessao(usuario)
+}
+
+/** Iniciais a partir do nome (2 primeiras palavras). */
+function iniciaisDe(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter(Boolean)
+  const primeira = partes[0]?.[0] ?? ""
+  const ultima = partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? "") : ""
+  return (primeira + ultima).toUpperCase() || "?"
+}
+
+/** Estatísticas do dashboard, escopadas à prefeitura do usuário logado. */
 export async function getEstatisticas(): Promise<EstatisticasDashboard> {
   await delay()
-  return clone(db.estatisticas)
+  const usuario = usuarioLogado()
+  const escopo = usuario?.prefeituraId ?? null
+  const meus = escopo ? db.processos.filter((p) => p.prefeituraId === escopo) : db.processos
+  const docs = escopo ? db.documentos.filter((d) => d.prefeituraId === escopo) : db.documentos
+  const ativos = meus.filter((p) => !["concluido", "rejeitado"].includes(p.status)).length
+  const aguardando = meus.filter((p) => p.status === "aguardando").length
+  const etps = docs.filter((d) => d.tipo === "ETP").length
+  return {
+    ...clone(db.estatisticas),
+    processosAtivos: ativos,
+    aguardandoAprovacao: aguardando,
+    documentosGerados: docs.length,
+    etpsConcluidos: etps,
+  }
 }
 
 /* ── Processos ─────────────────────────────────────────────────────────────── */
@@ -141,10 +266,18 @@ export interface Paginado<T> {
   totalPaginas: number
 }
 
+/** Ids de prefeitura visíveis ao usuário logado (admin vê todas). */
+function escopoPrefeituras(): string[] | null {
+  const usuario = usuarioLogado()
+  return usuario?.prefeituraId ? [usuario.prefeituraId] : null
+}
+
 export async function getProcessos(params: ListaProcessosParams = {}): Promise<Paginado<Processo>> {
   await delay()
   const { busca = "", status = "todos", pagina = 1, porPagina = 8 } = params
+  const escopo = escopoPrefeituras()
   const filtrados = db.processos.filter((p) => {
+    if (escopo && !escopo.includes(p.prefeituraId)) return false
     const matchStatus = status === "todos" || p.status === status
     const q = busca.trim().toLowerCase()
     const matchBusca = q === "" || p.objeto.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)
@@ -174,17 +307,20 @@ export async function getProximoNumeroProcesso(): Promise<string> {
 
 export async function criarProcesso(input: NovoProcessoInput): Promise<Processo> {
   await delay(600)
+  const autor = exigeSessao()
+  if (!autor.prefeituraId) throw new Error("Somente usuários vinculados a uma prefeitura criam processos.")
   const id = `PROC-${ANO_SERIE}-${String(db.seqProcesso++).padStart(3, "0")}`
   const hoje = dataBrasiliaISO()
   const processo: Processo = {
     id,
+    prefeituraId: autor.prefeituraId,
     objeto: input.objeto || "Novo Processo de Contratação",
     objetoDemanda: input.objetoDemanda,
     modalidade: input.modalidade,
     secretaria: input.secretaria,
     status: "rascunho",
     valorEstimado: input.valorEstimado ?? 0,
-    responsavel: db.usuario.nome,
+    responsavel: autor.nome,
     criadoEm: hoje,
     atualizadoEm: hoje,
     etpStatus: "Não iniciado",
@@ -334,7 +470,7 @@ function empurrarTransicao(processo: Processo, evento: EventoAprovacao, papel: P
     evento,
     de: processo.status,
     para,
-    autor: db.usuario.nome,
+    autor: usuarioLogado()?.nome ?? "Sistema",
     papel,
     data: dataBrasiliaISO(),
     comentario,
@@ -376,7 +512,7 @@ export async function registrarParecerJuridico(
 ): Promise<Processo> {
   await delay(450)
   const processo = processoOuErro(processoId)
-  const parecer: ParecerJuridico = { favoravel, autor: db.usuario.nome, data: dataBrasiliaISO(), comentario }
+  const parecer: ParecerJuridico = { favoravel, autor: usuarioLogado()?.nome ?? "Jurídico", data: dataBrasiliaISO(), comentario }
   processo.parecerJuridico = parecer
   processo.atualizadoEm = dataBrasiliaISO()
   return clone(processo)
@@ -435,9 +571,10 @@ function projetarAprovacao(processo: Processo): ItemAprovacao {
  */
 export async function getFilaAprovacoes(): Promise<ItemAprovacao[]> {
   await delay()
+  const escopo = escopoPrefeituras()
   const ordemStatus: Record<string, number> = { aguardando: 0, em_revisao: 1, aprovado: 2, rejeitado: 3 }
   const itens = db.processos
-    .filter((p) => PIPELINE.includes(p.status))
+    .filter((p) => PIPELINE.includes(p.status) && (!escopo || escopo.includes(p.prefeituraId)))
     .sort((a, b) => {
       if ((b.urgente ? 1 : 0) !== (a.urgente ? 1 : 0)) return (b.urgente ? 1 : 0) - (a.urgente ? 1 : 0)
       return (ordemStatus[a.status] ?? 9) - (ordemStatus[b.status] ?? 9)
@@ -482,7 +619,7 @@ export async function decidirAprovacao(input: DecisaoInput): Promise<ItemAprovac
         secaoId: ap.secaoId,
         secaoTitulo: ap.secaoTitulo,
         texto: ap.texto,
-        autor: db.usuario.nome,
+        autor: usuarioLogado()?.nome ?? "Gestor",
         papel: "gestor_aprovador",
         data: dataBrasiliaISO(),
         resolvido: false,
@@ -512,12 +649,18 @@ export async function resolverApontamento(id: string): Promise<ApontamentoRetifi
 
 export async function getDocumentos(): Promise<DocumentoGerado[]> {
   await delay()
-  return clone(db.documentos)
+  const escopo = escopoPrefeituras()
+  const docs = escopo ? db.documentos.filter((d) => escopo.includes(d.prefeituraId)) : db.documentos
+  return clone(docs)
 }
 
 export async function getResumoDocumentos(): Promise<ResumoDocumentos> {
   await delay()
-  return clone(db.resumoDocumentos)
+  const escopo = escopoPrefeituras()
+  if (!escopo) return clone(db.resumoDocumentos)
+  const docs = db.documentos.filter((d) => escopo.includes(d.prefeituraId))
+  const totalKB = docs.reduce((s, d) => s + (Number.parseInt(d.tamanho, 10) || 0), 0)
+  return { total: docs.length, esteMes: docs.length, armazenamentoMB: Math.round((totalKB / 1024) * 10) / 10 }
 }
 
 export async function getHistoricoVersoes(processoId: string, tipo: TipoDocumento): Promise<VersaoDocumento[]> {
@@ -578,6 +721,7 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
 
   const doc: DocumentoGerado = {
     id: `DOC-${ANO_SERIE}-${String(++db.seqDocumento).padStart(4, "0")}`,
+    prefeituraId: processo?.prefeituraId ?? escopoPrefeituras()?.[0] ?? "PREF-001",
     processoId: input.processoId,
     titulo: `${input.tipo} — ${objeto}`,
     tipo: input.tipo,
@@ -607,15 +751,151 @@ export async function gerarDocumento(input: GerarDocumentoInput): Promise<Docume
   return clone(doc)
 }
 
-/* ── Configurações do tenant ───────────────────────────────────────────────── */
+/* ── Configurações da prefeitura ───────────────────────────────────────────── */
 
-export async function getConfigTenant(): Promise<Tenant> {
-  await delay()
-  return clone(db.tenant)
+/** Prefeitura em foco: a indicada, senão a do usuário logado, senão a primeira. */
+function prefeituraFoco(prefeituraId?: string): Tenant {
+  if (prefeituraId) {
+    const p = db.prefeituras.find((x) => x.id === prefeituraId)
+    if (!p) throw new Error(`Prefeitura ${prefeituraId} não encontrada`)
+    return p
+  }
+  const usuario = usuarioLogado()
+  const p = usuario?.prefeituraId ? db.prefeituras.find((x) => x.id === usuario.prefeituraId) : db.prefeituras[0]
+  if (!p) throw new Error("Nenhuma prefeitura no contexto")
+  return p
 }
 
-export async function atualizarConfigTenant(patch: Partial<Tenant>): Promise<Tenant> {
+export async function getConfigTenant(prefeituraId?: string): Promise<Tenant> {
+  await delay()
+  return clone(prefeituraFoco(prefeituraId))
+}
+
+export async function atualizarConfigTenant(patch: Partial<Tenant>, prefeituraId?: string): Promise<Tenant> {
   await delay(450)
-  db.tenant = { ...db.tenant, ...clone(patch) }
-  return clone(db.tenant)
+  const alvo = prefeituraFoco(prefeituraId)
+  Object.assign(alvo, clone({ ...patch, id: alvo.id })) // o id nunca é sobrescrito
+  return clone(alvo)
+}
+
+/* ── Cadastro de prefeituras (admin geral) ─────────────────────────────────── */
+
+export async function getPrefeituras(): Promise<Tenant[]> {
+  await delay()
+  return clone(db.prefeituras)
+}
+
+export interface NovaPrefeituraInput {
+  orgao: string
+  unidade: string
+  pcaAno?: string
+}
+
+export async function criarPrefeitura(input: NovaPrefeituraInput): Promise<Tenant> {
+  await delay(500)
+  const nova: Tenant = {
+    id: `PREF-${String(++db.seqPrefeitura).padStart(3, "0")}`,
+    orgao: input.orgao.trim(),
+    unidade: input.unidade.trim() || "Secretaria de Administração",
+    secretarias: [],
+    logoArquivo: null,
+    logoDataUrl: null,
+    timbrado: true,
+    cabecalho: `${input.orgao.trim().toUpperCase()}\n${input.unidade.trim()}`,
+    rodape: "Documento gerado eletronicamente pela plataforma GeraDocs · {data} · Processo nº {numero}",
+    pca: { ano: input.pcaAno ?? String(new Date().getFullYear()), arquivo: null, itensIndexados: 0 },
+  }
+  db.prefeituras.unshift(nova)
+  return clone(nova)
+}
+
+export async function removerPrefeitura(id: string): Promise<void> {
+  await delay(400)
+  if (db.usuarios.some((u) => u.prefeituraId === id)) {
+    throw new Error("Há servidores vinculados a esta prefeitura. Reatribua-os antes de excluir.")
+  }
+  db.prefeituras = db.prefeituras.filter((p) => p.id !== id)
+  db.processos = db.processos.filter((p) => p.prefeituraId !== id)
+  db.documentos = db.documentos.filter((d) => d.prefeituraId !== id)
+}
+
+/* ── Cadastro de usuários (admin geral e coordenador da própria prefeitura) ── */
+
+export async function getUsuarios(prefeituraId?: string): Promise<Usuario[]> {
+  await delay()
+  const lista = prefeituraId ? db.usuarios.filter((u) => u.prefeituraId === prefeituraId) : db.usuarios
+  return clone(lista)
+}
+
+export interface NovoUsuarioInput {
+  nome: string
+  cpf: string
+  email: string
+  cargo: string
+  perfilAcesso: PerfilAcesso
+  prefeituraId: string | null
+  secretaria?: string
+}
+
+export async function criarUsuario(input: NovoUsuarioInput): Promise<Usuario> {
+  await delay(500)
+  const cpf = limpaCPF(input.cpf)
+  if (!validaCPF(cpf)) throw new Error("CPF inválido.")
+  if (db.usuarios.some((u) => u.cpf === cpf)) throw new Error("Já existe um usuário com este CPF.")
+  const nome = input.nome.trim()
+  const usuario: Usuario = {
+    id: `USR-${String(++db.seqUsuario).padStart(3, "0")}`,
+    nome,
+    primeiroNome: nome.split(" ")[0] ?? nome,
+    iniciais: iniciaisDe(nome),
+    cpf,
+    email: input.email.trim(),
+    cargo: input.cargo.trim(),
+    perfilAcesso: input.perfilAcesso,
+    papel: input.perfilAcesso === "coordenador" ? "gestor_aprovador" : "servidor_compras",
+    prefeituraId: input.perfilAcesso === "admin_geral" ? null : input.prefeituraId,
+    secretaria: input.secretaria,
+    avatarDataUrl: null,
+    ultimoAcesso: "",
+    ativo: true,
+  }
+  db.usuarios.push(usuario)
+  db.credenciais[cpf] = "geradocs123"
+  return clone(usuario)
+}
+
+export interface AtualizarUsuarioInput {
+  id: string
+  nome?: string
+  email?: string
+  cargo?: string
+  perfilAcesso?: PerfilAcesso
+  prefeituraId?: string | null
+  secretaria?: string
+  ativo?: boolean
+}
+
+export async function atualizarUsuario(input: AtualizarUsuarioInput): Promise<Usuario> {
+  await delay(450)
+  const usuario = db.usuarios.find((u) => u.id === input.id)
+  if (!usuario) throw new Error(`Usuário ${input.id} não encontrado`)
+  if (input.nome != null && input.nome.trim() !== "") {
+    usuario.nome = input.nome.trim()
+    usuario.primeiroNome = usuario.nome.split(" ")[0] ?? usuario.nome
+    usuario.iniciais = iniciaisDe(usuario.nome)
+  }
+  if (input.email != null) usuario.email = input.email.trim()
+  if (input.cargo != null) usuario.cargo = input.cargo.trim()
+  if (input.perfilAcesso != null) usuario.perfilAcesso = input.perfilAcesso
+  if (input.prefeituraId !== undefined) usuario.prefeituraId = input.prefeituraId
+  if (input.secretaria !== undefined) usuario.secretaria = input.secretaria
+  if (input.ativo != null) usuario.ativo = input.ativo
+  return clone(usuario)
+}
+
+export async function removerUsuario(id: string): Promise<void> {
+  await delay(400)
+  const usuario = db.usuarios.find((u) => u.id === id)
+  if (usuario) delete db.credenciais[usuario.cpf]
+  db.usuarios = db.usuarios.filter((u) => u.id !== id)
 }

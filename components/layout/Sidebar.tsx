@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, type ReactNode } from "react";
 
 import {
+  IconArrowRight,
   IconBuilding,
   IconCamera,
   IconCheckCircle,
@@ -14,13 +15,27 @@ import {
   IconFileText,
   IconMoreVertical,
   IconSettings,
+  IconUser,
 } from "@/components/ui/icons";
 import {
   useAtualizarAvatar,
-  useConfigTenant,
   useFilaAprovacoes,
-  useUsuarioAtual,
+  useLogout,
+  useSessao,
 } from "@/lib/api/hooks";
+import { navPrincipal, navSistema, type IconeNav } from "@/lib/auth/acesso";
+import { PERFIL_ACESSO_LABEL } from "@/lib/types";
+
+/** Mapa de chave de ícone (RBAC) → componente. */
+const ICONES: Record<IconeNav, ReactNode> = {
+  dashboard: <IconDashboard size={18} />,
+  processos: <IconFileText size={18} />,
+  aprovacoes: <IconCheckCircle size={18} />,
+  documentos: <IconDownload size={18} />,
+  configuracoes: <IconSettings size={18} />,
+  prefeituras: <IconBuilding size={18} />,
+  servidores: <IconUser size={18} />,
+};
 
 interface NavItem {
   href: string;
@@ -92,49 +107,33 @@ export default function Sidebar({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const { data: usuario } = useUsuarioAtual();
+  const router = useRouter();
+  const { data: sessao } = useSessao();
   const { data: fila } = useFilaAprovacoes();
-  const { data: tenant } = useConfigTenant();
   const atualizarAvatar = useAtualizarAvatar();
+  const logout = useLogout();
+  const [menuAberto, setMenuAberto] = useState(false);
 
+  const usuario = sessao?.usuario;
+  const prefeitura = sessao?.prefeitura;
+  const perfil = usuario?.perfilAcesso ?? "servidor";
   const pendentes = fila?.filter((a) => a.status === "aguardando").length;
 
-  const navItems: NavItem[] = [
-    {
-      href: "/",
-      label: "Dashboard",
-      icon: <IconDashboard size={18} />,
-      match: (p) => p === "/",
-    },
-    {
-      href: "/processos",
-      label: "Processos",
-      icon: <IconFileText size={18} />,
-      match: (p) => p.startsWith("/processos"),
-    },
-    {
-      href: "/aprovacoes",
-      label: "Aprovações",
-      icon: <IconCheckCircle size={18} />,
-      badge: pendentes,
-      match: (p) => p.startsWith("/aprovacoes"),
-    },
-    {
-      href: "/documentos",
-      label: "Documentos",
-      icon: <IconDownload size={18} />,
-      match: (p) => p.startsWith("/documentos"),
-    },
-  ];
+  const paraItem = (i: { href: string; label: string; icone: IconeNav; badge?: "aprovacoes" }): NavItem => ({
+    href: i.href,
+    label: i.label,
+    icon: ICONES[i.icone],
+    badge: i.badge === "aprovacoes" ? pendentes : undefined,
+    match: (p) => (i.href === "/" ? p === "/" : p.startsWith(i.href)),
+  });
 
-  const bottomItems: NavItem[] = [
-    {
-      href: "/configuracoes",
-      label: "Configurações",
-      icon: <IconSettings size={18} />,
-      match: (p) => p.startsWith("/configuracoes"),
-    },
-  ];
+  const navItems: NavItem[] = navPrincipal(perfil).map(paraItem);
+  const bottomItems: NavItem[] = navSistema(perfil).map(paraItem);
+
+  const sair = () => {
+    setMenuAberto(false);
+    logout.mutate(undefined, { onSuccess: () => router.replace("/login") });
+  };
 
   return (
     <aside
@@ -164,16 +163,15 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Órgão atual — apenas informativo; usa o brasão importado nas Configurações,
-          senão mantém o ícone padrão do órgão */}
+      {/* Órgão atual — a prefeitura da sessão; para o admin geral, o contexto LAHHM */}
       <div className="border-b border-on-dark-border px-5 py-3.5">
         <div className="mb-1.5 text-2xs font-semibold tracking-caps-wide text-on-dark-35 uppercase">
-          Órgão Atual
+          {perfil === "admin_geral" ? "Contexto" : "Órgão Atual"}
         </div>
         <div className="flex items-center gap-2 rounded-md">
-          {tenant?.logoDataUrl ? (
+          {prefeitura?.logoDataUrl ? (
             <Image
-              src={tenant.logoDataUrl}
+              src={prefeitura.logoDataUrl}
               alt=""
               width={22}
               height={22}
@@ -187,10 +185,10 @@ export default function Sidebar({
           )}
           <span className="block min-w-0 flex-1">
             <span className="block truncate text-sm font-semibold text-on-dark">
-              {tenant?.orgao ?? "Prefeitura de São Paulo"}
+              {prefeitura?.orgao ?? (perfil === "admin_geral" ? "Administração LAHHM" : "—")}
             </span>
             <span className="block text-2xs text-on-dark-40">
-              {tenant?.unidade ?? "Secretaria de Compras"}
+              {prefeitura?.unidade ?? (perfil === "admin_geral" ? "Todas as prefeituras" : "")}
             </span>
           </span>
         </div>
@@ -219,8 +217,8 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Usuário — clicar no avatar troca a foto de perfil (círculo); senão, iniciais */}
-      <div className="flex items-center gap-2.5 border-t border-on-dark-border px-4 py-3">
+      {/* Usuário — avatar (clique troca a foto) + menu (Meu Perfil / Sair) */}
+      <div className="relative flex items-center gap-2.5 border-t border-on-dark-border px-4 py-3">
         <label
           className="group relative size-8.5 shrink-0 cursor-pointer"
           title="Alterar foto de perfil"
@@ -252,7 +250,6 @@ export default function Sidebar({
               {usuario?.iniciais ?? "—"}
             </span>
           )}
-          {/* Overlay de câmera no hover, indicando que dá para trocar */}
           <span className="absolute inset-0 flex items-center justify-center rounded-full bg-navy/55 text-on-dark opacity-0 transition-opacity group-hover:opacity-100">
             <IconCamera size={14} />
           </span>
@@ -261,11 +258,43 @@ export default function Sidebar({
           <span className="block truncate text-base font-semibold text-on-dark">
             {usuario?.nome ?? "Carregando..."}
           </span>
-          <span className="block text-xs text-on-dark-40">{usuario?.descricao ?? ""}</span>
+          <span className="block text-xs text-on-dark-40">
+            {usuario ? PERFIL_ACESSO_LABEL[usuario.perfilAcesso] : ""}
+          </span>
         </div>
-        <span className="flex text-on-dark-30">
+        <button
+          type="button"
+          onClick={() => setMenuAberto((v) => !v)}
+          aria-label="Menu do usuário"
+          aria-expanded={menuAberto}
+          className="flex cursor-pointer border-0 bg-transparent p-1 text-on-dark-30 hover:text-on-dark"
+        >
           <IconMoreVertical size={14} />
-        </span>
+        </button>
+
+        {menuAberto && (
+          <>
+            <div className="fixed inset-0 z-10" aria-hidden onClick={() => setMenuAberto(false)} />
+            <div className="absolute right-3 bottom-14 z-20 w-44 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-knob">
+              {perfil !== "admin_geral" && (
+                <Link
+                  href="/perfil"
+                  onClick={() => { setMenuAberto(false); onNavigate?.(); }}
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-sm font-medium text-text-2 no-underline transition-colors hover:bg-ice"
+                >
+                  <IconUser size={14} /> Meu Perfil
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={sair}
+                className="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-3.5 py-2 text-left text-sm font-medium text-danger transition-colors hover:bg-ice"
+              >
+                <IconArrowRight size={14} strokeWidth={2.5} /> Sair
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );
