@@ -433,6 +433,14 @@ export default function NovoProcesso() {
                       })),
                     ]}
                   />
+                  {secretaria === "" && (
+                    <div className="mt-2">
+                      <ValidationMsg
+                        type="error"
+                        msg="Selecione a secretaria requisitante para continuar."
+                      />
+                    </div>
+                  )}
                 </FormField>
 
                 <FormField
@@ -450,7 +458,7 @@ export default function NovoProcesso() {
                     <div className="mt-2">
                       <ValidationMsg
                         type="error"
-                        msg="Informe a secretaria requisitante e a descrição do processo para continuar."
+                        msg="Informe a descrição do processo para continuar."
                       />
                     </div>
                   )}
