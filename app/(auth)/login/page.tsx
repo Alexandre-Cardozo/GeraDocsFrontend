@@ -4,6 +4,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import geradocsLogo from "@/public/geradocs-mark-white.png";
+import lahhmLogo from "@/public/lahhm-logo-white.png";
+
 import { Button, FormField, Input, ValidationMsg } from "@/components/ui";
 import { IconArrowRight, IconCheckCircle } from "@/components/ui/icons";
 import { useLogin, useRecuperarSenha, useSessao } from "@/lib/api/hooks";
@@ -69,7 +72,7 @@ export default function Login() {
         {/* Marca do produto — símbolo + wordmark + tagline entre filetes */}
         <div className="mb-5 flex flex-col items-center text-center">
           <Image
-            src="/geradocs-mark-white.png"
+            src={geradocsLogo}
             alt=""
             width={44}
             height={46}
@@ -241,7 +244,7 @@ export default function Login() {
         <div className="flex items-center gap-2 text-sm text-on-dark-55">
           GeraDocs é um produto
           <Image
-            src="/lahhm-logo-white.png"
+            src={lahhmLogo}
             alt="LAHHM"
             width={80}
             height={25}

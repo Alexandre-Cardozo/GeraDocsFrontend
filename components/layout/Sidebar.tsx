@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
+import geradocsLogo from "@/public/geradocs-mark-white.png";
+
 import {
   IconBuilding,
   IconCamera,
@@ -150,7 +152,7 @@ export default function Sidebar({
       <div className="border-b border-on-dark-border px-5 pt-6 pb-5">
         <div className="flex items-center gap-2.5">
           <Image
-            src="/geradocs-mark-white.png"
+            src={geradocsLogo}
             alt="GeraDocs"
             width={34}
             height={36}
