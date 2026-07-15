@@ -6,13 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import {
-  IconArrowRight,
   IconBuilding,
   IconCamera,
   IconCheckCircle,
   IconDashboard,
   IconDownload,
   IconFileText,
+  IconLogout,
   IconMoreVertical,
   IconSettings,
   IconUser,
@@ -217,81 +217,97 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Usuário — avatar (clique troca a foto) + menu (Meu Perfil / Sair) */}
-      <div className="relative flex items-center gap-2.5 border-t border-on-dark-border px-4 py-3">
-        <label
-          className="group relative size-8.5 shrink-0 cursor-pointer"
-          title="Alterar foto de perfil"
+      {/* Usuário — avatar (troca a foto) + linha clicável que abre o menu (Meu Perfil / Sair) */}
+      <div className="relative border-t border-on-dark-border p-2">
+        <div
+          className={`flex items-center gap-2.5 rounded-lg p-1.5 transition-colors ${
+            menuAberto ? "bg-on-dark-fill" : ""
+          }`}
         >
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-              const reader = new FileReader();
-              reader.onload = () =>
-                atualizarAvatar.mutate(typeof reader.result === "string" ? reader.result : null);
-              reader.readAsDataURL(f);
-            }}
-          />
-          {usuario?.avatarDataUrl ? (
-            <Image
-              src={usuario.avatarDataUrl}
-              alt="Foto de perfil"
-              width={34}
-              height={34}
-              unoptimized
-              className="size-8.5 rounded-full object-cover"
+          <label
+            className="group relative size-9 shrink-0 cursor-pointer"
+            title="Alterar foto de perfil"
+          >
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                const reader = new FileReader();
+                reader.onload = () =>
+                  atualizarAvatar.mutate(typeof reader.result === "string" ? reader.result : null);
+                reader.readAsDataURL(f);
+              }}
             />
-          ) : (
-            <span className="flex size-8.5 items-center justify-center rounded-full text-base font-bold text-on-dark gradient-user">
-              {usuario?.iniciais ?? "—"}
+            {usuario?.avatarDataUrl ? (
+              <Image
+                src={usuario.avatarDataUrl}
+                alt="Foto de perfil"
+                width={36}
+                height={36}
+                unoptimized
+                className="size-9 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex size-9 items-center justify-center rounded-full text-base font-bold text-on-dark gradient-user">
+                {usuario?.iniciais ?? "—"}
+              </span>
+            )}
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-navy/55 text-on-dark opacity-0 transition-opacity group-hover:opacity-100">
+              <IconCamera size={14} />
             </span>
-          )}
-          <span className="absolute inset-0 flex items-center justify-center rounded-full bg-navy/55 text-on-dark opacity-0 transition-opacity group-hover:opacity-100">
-            <IconCamera size={14} />
-          </span>
-        </label>
-        <div className="block min-w-0 flex-1">
-          <span className="block truncate text-base font-semibold text-on-dark">
-            {usuario?.nome ?? "Carregando..."}
-          </span>
-          <span className="block text-xs text-on-dark-40">
-            {usuario ? PERFIL_ACESSO_LABEL[usuario.perfilAcesso] : ""}
-          </span>
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setMenuAberto((v) => !v)}
+            aria-label="Abrir menu do usuário"
+            aria-expanded={menuAberto}
+            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left"
+          >
+            <span className="block min-w-0 flex-1">
+              <span className="block truncate text-base font-semibold text-on-dark">
+                {usuario?.nome ?? "Carregando..."}
+              </span>
+              <span className="block truncate text-xs text-on-dark-40">
+                {usuario ? PERFIL_ACESSO_LABEL[usuario.perfilAcesso] : ""}
+              </span>
+            </span>
+            <span className={`flex shrink-0 transition-colors ${menuAberto ? "text-on-dark" : "text-on-dark-30"}`}>
+              <IconMoreVertical size={16} />
+            </span>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setMenuAberto((v) => !v)}
-          aria-label="Menu do usuário"
-          aria-expanded={menuAberto}
-          className="flex cursor-pointer border-0 bg-transparent p-1 text-on-dark-30 hover:text-on-dark"
-        >
-          <IconMoreVertical size={14} />
-        </button>
 
         {menuAberto && (
           <>
             <div className="fixed inset-0 z-10" aria-hidden onClick={() => setMenuAberto(false)} />
-            <div className="absolute right-3 bottom-14 z-20 w-44 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-knob">
-              {perfil !== "admin_geral" && (
-                <Link
-                  href="/perfil"
-                  onClick={() => { setMenuAberto(false); onNavigate?.(); }}
-                  className="flex items-center gap-2.5 px-3.5 py-2 text-sm font-medium text-text-2 no-underline transition-colors hover:bg-ice"
+            <div className="absolute inset-x-2 bottom-full z-20 mb-2 overflow-hidden rounded-xl border border-border bg-surface shadow-knob">
+              {/* Cabeçalho — nome completo + e-mail (o nome trunca na barra) */}
+              <div className="border-b border-border-soft px-3.5 py-3">
+                <div className="truncate text-sm font-bold text-text-1">{usuario?.nome}</div>
+                <div className="truncate text-xs text-text-muted">{usuario?.email}</div>
+              </div>
+              <div className="p-1">
+                {perfil !== "admin_geral" && (
+                  <Link
+                    href="/perfil"
+                    onClick={() => { setMenuAberto(false); onNavigate?.(); }}
+                    className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-text-2 no-underline transition-colors hover:bg-ice"
+                  >
+                    <IconUser size={15} /> Meu Perfil
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={sair}
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-md border-0 bg-transparent px-2.5 py-2 text-left text-sm font-semibold text-danger transition-colors hover:bg-tint-danger-bg"
                 >
-                  <IconUser size={14} /> Meu Perfil
-                </Link>
-              )}
-              <button
-                type="button"
-                onClick={sair}
-                className="flex w-full cursor-pointer items-center gap-2.5 border-0 bg-transparent px-3.5 py-2 text-left text-sm font-medium text-danger transition-colors hover:bg-ice"
-              >
-                <IconArrowRight size={14} strokeWidth={2.5} /> Sair
-              </button>
+                  <IconLogout size={15} /> Sair da conta
+                </button>
+              </div>
             </div>
           </>
         )}

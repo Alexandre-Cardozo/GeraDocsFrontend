@@ -1,6 +1,6 @@
-import type { ReactNode } from "react"
+import type { ComponentType, ReactNode } from "react"
 
-import { IconInfo } from "@/components/ui/icons"
+import { IconInfo, type IconProps } from "@/components/ui/icons"
 import type { StatusDocumento, StatusProcesso } from "@/lib/types"
 
 /** Badge de status de processo com ponto colorido — vocabulário fixo. */
@@ -63,30 +63,39 @@ export function Tag({ children, tone = "info" }: { children: ReactNode; tone?: k
   )
 }
 
-/** Card KPI do dashboard: chip de ícone, chip de tendência, número 30px. */
 /**
- * Card KPI: card claro (flat) com o ícone como marca d'água suave no canto, na
- * cor do tema. `bgClass` = fundo claro (ex.: "bg-tint-royal-bg"); `iconClass` =
- * cor/opacidade da marca d'água (ex.: "text-royal/15"); `icon` = ícone grande (~130).
+ * Paleta dos StatCards — o DS controla o tint do card e a cor/tamanho da marca
+ * d'água. O chamador passa só `tone` + o ícone (como componente), então os cards
+ * nunca divergem entre telas.
  */
+const STAT_TONES = {
+  royal: { bg: "bg-tint-royal-bg", icon: "text-royal/15" },
+  warning: { bg: "bg-tint-warning-bg", icon: "text-warning-strong/15" },
+  teal: { bg: "bg-doc-tr-bg", icon: "text-teal/15" },
+  success: { bg: "bg-status-done-bg", icon: "text-green/15" },
+  slate: { bg: "bg-ice", icon: "text-slate/15" },
+} as const
+
+export type StatTone = keyof typeof STAT_TONES
+
 export function StatCard({
   label,
   value,
-  icon,
-  bgClass,
-  iconClass,
+  icon: Icon,
+  tone = "royal",
 }: {
   label: string
   value: string
-  icon: ReactNode
-  bgClass: string
-  iconClass: string
+  /** Componente do ícone (não a instância) — o card define o tamanho da marca d'água. */
+  icon: ComponentType<IconProps>
+  tone?: StatTone
 }) {
+  const t = STAT_TONES[tone]
   return (
-    <div className={`relative flex min-h-31 flex-col overflow-hidden rounded-card border border-border p-5 ${bgClass}`}>
+    <div className={`relative flex min-h-31 flex-col overflow-hidden rounded-card border border-border p-5 ${t.bg}`}>
       {/* Ícone de fundo (marca d'água), parcialmente recortado no canto inferior direito */}
-      <span className={`pointer-events-none absolute -right-4 -bottom-5 ${iconClass}`} aria-hidden>
-        {icon}
+      <span className={`pointer-events-none absolute -right-4 -bottom-5 ${t.icon}`} aria-hidden>
+        <Icon size={130} strokeWidth={1.5} />
       </span>
       <div className="relative text-base font-medium text-text-3">{label}</div>
       <div className="relative mt-auto pt-4 font-display text-stat leading-none font-extrabold tracking-stat text-text-1">

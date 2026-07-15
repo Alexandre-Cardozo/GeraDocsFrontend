@@ -29,9 +29,9 @@ export default function PainelAdmin() {
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-3 xs:grid-cols-3">
-        <StatCard label="Prefeituras" value={String(totalPref)} icon={<IconBuilding size={22} />} bgClass="bg-tint-royal-bg" iconClass="text-royal/15" />
-        <StatCard label="Servidores" value={String(totalServidores)} icon={<IconUser size={22} />} bgClass="bg-tint-success-bg" iconClass="text-success/15" />
-        <StatCard label="Coordenadores" value={String(coordenadores)} icon={<IconUser size={22} />} bgClass="bg-tint-warning-bg" iconClass="text-warning/15" />
+        <StatCard label="Prefeituras" value={String(totalPref)} icon={IconBuilding} tone="royal" />
+        <StatCard label="Servidores" value={String(totalServidores)} icon={IconUser} tone="success" />
+        <StatCard label="Coordenadores" value={String(coordenadores)} icon={IconUser} tone="warning" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

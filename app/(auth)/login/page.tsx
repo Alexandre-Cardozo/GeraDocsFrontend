@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button, FormField, Input, ValidationMsg } from "@/components/ui";
 import { IconArrowRight, IconCheckCircle } from "@/components/ui/icons";
@@ -11,27 +11,11 @@ import { formatCPF } from "@/lib/auth/cpf";
 
 /** Contas de demonstração (Fase 1 mockada). */
 const DEMO = [
-  {
-    cpf: "111.111.111-11",
-    label: "Administrador Geral",
-    desc: "LAHHM · acesso total",
-  },
-  {
-    cpf: "222.222.222-22",
-    label: "Coordenador",
-    desc: "Prefeitura de Ecoporanga",
-  },
-  {
-    cpf: "333.333.333-33",
-    label: "Servidor",
-    desc: "Prefeitura de Ecoporanga",
-  },
-  {
-    cpf: "444.444.444-44",
-    label: "Coordenadora",
-    desc: "Prefeitura de São Paulo",
-  },
-  { cpf: "555.555.555-55", label: "Servidor", desc: "Prefeitura de São Paulo" },
+  { cpf: "111.111.111-11", label: "Administrador Geral", desc: "LAHHM" },
+  { cpf: "222.222.222-22", label: "Coordenador", desc: "Ecoporanga" },
+  { cpf: "333.333.333-33", label: "Servidor", desc: "Ecoporanga" },
+  { cpf: "444.444.444-44", label: "Coordenadora", desc: "São Paulo" },
+  { cpf: "555.555.555-55", label: "Servidor", desc: "São Paulo" },
 ];
 
 export default function Login() {
@@ -47,10 +31,11 @@ export default function Login() {
   const [emailRecuperar, setEmailRecuperar] = useState("");
   const [recuperado, setRecuperado] = useState(false);
 
-  // Já logado → vai direto para o app.
-  if (sessao.isSuccess && sessao.data) {
-    router.replace("/");
-  }
+  // Já logado → vai direto para o app (efeito, nunca durante o render).
+  const jaLogado = sessao.isSuccess && sessao.data != null;
+  useEffect(() => {
+    if (jaLogado) router.replace("/");
+  }, [jaLogado, router]);
 
   const entrar = () => {
     setErro("");
@@ -84,16 +69,16 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-md">
         {/* Marca do produto — logo completo (símbolo + nome) em branco */}
-        <div className="mb-6 flex flex-col items-center text-center">
+        <div className="mb-5 flex flex-col items-center text-center">
           <Image
             src="/geradocs-logo-white.png"
             alt="GeraDocs"
-            width={124}
-            height={130}
+            width={100}
+            height={105}
             priority
             className="object-contain"
           />
-          <div className="mt-2 text-2xs font-semibold tracking-caps text-electric uppercase">
+          <div className="mt-1.5 text-2xs font-semibold tracking-caps text-electric uppercase">
             Documentos de contratação pública, gerados com inteligência.
           </div>
         </div>
@@ -156,30 +141,24 @@ export default function Login() {
                 </Button>
               </div>
 
-              {/* Acessos de demonstração (fase mockada) */}
-              <div className="mt-6 border-t border-border-soft pt-4">
+              {/* Acessos de demonstração (fase mockada) — lista compacta */}
+              <div className="mt-5 border-t border-border-soft pt-4">
                 <div className="mb-2 text-2xs font-semibold tracking-caps text-text-muted uppercase">
                   Acessos de demonstração · senha geradocs123
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className="divide-y divide-border-soft overflow-hidden rounded-md border border-border">
                   {DEMO.map((d) => (
                     <button
                       key={d.cpf}
                       type="button"
                       onClick={() => preencherDemo(d.cpf)}
-                      className="flex items-center justify-between gap-2 rounded-md border border-border bg-ice px-3 py-2 text-left transition-colors hover:bg-surface"
+                      className="flex w-full items-center justify-between gap-3 bg-surface px-3 py-1.75 text-left transition-colors hover:bg-ice"
                     >
-                      <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-text-2">
-                          {d.label}
-                        </span>
-                        <span className="block text-xs text-text-muted">
-                          {d.desc}
-                        </span>
+                      <span className="min-w-0 truncate text-sm text-text-2">
+                        <span className="font-semibold text-text-1">{d.label}</span>
+                        <span className="text-text-muted"> · {d.desc}</span>
                       </span>
-                      <span className="shrink-0 font-mono text-xs text-text-3">
-                        {d.cpf}
-                      </span>
+                      <span className="shrink-0 font-mono text-2xs text-text-3">{d.cpf}</span>
                     </button>
                   ))}
                 </div>
