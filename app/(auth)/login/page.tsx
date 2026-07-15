@@ -56,42 +56,47 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-navy px-4 py-10">
-      {/* Fundo institucional navy→petroleum, sem imagem (padrão flat do DS) */}
+    <div className="flex min-h-dvh flex-col bg-navy">
+      {/* Fundo institucional navy→petroleum (fixo — nunca rola), padrão flat do DS */}
+      <div className="pointer-events-none fixed inset-0 gradient-hero" aria-hidden />
       <div
-        className="pointer-events-none absolute inset-0 gradient-hero"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -top-1/4 left-1/2 size-[640px] -translate-x-1/2 rounded-full bg-royal/10 blur-3xl"
+        className="pointer-events-none fixed top-[-18%] left-1/2 size-[600px] -translate-x-1/2 rounded-full bg-royal/10 blur-3xl"
         aria-hidden
       />
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Marca do produto — logo completo (símbolo + nome) em branco */}
+      {/* Conteúdo central — marca + card, centralizados no espaço disponível */}
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-4">
+        {/* Marca do produto — símbolo + wordmark + tagline entre filetes */}
         <div className="mb-5 flex flex-col items-center text-center">
           <Image
-            src="/geradocs-logo-white.png"
-            alt="GeraDocs"
-            width={100}
-            height={105}
+            src="/geradocs-mark-white.png"
+            alt=""
+            width={44}
+            height={46}
             priority
             className="object-contain"
           />
-          <div className="mt-1.5 text-2xs font-semibold tracking-caps text-electric uppercase">
-            Documentos de contratação pública, gerados com inteligência.
+          <div className="mt-2.5 font-display text-3xl font-extrabold tracking-tight text-on-dark">
+            GeraDocs
+          </div>
+          <div className="mt-2.5 flex items-center gap-3">
+            <span className="h-px w-7 bg-on-dark-border" />
+            <span className="text-2xs font-semibold tracking-caps-wide text-electric uppercase">
+              Contratações Públicas · Lei 14.133/21
+            </span>
+            <span className="h-px w-7 bg-on-dark-border" />
           </div>
         </div>
 
         {/* Card de login */}
-        <div className="rounded-card border border-on-dark-border bg-surface p-6 sm:p-7">
+        <div className="w-full max-w-md rounded-card border border-on-dark-border bg-surface p-6 sm:p-7">
           {!modoRecuperar ? (
             <>
-              <h1 className="m-0 mt-1 mb-5 text-center font-display text-lg font-extrabold tracking-tight text-text-1">
+              <h1 className="m-0 mb-4 text-center font-display text-lg font-extrabold tracking-tight text-text-1">
                 Acesse sua conta
               </h1>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3.5">
                 <FormField label="CPF">
                   <Input
                     value={cpf}
@@ -142,7 +147,7 @@ export default function Login() {
               </div>
 
               {/* Acessos de demonstração (fase mockada) — lista compacta */}
-              <div className="mt-5 border-t border-border-soft pt-4">
+              <div className="mt-4 border-t border-border-soft pt-3.5">
                 <div className="mb-2 text-2xs font-semibold tracking-caps text-text-muted uppercase">
                   Acessos de demonstração · senha geradocs123
                 </div>
@@ -152,13 +157,17 @@ export default function Login() {
                       key={d.cpf}
                       type="button"
                       onClick={() => preencherDemo(d.cpf)}
-                      className="flex w-full items-center justify-between gap-3 bg-surface px-3 py-1.75 text-left transition-colors hover:bg-ice"
+                      className="flex w-full items-center justify-between gap-3 bg-surface px-3 py-1.5 text-left transition-colors hover:bg-ice"
                     >
                       <span className="min-w-0 truncate text-sm text-text-2">
-                        <span className="font-semibold text-text-1">{d.label}</span>
+                        <span className="font-semibold text-text-1">
+                          {d.label}
+                        </span>
                         <span className="text-text-muted"> · {d.desc}</span>
                       </span>
-                      <span className="shrink-0 font-mono text-2xs text-text-3">{d.cpf}</span>
+                      <span className="shrink-0 font-mono text-2xs text-text-3">
+                        {d.cpf}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -225,30 +234,33 @@ export default function Login() {
             </>
           )}
         </div>
+      </main>
 
-        {/* Crédito LAHHM */}
-        <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
-          <div className="flex items-center gap-2 text-sm text-on-dark-55">
-            GeraDocs é um produto
-            <Image
-              src="/lahhm-logo-white.png"
-              alt="LAHHM"
-              width={84}
-              height={26}
-              className="object-contain opacity-90"
-            />
-          </div>
-          <div className="text-xs text-on-dark-40">
-            Precisa de ajuda?{" "}
-            <a href="mailto:contato@lahhm.com.br" className="font-medium text-on-dark-55 no-underline hover:text-electric">
-              contato@lahhm.com.br
-            </a>
-          </div>
-          <div className="text-xs text-on-dark-30">
-            © 2026 LAHHM. Todos os direitos reservados.
-          </div>
+      {/* Rodapé — proporcional, ancorado ao fim da tela */}
+      <footer className="relative z-10 flex flex-col items-center gap-1 px-4 pb-5 text-center">
+        <div className="flex items-center gap-2 text-sm text-on-dark-55">
+          GeraDocs é um produto
+          <Image
+            src="/lahhm-logo-white.png"
+            alt="LAHHM"
+            width={80}
+            height={25}
+            className="object-contain opacity-90"
+          />
         </div>
-      </div>
+        <div className="text-xs text-on-dark-40">
+          Precisa de ajuda?{" "}
+          <a
+            href="mailto:contato@lahhm.com.br"
+            className="font-medium text-on-dark-55 no-underline hover:text-electric"
+          >
+            contato@lahhm.com.br
+          </a>
+        </div>
+        <div className="text-xs text-on-dark-30">
+          © 2026 LAHHM. Todos os direitos reservados.
+        </div>
+      </footer>
     </div>
   );
 }

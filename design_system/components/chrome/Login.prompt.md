@@ -1,28 +1,42 @@
 Authentication screen — rendered **outside** the app shell (no sidebar/header), in the `(auth)` route group.
 
-Layout (Altavum-inspired, GeraDocs-styled): full-bleed navy→petroleum background (`gradient-hero`, no imagery — the flat GovTech look), a centered white flat card (1px border, radius 12, no shadow), product mark above the fields, and a credit line below.
+Layout (modern SaaS, GeraDocs-styled): full-bleed navy→petroleum background (`gradient-hero`, no imagery — the flat GovTech look), everything **fits in the viewport without scrolling**. A `min-h-dvh flex-col` splits the screen into a centered `main` (brand + card) and a `footer` anchored to the bottom.
 
 ```jsx
-<div className="min-h-dvh grid place-items-center bg-navy gradient-hero px-4">
-  <div className="w-full max-w-md">
-    {/* Marca do produto — logo completo branco (símbolo + nome) */}
-    <Image src="/geradocs-logo-white.png" alt="GeraDocs" width={124} height={130} />
-    {/* Favicon da aba: /icon.png (= geradocs-mark.png, símbolo azul) */}
-    {/* Card */}
-    <div className="rounded-card border border-on-dark-border bg-surface p-7">
-      <h1>Acesse sua conta</h1>
+<div className="flex min-h-dvh flex-col bg-navy">
+  <div className="pointer-events-none fixed inset-0 gradient-hero" aria-hidden />
+  {/* Centro: marca + card */}
+  <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-4">
+    {/* Marca — símbolo (mark) + wordmark grande + tagline entre filetes */}
+    <div className="mb-5 flex flex-col items-center text-center">
+      <Image src="/geradocs-mark-white.png" alt="" width={44} height={46} priority />
+      <div className="mt-2.5 font-display text-3xl font-extrabold tracking-tight text-on-dark">GeraDocs</div>
+      <div className="mt-2.5 flex items-center gap-3">
+        <span className="h-px w-7 bg-on-dark-border" />
+        <span className="text-2xs font-semibold tracking-caps-wide text-electric uppercase">Contratações Públicas · Lei 14.133/21</span>
+        <span className="h-px w-7 bg-on-dark-border" />
+      </div>
+    </div>
+    {/* Card branco flat */}
+    <div className="w-full max-w-md rounded-card border border-on-dark-border bg-surface p-6 sm:p-7">
+      <h1 className="mb-4 text-center font-display text-lg font-extrabold text-text-1">Acesse sua conta</h1>
       <FormField label="CPF"><Input placeholder="000.000.000-00" /></FormField>
       <FormField label="Senha"><Input type="password" /></FormField>
       <Button size="lg" className="w-full">Entrar</Button>
     </div>
-    {/* Crédito: "GeraDocs é um produto LAHHM" + /lahhm-logo-white.png */}
-  </div>
+  </main>
+  {/* Rodapé proporcional, ancorado ao fim */}
+  <footer className="relative z-10 flex flex-col items-center gap-1 px-4 pb-5 text-center">
+    GeraDocs é um produto <Image src="/lahhm-logo-white.png" .../> · ajuda (mailto) · © LAHHM
+  </footer>
 </div>
 ```
 
 Rules:
+
+- **Fits without scrolling.** `min-h-dvh flex-col`, `main` = `flex-1` centered, footer pinned. Keep the content compact (tight demo list, `py-4` main) so it fits on ~768px laptops.
+- **Brand block (the critical part):** the **mark** symbol (`geradocs-mark-white.png`, not the full logo — the wordmark is rendered as crisp display text), the "GeraDocs" wordmark in `font-display text-3xl`, then a short institutional tagline flanked by 1px rules (like the reference "— TRAVEL MANAGEMENT —"). Never bake the wordmark into a raster.
 - **CPF field:** mask `000.000.000-00`, validate check digits, generic error ("CPF ou senha inválidos" — never reveal which failed).
-- **Product identity:** GeraDocs logo + wordmark on the card; the footer credits **LAHHM** ("GeraDocs é um produto LAHHM") with the LAHHM logo — the platform always attributes the parent company.
-- **Slogan/tagline** above the form; keep it short and institutional.
-- Password recovery link → a minimal recovery view (email → generic confirmation).
+- **Footer:** proportional, always visible at the bottom — credits **LAHHM** ("GeraDocs é um produto LAHHM" + `lahhm-logo-white.png`), help mailto, copyright. Favicon da aba: `/icon.png` (= `geradocs-mark.png`, símbolo azul).
+- Password recovery link → a minimal recovery view (email → generic confirmation) inside the same card.
 - Never use a photo background — the DS is flat; the navy gradient carries the mood.
