@@ -56,7 +56,7 @@ Note: the prototype's sidebar wordmark reads "ContrataDoc"; per the user, the pr
 - Check marks: white 3–3.5 stroke polyline `20 6 9 17 4 12` inside filled royal/green circles/squares.
 - Emoji are not used anywhere; quick-action and modalidade rows use the same monochrome line icons (royal on white surfaces, electric #38BDF8 on navy).
 - Unicode arrows (→ ←) inside button/link labels are standard.
-- **Logos** (`assets/`): `geradocs-logo.png` — blue gradient document mark with check; `lahhm-mark.png` — royal square "L" mark; `lahhm-logo.png` — mark + LAHHM wordmark. Transparent PNGs. In the app sidebar chrome, the mark is a 34px gradient chip + wordmark text, not the raster logo.
+- **Logos** (`assets/`) — naming convention `<brand>-<mark|logo>[-white].png`: **`mark`** = símbolo/glyph only, **`logo`** = símbolo + wordmark; `-white` = versão prata para fundo escuro. So: `geradocs-mark[-white].png` (blue gradient document glyph with check), `geradocs-logo[-white].png` (glyph + "GeraDocs"), `lahhm-mark[-white].png` (square "L" monogram), `lahhm-logo[-white].png` (monogram + "LAHHM"). Transparent PNGs. In the app: the sidebar uses `geradocs-mark-white.png` (34px), the login uses `geradocs-logo-white.png` + `lahhm-logo-white.png`, and the browser tab favicon is `geradocs-mark.png` (`app/icon.png`).
 
 ## Fonts
 
@@ -66,7 +66,7 @@ All three families are Google Fonts, loaded via `@import` in `tokens/typography.
 
 - `styles.css` — global entry; imports everything under `tokens/`.
 - `tokens/` — `colors.css`, `typography.css`, `layout.css` (spacing, radii, borders, motion).
-- `assets/` — `geradocs-logo.png`, `lahhm-mark.png`, `lahhm-logo.png`.
+- `assets/` — 8 artes: `geradocs-{mark,logo}[-white].png` e `lahhm-{mark,logo}[-white].png` (ver convenção acima).
 - `components/core/` — Button, StatusBadge, DocPill, Tag, Toggle, Input, Textarea, Select, MoneyInput, QuantityInput, FormField, FileUpload, ChoiceCard, StatCard, SectionBlock, ValidationMsg, StepIndicator, ProgressBar, SearchInput, FilterTabs.
 - `components/chrome/` — Sidebar, Header (app shell).
 - `ui_kits/geradocs/` — interactive recreation of the app (Dashboard, Processos, Novo Processo wizard, ETP editor).

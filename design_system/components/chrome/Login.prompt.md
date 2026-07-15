@@ -5,8 +5,9 @@ Layout (Altavum-inspired, GeraDocs-styled): full-bleed navy→petroleum backgrou
 ```jsx
 <div className="min-h-dvh grid place-items-center bg-navy gradient-hero px-4">
   <div className="w-full max-w-md">
-    {/* Marca do produto */}
-    <GeraDocsLogoWhite /> {/* /geradocs-logo-white.png + wordmark */}
+    {/* Marca do produto — logo completo branco (símbolo + nome) */}
+    <Image src="/geradocs-logo-white.png" alt="GeraDocs" width={124} height={130} />
+    {/* Favicon da aba: /icon.png (= geradocs-mark.png, símbolo azul) */}
     {/* Card */}
     <div className="rounded-card border border-on-dark-border bg-surface p-7">
       <h1>Acesse sua conta</h1>
@@ -14,7 +15,7 @@ Layout (Altavum-inspired, GeraDocs-styled): full-bleed navy→petroleum backgrou
       <FormField label="Senha"><Input type="password" /></FormField>
       <Button size="lg" className="w-full">Entrar</Button>
     </div>
-    {/* Crédito: "GeraDocs é um produto LAHHM" + /lahhm-logo.png */}
+    {/* Crédito: "GeraDocs é um produto LAHHM" + /lahhm-logo-white.png */}
   </div>
 </div>
 ```

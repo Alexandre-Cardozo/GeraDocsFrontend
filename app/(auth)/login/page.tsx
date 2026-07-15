@@ -83,17 +83,17 @@ export default function Login() {
       />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* Marca do produto */}
+        {/* Marca do produto — logo completo (símbolo + nome) em branco */}
         <div className="mb-6 flex flex-col items-center text-center">
           <Image
             src="/geradocs-logo-white.png"
             alt="GeraDocs"
-            width={52}
-            height={55}
+            width={124}
+            height={130}
             priority
             className="object-contain"
           />
-          <div className="mt-3 text-2xs font-semibold tracking-caps text-electric uppercase">
+          <div className="mt-2 text-2xs font-semibold tracking-caps text-electric uppercase">
             Documentos de contratação pública, gerados com inteligência.
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function Login() {
         <div className="rounded-card border border-on-dark-border bg-surface p-6 sm:p-7">
           {!modoRecuperar ? (
             <>
-              <h1 className="m-0 fmt-1 mb-5 ont-display text-lg font-extrabold tracking-tight text-text-1 text-center">
+              <h1 className="m-0 mt-1 mb-5 text-center font-display text-lg font-extrabold tracking-tight text-text-1">
                 Acesse sua conta
               </h1>
 
@@ -252,16 +252,18 @@ export default function Login() {
           <div className="flex items-center gap-2 text-sm text-on-dark-55">
             GeraDocs é um produto
             <Image
-              src="/lahhm-logo.png"
+              src="/lahhm-logo-white.png"
               alt="LAHHM"
-              width={68}
-              height={20}
+              width={84}
+              height={26}
               className="object-contain opacity-90"
             />
           </div>
           <div className="text-xs text-on-dark-40">
             Precisa de ajuda?{" "}
-            <span className="text-on-dark-55">contato@lahhm.com.br</span>
+            <a href="mailto:contato@lahhm.com.br" className="font-medium text-on-dark-55 no-underline hover:text-electric">
+              contato@lahhm.com.br
+            </a>
           </div>
           <div className="text-xs text-on-dark-30">
             © 2026 LAHHM. Todos os direitos reservados.

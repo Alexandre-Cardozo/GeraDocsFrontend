@@ -145,7 +145,7 @@ export default function Sidebar({
       <div className="border-b border-on-dark-border px-5 pt-6 pb-5">
         <div className="flex items-center gap-2.5">
           <Image
-            src="/geradocs-logo-white.png"
+            src="/geradocs-mark-white.png"
             alt="GeraDocs"
             width={34}
             height={36}
