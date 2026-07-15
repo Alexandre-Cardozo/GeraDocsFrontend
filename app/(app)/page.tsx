@@ -128,7 +128,7 @@ export default function Dashboard() {
                   {recentes.map((p, i) => (
                     <tr
                       key={p.id}
-                      onClick={() => router.push(`/processos/${p.id}`)}
+                      onClick={() => router.push(`/processos/detalhe?id=${encodeURIComponent(p.id)}`)}
                       className={`cursor-pointer transition-colors hover:bg-ice ${i < recentes.length - 1 ? "border-b border-ice" : ""}`}
                     >
                       <td className="px-4 py-3.25">

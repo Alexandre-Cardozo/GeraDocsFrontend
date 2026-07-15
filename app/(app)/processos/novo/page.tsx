@@ -277,12 +277,12 @@ export default function NovoProcesso() {
         onSuccess: (processo) => {
           // Verificação do DFD primeiro, quando pedida; senão, o primeiro
           // documento do fluxo — que nem sempre é o ETP (contratação direta).
-          if (verificarDFD) return router.push(`/processos/${processo.id}/dfd`);
+          if (verificarDFD) return router.push(`/processos/dfd?id=${encodeURIComponent(processo.id)}`);
           const primeiro = documentosEscolhidos[0];
           router.push(
             primeiro
-              ? `/processos/${processo.id}/documento/${CATALOGO[primeiro].slug}`
-              : `/processos/${processo.id}`,
+              ? `/processos/documento?id=${encodeURIComponent(processo.id)}&tipo=${CATALOGO[primeiro].slug}`
+              : `/processos/detalhe?id=${encodeURIComponent(processo.id)}`,
           );
         },
       },

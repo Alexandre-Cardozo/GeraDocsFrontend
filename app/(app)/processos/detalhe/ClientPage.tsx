@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 
 import { Button, Dropdown, FileUpload, InfoBanner, ProgressBar, StatusBadge, Tag, Textarea } from "@/components/ui"
@@ -32,10 +32,10 @@ import { formatBRL, formatData } from "@/lib/format"
 import type { TipoDocumento } from "@/lib/types"
 
 export default function HubProcesso() {
-  const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const showToast = useToast()
-  const processoId = params.id
+  const processoId = searchParams.get("id") ?? ""
 
   const processo = useProcesso(processoId)
   const documentos = useDocumentos()
@@ -256,7 +256,7 @@ export default function HubProcesso() {
       {proc.fases.verificacaoDFD && (
         <button
           type="button"
-          onClick={() => router.push(`/processos/${processoId}/dfd`)}
+          onClick={() => router.push(`/processos/dfd?id=${encodeURIComponent(processoId)}`)}
           className="mb-4 flex w-full items-center gap-4 rounded-card border border-border bg-surface px-5 py-4 text-left transition-colors hover:bg-ice"
         >
           <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-tint-royal-bg text-royal">
@@ -297,7 +297,7 @@ export default function HubProcesso() {
           // tem o TR como anexo, e a minuta de contrato vincula-se a ambos.
           const bloqueios = pendencias(tipo, proc.documentos, tiposGerados)
           const bloqueado = bloqueios.length > 0 && !finalizado
-          const editorHref = `/processos/${processoId}/documento/${meta.slug}`
+          const editorHref = `/processos/documento?id=${encodeURIComponent(processoId)}&tipo=${meta.slug}`
           const apontamentosDoTipo = apontamentosAbertos.filter((a) => a.tipo === tipo)
 
           return (

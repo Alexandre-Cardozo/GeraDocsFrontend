@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 import { Button, ProgressBar } from "@/components/ui"
@@ -42,10 +42,10 @@ function severidadeCfg(achado: AchadoDFD) {
 }
 
 export default function VerificacaoDFD() {
-  const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const showToast = useToast()
-  const processoId = params.id
+  const processoId = searchParams.get("id") ?? ""
 
   const processo = useProcesso(processoId)
   const parecer = useParecerDFD(processoId)
@@ -64,7 +64,11 @@ export default function VerificacaoDFD() {
   const proximo = ordenar(processo.data?.documentos ?? [])[0]
   const proximoTitulo = proximo ? CATALOGO[proximo].titulo : "processo"
   const irParaProximo = () =>
-    router.push(proximo ? `/processos/${processoId}/documento/${CATALOGO[proximo].slug}` : `/processos/${processoId}`)
+    router.push(
+      proximo
+        ? `/processos/documento?id=${encodeURIComponent(processoId)}&tipo=${CATALOGO[proximo].slug}`
+        : `/processos/detalhe?id=${encodeURIComponent(processoId)}`,
+    )
 
   useEffect(() => () => {
     if (intervalo.current) clearInterval(intervalo.current)

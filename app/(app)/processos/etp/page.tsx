@@ -1,14 +1,11 @@
-import { redirect } from "next/navigation"
+import { Suspense } from "react"
 
-export function generateStaticParams() {
-  return [{ id: "1" }]
-}
+import RedirectEtp from "./RedirectEtp"
 
-/**
- * O ETP passou a usar o editor genérico de documentos, como os demais tipos.
- * Esta rota permanece só para não quebrar links já existentes.
- */
-export default async function EtpLegado({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  redirect(`/processos/${id}/documento/etp`)
+export default function Page() {
+  return (
+    <Suspense>
+      <RedirectEtp />
+    </Suspense>
+  )
 }

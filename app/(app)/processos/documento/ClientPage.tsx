@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { notFound, useParams, useRouter } from "next/navigation"
+import { notFound, useRouter, useSearchParams } from "next/navigation"
 import { useRef, useState } from "react"
 
 import { Button, InfoBanner, ProgressBar, SectionBlock, Tag, Textarea, ValidationMsg } from "@/components/ui"
@@ -31,11 +31,11 @@ const statusRail: Record<StatusDocumento, { dot: string; chip: string }> = {
 }
 
 export default function EditorDocumento() {
-  const params = useParams<{ id: string; tipo: string }>()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const showToast = useToast()
-  const processoId = params.id
-  const tipo = porSlug(params.tipo)
+  const processoId = searchParams.get("id") ?? ""
+  const tipo = porSlug(searchParams.get("tipo") ?? "")
   if (!tipo) notFound()
 
   const meta = CATALOGO[tipo]
@@ -133,7 +133,7 @@ export default function EditorDocumento() {
       <div className="flex w-full shrink-0 flex-col overflow-hidden border-b border-border bg-surface lg:w-70 lg:min-w-70 lg:border-r lg:border-b-0">
         <div className="border-b border-border-soft px-4.5 pt-4.5 pb-3.5">
           <Link
-            href={`/processos/${processoId}`}
+            href={`/processos/detalhe?id=${encodeURIComponent(processoId)}`}
             className="mb-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-text-3 no-underline"
           >
             <span className="rotate-180">
@@ -308,7 +308,7 @@ export default function EditorDocumento() {
                 {
                   onSuccess: () => {
                     showToast(`${tipo} ${regerar ? "regerado" : "gerado"} e disponível em Documentos.`)
-                    router.push(`/processos/${processoId}`)
+                    router.push(`/processos/detalhe?id=${encodeURIComponent(processoId)}`)
                   },
                 }
               )

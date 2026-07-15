@@ -12,7 +12,7 @@ import type { Modalidade, TipoDocumento } from "@/lib/types"
 
 export interface MetaDocumento {
   tipo: TipoDocumento
-  /** Segmento de URL do editor: /processos/[id]/documento/<slug>. */
+  /** Slug do tipo no editor: /processos/documento?id=<id>&tipo=<slug>. */
   slug: string
   titulo: string
   descricao: string
