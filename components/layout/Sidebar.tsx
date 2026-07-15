@@ -206,15 +206,19 @@ export default function Sidebar({
           />
         ))}
 
-        <SectionLabel>Sistema</SectionLabel>
-        {bottomItems.map((item) => (
-          <NavLink
-            key={item.href}
-            item={item}
-            active={item.match ? item.match(pathname) : pathname === item.href}
-            onNavigate={onNavigate}
-          />
-        ))}
+        {bottomItems.length > 0 && (
+          <>
+            <SectionLabel>Sistema</SectionLabel>
+            {bottomItems.map((item) => (
+              <NavLink
+                key={item.href}
+                item={item}
+                active={item.match ? item.match(pathname) : pathname === item.href}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </>
+        )}
       </nav>
 
       {/* Usuário — avatar (troca a foto) + linha clicável que abre o menu (Meu Perfil / Sair) */}

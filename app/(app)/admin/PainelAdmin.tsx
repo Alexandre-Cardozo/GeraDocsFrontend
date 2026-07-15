@@ -16,8 +16,11 @@ export default function PainelAdmin() {
 
   const totalPref = prefeituras.data?.length ?? 0
   const lista = usuarios.data ?? []
-  const totalServidores = lista.filter((u) => u.perfilAcesso !== "admin_geral").length
+  // Usuários operacionais das prefeituras — o admin geral (LAHHM) não entra na contagem.
+  const usuariosPrefeitura = lista.filter((u) => u.perfilAcesso !== "admin_geral")
+  const totalServidores = usuariosPrefeitura.length
   const coordenadores = lista.filter((u) => u.perfilAcesso === "coordenador").length
+  const prefeiturasOrdenadas = [...(prefeituras.data ?? [])].sort((a, b) => a.id.localeCompare(b.id))
 
   return (
     <div className="max-w-content p-4 sm:p-5 lg:p-7">
@@ -57,19 +60,16 @@ export default function PainelAdmin() {
         </Link>
       </div>
 
-      {/* Prefeituras recentes */}
+      {/* Prefeituras */}
       <div className="mt-6 overflow-hidden rounded-card border border-border bg-surface">
-        <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
+        <div className="border-b border-border-soft px-5 py-4">
           <h3 className="m-0 font-display text-lg font-bold text-text-1">Prefeituras</h3>
-          <Link href="/admin/prefeituras" className="text-sm font-semibold text-royal no-underline">
-            Gerenciar →
-          </Link>
         </div>
         {prefeituras.isPending ? (
           <SkeletonRows rows={3} />
         ) : (
           <div className="divide-y divide-ice">
-            {(prefeituras.data ?? []).map((p) => {
+            {prefeiturasOrdenadas.map((p) => {
               const servidores = lista.filter((u) => u.prefeituraId === p.id).length
               return (
                 <div key={p.id} className="flex items-center gap-3 px-5 py-3.5">
@@ -89,7 +89,8 @@ export default function PainelAdmin() {
       </div>
 
       <p className="mt-4 text-xs text-text-muted">
-        {lista.length} usuários no sistema · perfis: {PERFIL_ACESSO_LABEL.admin_geral}, {PERFIL_ACESSO_LABEL.coordenador}, {PERFIL_ACESSO_LABEL.servidor}.
+        {totalServidores} usuário(s) nas prefeituras · {coordenadores} {PERFIL_ACESSO_LABEL.coordenador.toLowerCase()}(es) e{" "}
+        {totalServidores - coordenadores} {PERFIL_ACESSO_LABEL.servidor.toLowerCase()}(es).
       </p>
     </div>
   )

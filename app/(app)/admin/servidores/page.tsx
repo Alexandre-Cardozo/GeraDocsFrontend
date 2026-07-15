@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { Button, Dropdown, FormField, Input, Tag } from "@/components/ui"
+import { Button, Dropdown, FormField, Input, SearchInput, Tag } from "@/components/ui"
 import { IconPlus, IconTrash } from "@/components/ui/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
@@ -28,6 +28,18 @@ export default function AdminServidores() {
   const [cargo, setCargo] = useState("")
   const [perfil, setPerfil] = useState<PerfilAcesso>("servidor")
   const [prefeituraId, setPrefeituraId] = useState("")
+
+  // Filtros da listagem
+  const [filtroPrefeitura, setFiltroPrefeitura] = useState("")
+  const [buscaNome, setBuscaNome] = useState("")
+  const [buscaCargo, setBuscaCargo] = useState("")
+
+  const listaFiltrada = (usuarios.data ?? []).filter((u) => {
+    const okPref = filtroPrefeitura === "" || u.prefeituraId === filtroPrefeitura
+    const okNome = buscaNome.trim() === "" || u.nome.toLowerCase().includes(buscaNome.trim().toLowerCase())
+    const okCargo = buscaCargo.trim() === "" || u.cargo.toLowerCase().includes(buscaCargo.trim().toLowerCase())
+    return okPref && okNome && okCargo
+  })
 
   const cpfValido = validaCPF(cpf)
   const precisaPrefeitura = perfil !== "admin_geral"
@@ -114,11 +126,31 @@ export default function AdminServidores() {
         </div>
       )}
 
+      {/* Filtros da listagem */}
+      {usuarios.isSuccess && (usuarios.data.length > 0 || filtroPrefeitura !== "" || buscaNome !== "" || buscaCargo !== "") && (
+        <div className="mb-3 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+          <Dropdown
+            value={filtroPrefeitura}
+            onChange={setFiltroPrefeitura}
+            ariaLabel="Filtrar por prefeitura"
+            options={[
+              { value: "", label: "Todas as prefeituras" },
+              ...(prefeituras.data ?? []).map((p) => ({ value: p.id, label: p.orgao })),
+            ]}
+          />
+          <SearchInput placeholder="Buscar por servidor..." value={buscaNome} onChange={(e) => setBuscaNome(e.target.value)} tone="surface" />
+          <SearchInput placeholder="Buscar por função..." value={buscaCargo} onChange={(e) => setBuscaCargo(e.target.value)} tone="surface" />
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-card border border-border bg-surface">
         {usuarios.isPending && <SkeletonRows rows={5} />}
         {usuarios.isError && <ErrorState onRetry={() => void usuarios.refetch()} />}
         {usuarios.isSuccess && usuarios.data.length === 0 && <EmptyState message="Nenhum servidor cadastrado" />}
-        {usuarios.isSuccess && usuarios.data.length > 0 && (
+        {usuarios.isSuccess && usuarios.data.length > 0 && listaFiltrada.length === 0 && (
+          <EmptyState message="Nenhum servidor encontrado para os filtros aplicados" />
+        )}
+        {usuarios.isSuccess && listaFiltrada.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] border-collapse">
               <thead>
@@ -129,8 +161,8 @@ export default function AdminServidores() {
                 </tr>
               </thead>
               <tbody>
-                {usuarios.data.map((u, i) => (
-                  <tr key={u.id} className={i < usuarios.data.length - 1 ? "border-b border-ice" : ""}>
+                {listaFiltrada.map((u, i) => (
+                  <tr key={u.id} className={i < listaFiltrada.length - 1 ? "border-b border-ice" : ""}>
                     <td className="px-4 py-3.25">
                       <div className="flex items-center gap-2.5">
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-on-dark gradient-user">

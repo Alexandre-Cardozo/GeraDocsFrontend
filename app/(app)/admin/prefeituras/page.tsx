@@ -20,6 +20,9 @@ export default function AdminPrefeituras() {
   const [orgao, setOrgao] = useState("")
   const [unidade, setUnidade] = useState("")
 
+  // Ordena pelo código sequencial (PREF-001, PREF-002, ...).
+  const ordenadas = [...(prefeituras.data ?? [])].sort((a, b) => a.id.localeCompare(b.id))
+
   const salvar = () => {
     if (orgao.trim() === "") return
     criar.mutate(
@@ -89,14 +92,14 @@ export default function AdminPrefeituras() {
             <table className="w-full min-w-[640px] border-collapse">
               <thead>
                 <tr className="border-b border-border bg-ice">
-                  {["Prefeitura", "Unidade", "Servidores", "PCA", ""].map((h, i) => (
+                  {["Prefeitura", "Unidade", "Servidores", ""].map((h, i) => (
                     <Th key={h === "" ? `x-${i}` : h}>{h}</Th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {prefeituras.data.map((p, i) => (
-                  <tr key={p.id} className={i < prefeituras.data.length - 1 ? "border-b border-ice" : ""}>
+                {ordenadas.map((p, i) => (
+                  <tr key={p.id} className={i < ordenadas.length - 1 ? "border-b border-ice" : ""}>
                     <td className="px-4 py-3.25">
                       <div className="flex items-center gap-2.5">
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-tint-royal-bg text-royal">
@@ -110,7 +113,6 @@ export default function AdminPrefeituras() {
                     </td>
                     <td className="px-4 py-3.25 text-sm text-text-3">{p.unidade}</td>
                     <td className="px-4 py-3.25 text-sm text-text-3">{servidoresDe(p.id)}</td>
-                    <td className="px-4 py-3.25 font-mono text-sm text-text-3">{p.pca.ano}</td>
                     <td className="px-4 py-3.25">
                       <button
                         type="button"
