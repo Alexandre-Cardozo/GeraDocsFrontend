@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { Button, Dropdown, FormField, Input, SearchInput, Tag } from "@/components/ui"
+import { Button, Dropdown, FormField, Input, Tag } from "@/components/ui"
 import { IconPlus, IconTrash } from "@/components/ui/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
@@ -32,13 +32,16 @@ export default function AdminServidores() {
   // Filtros da listagem
   const [filtroPrefeitura, setFiltroPrefeitura] = useState("")
   const [buscaNome, setBuscaNome] = useState("")
-  const [buscaCargo, setBuscaCargo] = useState("")
+  const [filtroFuncao, setFiltroFuncao] = useState("")
+
+  // Funções (cargos) distintas presentes na base, para o dropdown de função.
+  const funcoes = [...new Set((usuarios.data ?? []).map((u) => u.cargo).filter((c) => c.trim() !== ""))].sort()
 
   const listaFiltrada = (usuarios.data ?? []).filter((u) => {
     const okPref = filtroPrefeitura === "" || u.prefeituraId === filtroPrefeitura
     const okNome = buscaNome.trim() === "" || u.nome.toLowerCase().includes(buscaNome.trim().toLowerCase())
-    const okCargo = buscaCargo.trim() === "" || u.cargo.toLowerCase().includes(buscaCargo.trim().toLowerCase())
-    return okPref && okNome && okCargo
+    const okFuncao = filtroFuncao === "" || u.cargo === filtroFuncao
+    return okPref && okNome && okFuncao
   })
 
   const cpfValido = validaCPF(cpf)
@@ -126,8 +129,8 @@ export default function AdminServidores() {
         </div>
       )}
 
-      {/* Filtros da listagem */}
-      {usuarios.isSuccess && (usuarios.data.length > 0 || filtroPrefeitura !== "" || buscaNome !== "" || buscaCargo !== "") && (
+      {/* Filtros da listagem — prefeitura, busca por servidor, função */}
+      {usuarios.isSuccess && (usuarios.data.length > 0 || filtroPrefeitura !== "" || buscaNome !== "" || filtroFuncao !== "") && (
         <div className="mb-3 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
           <Dropdown
             value={filtroPrefeitura}
@@ -138,8 +141,18 @@ export default function AdminServidores() {
               ...(prefeituras.data ?? []).map((p) => ({ value: p.id, label: p.orgao })),
             ]}
           />
-          <SearchInput placeholder="Buscar por servidor..." value={buscaNome} onChange={(e) => setBuscaNome(e.target.value)} tone="surface" />
-          <SearchInput placeholder="Buscar por função..." value={buscaCargo} onChange={(e) => setBuscaCargo(e.target.value)} tone="surface" />
+          <Input
+            value={buscaNome}
+            onChange={(e) => setBuscaNome(e.target.value)}
+            placeholder="Buscar por servidor..."
+            className="h-9.5"
+          />
+          <Dropdown
+            value={filtroFuncao}
+            onChange={setFiltroFuncao}
+            ariaLabel="Filtrar por função"
+            options={[{ value: "", label: "Todas as funções" }, ...funcoes.map((f) => ({ value: f, label: f }))]}
+          />
         </div>
       )}
 

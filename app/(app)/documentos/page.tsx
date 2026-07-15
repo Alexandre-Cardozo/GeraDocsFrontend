@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 
-import { DocPill } from "@/components/ui"
+import { DocPill, StatCard } from "@/components/ui"
 import { IconCalendar, IconDatabase, IconDownload, IconEye, IconFileText, IconPlus } from "@/components/ui/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
@@ -21,25 +21,15 @@ export default function Documentos() {
 
   const docs = (documentos.data ?? []).filter((d) => filtroTipo === null || d.tipo === filtroTipo)
 
-  const resumo = [
-    { label: "Total de Documentos", value: resumoDados.data ? String(resumoDados.data.total) : "—", icon: <IconFileText size={22} /> },
-    { label: "Gerados este Mês", value: resumoDados.data ? String(resumoDados.data.esteMes) : "—", icon: <IconCalendar size={22} /> },
-    { label: "Armazenamento Usado", value: resumoDados.data ? `${resumoDados.data.armazenamentoMB} MB` : "—", icon: <IconDatabase size={22} /> },
-  ]
+  const r = resumoDados.data
 
   return (
-    <div className="p-4 sm:p-5 lg:p-7">
-      {/* Cards de resumo — ícones de linha, sem emoji (correção 3.3.2) */}
-      <div className="mb-6 grid max-w-175 grid-cols-1 gap-3 xs:grid-cols-3">
-        {resumo.map((s) => (
-          <div key={s.label} className="flex items-center gap-3.5 rounded-card border border-border bg-surface px-4.5 py-4">
-            <span className="flex text-royal">{s.icon}</span>
-            <div>
-              <div className="font-display text-2xl font-extrabold tracking-stat-sm text-text-1">{s.value}</div>
-              <div className="text-sm text-text-3">{s.label}</div>
-            </div>
-          </div>
-        ))}
+    <div className="max-w-content p-4 sm:p-5 lg:p-7">
+      {/* Cards de resumo — StatCard padrão do DS (mesmo dos demais dashboards) */}
+      <div className="mb-6 grid grid-cols-1 gap-3 xs:grid-cols-3">
+        <StatCard label="Total de Documentos" value={r ? String(r.total) : "—"} icon={IconFileText} tone="royal" />
+        <StatCard label="Gerados este Mês" value={r ? String(r.esteMes) : "—"} icon={IconCalendar} tone="teal" />
+        <StatCard label="Armazenamento Usado" value={r ? `${r.armazenamentoMB} MB` : "—"} icon={IconDatabase} tone="success" />
       </div>
 
       {/* Tabela */}

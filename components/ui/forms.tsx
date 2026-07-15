@@ -11,7 +11,7 @@ import {
   type SelectHTMLAttributes,
 } from "react"
 
-import { IconCheck, IconChevronDown, IconFile, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
+import { IconCheck, IconChevronDown, IconFile, IconInfo, IconSearch, IconUpload, IconX } from "@/components/ui/icons"
 import { mascaraValorBR, normalizaValorBR } from "@/lib/format"
 
 /** Base compartilhada dos controles de formulário (input 14px, raio 8, borda). */
@@ -25,6 +25,8 @@ export function Input({
   type = "text",
   autoComplete,
   onKeyDown,
+  disabled,
+  title,
   className = "",
   id,
 }: {
@@ -35,9 +37,13 @@ export function Input({
   type?: "text" | "password" | "email"
   autoComplete?: string
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
+  /** Campo somente leitura e não focável (ex.: CPF no perfil). */
+  disabled?: boolean
+  title?: string
   className?: string
   id?: string
 }) {
+  const disabledCls = disabled ? "cursor-not-allowed bg-ice text-text-3" : ""
   if (prefix) {
     return (
       <div className="relative">
@@ -52,7 +58,9 @@ export function Input({
           placeholder={placeholder}
           type={type}
           autoComplete={autoComplete}
-          className={`${controleBase} pl-8 ${className}`}
+          disabled={disabled}
+          title={title}
+          className={`${controleBase} pl-8 ${disabledCls} ${className}`}
         />
       </div>
     )
@@ -66,7 +74,9 @@ export function Input({
       placeholder={placeholder}
       type={type}
       autoComplete={autoComplete}
-      className={`${controleBase} ${className}`}
+      disabled={disabled}
+      title={title}
+      className={`${controleBase} ${disabledCls} ${className}`}
     />
   )
 }
@@ -281,18 +291,28 @@ export function FormField({
   label,
   required,
   hint,
+  tip,
   children,
 }: {
   label: string
   required?: boolean
   hint?: string
+  /** Dica curta em tooltip (ícone de info ao lado do rótulo). */
+  tip?: string
   children: ReactNode
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-base font-semibold text-text-2">
-        {label}
-        {required && <span className="ml-1 text-danger">*</span>}
+      <label className="mb-1.5 flex items-center gap-1.5 text-base font-semibold text-text-2">
+        <span>
+          {label}
+          {required && <span className="ml-1 text-danger">*</span>}
+        </span>
+        {tip && (
+          <span className="flex cursor-help text-text-muted" title={tip} aria-label={tip}>
+            <IconInfo size={13} />
+          </span>
+        )}
       </label>
       {hint && <p className="mb-2 text-sm text-text-muted">{hint}</p>}
       {children}
