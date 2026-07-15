@@ -39,8 +39,9 @@ app/                    # ROTAS (App Router) — cada pasta = um segmento de URL
   (auth)/               # sem shell — tela de login (CPF + senha)   /login
   (app)/                # shell autenticado (guarda de sessão + RBAC)
     page.tsx            # Dashboard (ou Painel do Sistema p/ admin)  /
-    processos/          # Lista, wizard (novo/), hub ([id]), DFD ([id]/dfd) e
-                        #   editor de documentos ([id]/documento/[tipo])
+    processos/          # Lista, wizard (novo/), hub (detalhe/), DFD (dfd/) e
+                        #   editor de documentos (documento/). O id do processo é
+                        #   query param (?id=), não segmento — static export, §22 decisions.md
     aprovacoes/         # Fila + trilha de auditoria      /aprovacoes
     documentos/         # Repositório de documentos       /documentos
     configuracoes/      # Prefeitura, secretarias, PCA, servidores  /configuracoes

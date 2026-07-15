@@ -27,15 +27,13 @@ GeraDocs/
 │       ├── layout.tsx            # GuardaSessao + AppShell (sidebar + header)
 │       ├── error.tsx             # Error boundary das telas
 │       ├── page.tsx              # Dashboard (ou Painel do Sistema p/ admin) . rota  /
-│       ├── processos/
+│       ├── processos/            # O id do processo é query param (?id=), não segmento — ver §22 de decisions.md
 │       │   ├── page.tsx          # Lista de processos ........................ rota  /processos
 │       │   ├── novo/page.tsx     # Wizard de novo processo ................... rota  /processos/novo
-│       │   └── [id]/             # Segmento dinâmico ([id] = número do processo)
-│       │       ├── page.tsx      # Hub do processo (pipeline de documentos) .. rota  /processos/PROC-2024-089
-│       │       ├── dfd/page.tsx  # Verificação do DFD pela IA ................ rota  /processos/PROC-2024-089/dfd
-│       │       ├── documento/[tipo]/page.tsx   # Editor de seções — serve os 6 tipos de documento
-│       │       │                 #                            ................ rota  /processos/PROC-2024-089/documento/etp
-│       │       └── etp/page.tsx  # Redirect legado → documento/etp (compat.)
+│       │   ├── detalhe/page.tsx  # Hub do processo (pipeline de documentos) .. rota  /processos/detalhe?id=PROC-2024-089
+│       │   ├── dfd/page.tsx      # Verificação do DFD pela IA (insumo, não é doc gerado) . rota  /processos/dfd?id=PROC-2024-089
+│       │   ├── documento/page.tsx# Editor de seções — serve os 6 tipos de documento ..... rota  /processos/documento?id=PROC-2024-089&tipo=etp
+│       │   └── etp/page.tsx      # Redirect legado → documento?tipo=etp (compat. — ver §14)
 │       ├── aprovacoes/page.tsx   # Fila de aprovações + trilha de auditoria .. rota  /aprovacoes
 │       ├── documentos/page.tsx   # Repositório de documentos gerados ......... rota  /documentos
 │       ├── configuracoes/page.tsx# Config da prefeitura (coordenador) ........ rota  /configuracoes
@@ -114,8 +112,8 @@ No App Router do Next.js, **a estrutura de pastas É o mapa de URLs**. Convenç�
 |---|---|
 | `page.tsx` | O conteúdo da rota (a "tela") |
 | `layout.tsx` | Moldura que envolve as rotas filhas |
-| `(app)/` | *Route group*: agrupa rotas sob um mesmo layout **sem** criar segmento na URL — por isso o Dashboard é `/` e não `/app` |
-| `[id]/` | Segmento dinâmico: `processos/[id]/etp` casa com `/processos/PROC-2024-089/etp` |
+| `(app)/`, `(auth)/` | *Route group*: agrupa rotas sob um mesmo layout **sem** criar segmento na URL — por isso o Dashboard é `/` e não `/app`, e o login é `/login` e não `/auth/login`. Os parênteses são a sintaxe do Next.js para "pasta organizacional que não vira parte da rota" |
+| `?id=` em vez de `[id]/` | O app é **static export** (GitHub Pages): rotas dinâmicas exigiriam pré-gerar todo id no build, o que é impossível para processos criados em runtime. Por isso o id viaja como query param e cada tela é uma página estática. Detalhe em §22 de `decisions.md` |
 | `error.tsx`, `not-found.tsx` | Telas de erro e 404 |
 
 **Regra**: uma página deve ser fina — composição de componentes + chamadas de hooks. Se um trecho de JSX se repete em duas páginas, ele desce para `components/`.

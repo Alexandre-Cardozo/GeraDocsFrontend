@@ -11,11 +11,13 @@ Route group `(app)` para o shell autenticado (Sidebar + Header); `app/layout.tsx
 | `/` | Dashboard |
 | `/processos` | Lista de processos |
 | `/processos/novo` | Wizard de novo processo |
-| `/processos/[id]` | Hub do processo (dados + pipeline de documentos) |
-| `/processos/[id]/dfd` | Verificação do DFD pela IA |
-| `/processos/[id]/documento/[tipo]` | Editor de seções — atende os seis tipos de documento (ver §13) |
-| `/processos/[id]/etp` | Redirect para `/processos/[id]/documento/etp` (compatibilidade — ver §14) |
+| `/processos/detalhe?id=` | Hub do processo (dados + pipeline de documentos) |
+| `/processos/dfd?id=` | Verificação do DFD pela IA |
+| `/processos/documento?id=&tipo=` | Editor de seções — atende os seis tipos de documento (ver §13) |
+| `/processos/etp?id=` | Redirect para `/processos/documento?id=&tipo=etp` (compatibilidade — ver §14) |
 | `/aprovacoes` · `/documentos` · `/configuracoes` | Aprovações · Documentos · Configurações |
+
+O id do processo (e o tipo de documento) viajam como **query param**, não como segmento dinâmico `[id]`/`[tipo]` — imposição do static export para GitHub Pages, detalhada em §22.
 
 A sub-rota opcional `/[tipo]/[secao]` foi dispensada nesta fase: a troca de seção é instantânea (estado local) e o deep-link relevante é para o processo, não para a seção.
 
@@ -178,3 +180,21 @@ Login por CPF + senha, várias prefeituras e três perfis de acesso, **mockados*
 - **CPFs de demonstração** (`11111111111`…) são sequências repetidas que a validação real reprova; liberados por `CPFS_DEMO` só nesta fase, listados no login.
 - **Telas novas:** `(auth)/login`, `admin/prefeituras`, `admin/servidores`, `admin/PainelAdmin` (painel do sistema), `perfil` (Meu Perfil). A aba "Usuários" de Configurações deixou de ser stub — lista/adiciona servidores reais da prefeitura da sessão.
 - **`Input` do DS ganhou `type`/`autoComplete`/`onKeyDown`** (extensão retrocompatível) para os campos de senha/e-mail do login.
+
+## 22. Static export (GitHub Pages): id do processo vira query param
+
+O deploy é **static export** (`output: "export"`, `basePath: "/GeraDocsFrontend"`) publicado no GitHub Pages via GitHub Actions. Nesse modo o Next só gera HTML para os params listados em `generateStaticParams`; **rotas dinâmicas com id de runtime são impossíveis** — um processo novo (`PROC-2024-090`) nunca existiria no build e o acesso caía em 404 (era o bug: o `generateStaticParams` fixo em `{ id: "1" }` derrubava todo processo que não fosse "1", inclusive os das fixtures).
+
+Correção: o id do processo (e o `tipo` do documento) deixaram de ser **segmento dinâmico** e passaram a **query param**. As rotas de processo viraram páginas estáticas fixas:
+
+| Antes (dinâmico, quebrava) | Depois (estático) |
+|---|---|
+| `/processos/[id]` | `/processos/detalhe?id=` |
+| `/processos/[id]/dfd` | `/processos/dfd?id=` |
+| `/processos/[id]/documento/[tipo]` | `/processos/documento?id=&tipo=` |
+| `/processos/[id]/etp` | `/processos/etp?id=` (redirect) |
+
+- Cada `page.tsx` é um Server Component que envolve o `ClientPage` em `<Suspense>` — exigência do `useSearchParams()` sob static export. Os `ClientPage` leem `searchParams.get("id")`/`get("tipo")` no lugar de `useParams()`.
+- **Não recrie rotas `[id]`/`[tipo]` para conteúdo de runtime.** Qualquer tela nova que dependa de um id gerado em runtime segue este padrão (query param + página estática).
+- **DFD continua separado de `documento/`** de propósito: o DFD é *insumo* (Art. 6º — anexo + verificação por IA que emite `ParecerDFD`), **não** um dos seis `TipoDocumento` geráveis (Cotação, ETP, Mapa, TR, Edital, Contrato). Ver §19 e [`fluxo-contratacao.md`](fluxo-contratacao.md#insumos-que-não-são-documentos-gerados). Unificar as duas rotas seria misturar um insumo com os documentos gerados.
+- Limitação conhecida do mock: o "db" em memória reseta a cada carregamento de página, então um processo recém-criado só existe na sessão que o criou — hard refresh/deep-link de um id novo mostra "não encontrado" (esperado; processos das fixtures sobrevivem). Persistir em `localStorage` fica para quando fizer sentido.
