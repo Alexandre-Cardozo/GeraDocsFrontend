@@ -34,13 +34,10 @@ export default function AdminServidores() {
   const [buscaNome, setBuscaNome] = useState("")
   const [filtroFuncao, setFiltroFuncao] = useState("")
 
-  // Funções (cargos) distintas presentes na base, para o dropdown de função.
-  const funcoes = [...new Set((usuarios.data ?? []).map((u) => u.cargo).filter((c) => c.trim() !== ""))].sort()
-
   const listaFiltrada = (usuarios.data ?? []).filter((u) => {
     const okPref = filtroPrefeitura === "" || u.prefeituraId === filtroPrefeitura
     const okNome = buscaNome.trim() === "" || u.nome.toLowerCase().includes(buscaNome.trim().toLowerCase())
-    const okFuncao = filtroFuncao === "" || u.cargo === filtroFuncao
+    const okFuncao = filtroFuncao === "" || u.perfilAcesso === filtroFuncao
     return okPref && okNome && okFuncao
   })
 
@@ -151,7 +148,11 @@ export default function AdminServidores() {
             value={filtroFuncao}
             onChange={setFiltroFuncao}
             ariaLabel="Filtrar por função"
-            options={[{ value: "", label: "Todas as funções" }, ...funcoes.map((f) => ({ value: f, label: f }))]}
+            options={[
+              { value: "", label: "Todas as funções" },
+              { value: "coordenador", label: PERFIL_ACESSO_LABEL.coordenador },
+              { value: "servidor", label: PERFIL_ACESSO_LABEL.servidor },
+            ]}
           />
         </div>
       )}

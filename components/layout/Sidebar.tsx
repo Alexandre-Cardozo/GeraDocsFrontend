@@ -119,7 +119,12 @@ export default function Sidebar({
   const perfil = usuario?.perfilAcesso ?? "servidor";
   const pendentes = fila?.filter((a) => a.status === "aguardando").length;
 
-  const paraItem = (i: { href: string; label: string; icone: IconeNav; badge?: "aprovacoes" }): NavItem => ({
+  const paraItem = (i: {
+    href: string;
+    label: string;
+    icone: IconeNav;
+    badge?: "aprovacoes";
+  }): NavItem => ({
     href: i.href,
     label: i.label,
     icon: ICONES[i.icone],
@@ -185,10 +190,12 @@ export default function Sidebar({
           )}
           <span className="block min-w-0 flex-1">
             <span className="block truncate text-sm font-semibold text-on-dark">
-              {prefeitura?.orgao ?? (perfil === "admin_geral" ? "Administração LAHHM" : "—")}
+              {prefeitura?.orgao ??
+                (perfil === "admin_geral" ? "Administração LAHHM" : "—")}
             </span>
             <span className="block text-2xs text-on-dark-40">
-              {prefeitura?.unidade ?? (perfil === "admin_geral" ? "Todas as prefeituras" : "")}
+              {prefeitura?.unidade ??
+                (perfil === "admin_geral" ? "Todas as prefeituras" : "")}
             </span>
           </span>
         </div>
@@ -213,7 +220,9 @@ export default function Sidebar({
               <NavLink
                 key={item.href}
                 item={item}
-                active={item.match ? item.match(pathname) : pathname === item.href}
+                active={
+                  item.match ? item.match(pathname) : pathname === item.href
+                }
                 onNavigate={onNavigate}
               />
             ))}
@@ -241,7 +250,9 @@ export default function Sidebar({
                 if (!f) return;
                 const reader = new FileReader();
                 reader.onload = () =>
-                  atualizarAvatar.mutate(typeof reader.result === "string" ? reader.result : null);
+                  atualizarAvatar.mutate(
+                    typeof reader.result === "string" ? reader.result : null,
+                  );
                 reader.readAsDataURL(f);
               }}
             />
@@ -279,7 +290,9 @@ export default function Sidebar({
                 {usuario ? PERFIL_ACESSO_LABEL[usuario.perfilAcesso] : ""}
               </span>
             </span>
-            <span className={`flex shrink-0 transition-colors ${menuAberto ? "text-on-dark" : "text-on-dark-30"}`}>
+            <span
+              className={`flex shrink-0 transition-colors ${menuAberto ? "text-on-dark" : "text-on-dark-30"}`}
+            >
               <IconMoreVertical size={16} />
             </span>
           </button>
@@ -287,18 +300,29 @@ export default function Sidebar({
 
         {menuAberto && (
           <>
-            <div className="fixed inset-0 z-10" aria-hidden onClick={() => setMenuAberto(false)} />
+            <div
+              className="fixed inset-0 z-10"
+              aria-hidden
+              onClick={() => setMenuAberto(false)}
+            />
             <div className="absolute inset-x-2 bottom-full z-20 mb-2 overflow-hidden rounded-xl border border-border bg-surface shadow-knob">
               {/* Cabeçalho — nome completo + e-mail (o nome trunca na barra) */}
               <div className="border-b border-border-soft px-3.5 py-3">
-                <div className="truncate text-sm font-bold text-text-1">{usuario?.nome}</div>
-                <div className="truncate text-xs text-text-muted">{usuario?.email}</div>
+                <div className="truncate text-sm font-bold text-text-1">
+                  {usuario?.nome}
+                </div>
+                <div className="truncate text-xs text-text-muted">
+                  {usuario?.email}
+                </div>
               </div>
               <div className="p-1">
                 {perfil !== "admin_geral" && (
                   <Link
                     href="/perfil"
-                    onClick={() => { setMenuAberto(false); onNavigate?.(); }}
+                    onClick={() => {
+                      setMenuAberto(false);
+                      onNavigate?.();
+                    }}
                     className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium text-text-2 no-underline transition-colors hover:bg-ice"
                   >
                     <IconUser size={15} /> Meu Perfil
