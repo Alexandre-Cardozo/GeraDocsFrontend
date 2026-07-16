@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
-import { DocPill, Dropdown, StatCard } from "@/components/ui"
+import { DocPill, Dropdown, Input, StatCard } from "@/components/ui"
 import { IconCalendar, IconDatabase, IconDownload, IconEye, IconFileText, IconPlus } from "@/components/ui/icons"
 import { EmptyState, ErrorState, SkeletonRows } from "@/components/shared/estados"
 import { Th } from "@/components/shared/tabela"
@@ -33,16 +33,7 @@ export default function Documentos() {
 
   const todos = useMemo(() => documentos.data ?? [], [documentos.data])
 
-  // Opções dos filtros derivadas dos documentos carregados (sem duplicatas).
-  const opcoesProcesso = useMemo(() => {
-    const vistos = new Map<string, string>()
-    for (const d of todos) if (!vistos.has(d.processoId)) vistos.set(d.processoId, nomeProcesso(d))
-    return [
-      { value: "", label: "Todos os processos" },
-      ...[...vistos.entries()].map(([id, nome]) => ({ value: id, label: `${nome} · ${id}` })),
-    ]
-  }, [todos])
-
+  // Opções do filtro de versão derivadas dos documentos carregados (sem duplicatas).
   const opcoesVersao = useMemo(() => {
     const versoes = [...new Set(todos.map((d) => d.versao))].sort((a, b) => a - b)
     return [
@@ -51,10 +42,13 @@ export default function Documentos() {
     ]
   }, [todos])
 
+  const termoProcesso = filtroProcesso.trim().toLowerCase()
   const docs = todos.filter(
     (d) =>
       (filtroTipo === null || d.tipo === filtroTipo) &&
-      (filtroProcesso === "" || d.processoId === filtroProcesso) &&
+      (termoProcesso === "" ||
+        nomeProcesso(d).toLowerCase().includes(termoProcesso) ||
+        d.processoId.toLowerCase().includes(termoProcesso)) &&
       (filtroVersao === "" || String(d.versao) === filtroVersao),
   )
 
@@ -71,45 +65,39 @@ export default function Documentos() {
 
       {/* Tabela */}
       <div className="overflow-hidden rounded-card border border-border bg-surface">
-        <div className="flex flex-col gap-3 border-b border-border-soft px-5 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <h3 className="m-0 font-display text-lg font-bold text-text-1">Documentos Gerados</h3>
-            <div className="flex flex-wrap gap-2">
-              {ORDEM_FLUXO.map((f) => {
-                const ativo = filtroTipo === f
-                return (
-                  <button
-                    key={f}
-                    type="button"
-                    aria-pressed={ativo}
-                    onClick={() => setFiltroTipo(ativo ? null : f)}
-                    className={`cursor-pointer rounded-sm px-3 py-1.25 text-sm font-semibold transition-colors ${
-                      ativo ? "border border-royal bg-tint-royal-bg text-royal" : "border border-border bg-ice text-text-3"
-                    }`}
-                  >
-                    {f}
-                  </button>
-                )
-              })}
-            </div>
+        <div className="flex flex-wrap items-center gap-2.5 border-b border-border-soft px-5 py-4">
+          <div className="w-full sm:w-64">
+            <Input
+              placeholder="Buscar por processo..."
+              value={filtroProcesso}
+              onChange={(e) => setFiltroProcesso(e.target.value)}
+            />
           </div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="w-full sm:w-64">
-              <Dropdown
-                value={filtroProcesso}
-                onChange={setFiltroProcesso}
-                ariaLabel="Filtrar por processo"
-                options={opcoesProcesso}
-              />
-            </div>
-            <div className="w-full sm:w-40">
-              <Dropdown
-                value={filtroVersao}
-                onChange={setFiltroVersao}
-                ariaLabel="Filtrar por versão"
-                options={opcoesVersao}
-              />
-            </div>
+          <div className="w-full sm:w-40">
+            <Dropdown
+              value={filtroVersao}
+              onChange={setFiltroVersao}
+              ariaLabel="Filtrar por versão"
+              options={opcoesVersao}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            {ORDEM_FLUXO.map((f) => {
+              const ativo = filtroTipo === f
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  aria-pressed={ativo}
+                  onClick={() => setFiltroTipo(ativo ? null : f)}
+                  className={`cursor-pointer rounded-sm px-3 py-1.25 text-sm font-semibold transition-colors ${
+                    ativo ? "border border-royal bg-tint-royal-bg text-royal" : "border border-border bg-ice text-text-3"
+                  }`}
+                >
+                  {f}
+                </button>
+              )
+            })}
           </div>
         </div>
 
