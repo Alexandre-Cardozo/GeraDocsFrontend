@@ -35,13 +35,14 @@ import {
   useFilaAprovacoes,
   useRegistrarParecerJuridico,
 } from "@/lib/api/hooks";
-import { CATALOGO } from "@/lib/documentos";
+import { CATALOGO, REGRA_MODALIDADE } from "@/lib/documentos";
 import { EVENTO_LABEL } from "@/lib/processos/fluxo";
 import { formatBRL, formatData } from "@/lib/format";
 import {
   PAPEL_LABEL,
   STATUS_PROCESSO_LABEL,
   type ItemAprovacao,
+  type Modalidade,
   type TipoDocumento,
 } from "@/lib/types";
 
@@ -52,6 +53,15 @@ const OPCOES_STATUS = [
   { value: "em_revisao", label: "Em Revisão" },
   { value: "aprovado", label: "Aprovado" },
   { value: "rejeitado", label: "Rejeitado" },
+];
+
+/** Opções do filtro de modalidade — derivadas do catálogo de modalidades (fonte única). */
+const OPCOES_MODALIDADE = [
+  { value: "todas", label: "Todas as modalidades" },
+  ...(Object.keys(REGRA_MODALIDADE) as Modalidade[]).map((m) => ({
+    value: m,
+    label: m,
+  })),
 ];
 
 /** Cor do ponto na trilha por tipo de evento. */
@@ -83,6 +93,7 @@ export default function Aprovacoes() {
 
   // Filtros da fila
   const [filtroProcesso, setFiltroProcesso] = useState("");
+  const [filtroModalidade, setFiltroModalidade] = useState("todas");
   const [filtroStatus, setFiltroStatus] = useState("todos");
 
   // Parecer jurídico (estágio Em Revisão)
@@ -106,8 +117,10 @@ export default function Aprovacoes() {
       a.objeto.toLowerCase().includes(termo) ||
       a.processoId.toLowerCase().includes(termo) ||
       a.secretaria.toLowerCase().includes(termo);
+    const casaModalidade =
+      filtroModalidade === "todas" || a.modalidade === filtroModalidade;
     const casaStatus = filtroStatus === "todos" || a.status === filtroStatus;
-    return casaTexto && casaStatus;
+    return casaTexto && casaModalidade && casaStatus;
   });
 
   // Item ativo: mantém a seleção se ela sobrevive ao filtro; senão, o primeiro visível.
@@ -310,6 +323,12 @@ export default function Aprovacoes() {
               placeholder="Buscar por processo..."
               value={filtroProcesso}
               onChange={(e) => setFiltroProcesso(e.target.value)}
+            />
+            <Dropdown
+              value={filtroModalidade}
+              onChange={setFiltroModalidade}
+              ariaLabel="Filtrar por modalidade"
+              options={OPCOES_MODALIDADE}
             />
             <Dropdown
               value={filtroStatus}
