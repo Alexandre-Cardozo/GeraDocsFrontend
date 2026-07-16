@@ -55,12 +55,17 @@ const OPCOES_STATUS = [
   { value: "rejeitado", label: "Rejeitado" },
 ];
 
+/** Rótulos curtos de modalidade no filtro (o valor continua sendo o da modalidade). */
+const ROTULO_MODALIDADE: Partial<Record<Modalidade, string>> = {
+  "Dispensa Art. 75": "Dispensa",
+};
+
 /** Opções do filtro de modalidade — derivadas do catálogo de modalidades (fonte única). */
 const OPCOES_MODALIDADE = [
   { value: "todas", label: "Todas as modalidades" },
   ...(Object.keys(REGRA_MODALIDADE) as Modalidade[]).map((m) => ({
     value: m,
-    label: m,
+    label: ROTULO_MODALIDADE[m] ?? m,
   })),
 ];
 
