@@ -7,7 +7,6 @@ import {
   Dropdown,
   Input,
   StatusBadge,
-  Tag,
   Textarea,
   ValidationMsg,
 } from "@/components/ui";
@@ -15,7 +14,6 @@ import {
   IconCalendar,
   IconCheck,
   IconCheckCircle,
-  IconClock,
   IconEye,
   IconFolder,
   IconGavel,
@@ -47,12 +45,7 @@ import {
   type TipoDocumento,
 } from "@/lib/types";
 
-/** Opções dos filtros da fila (fixas — vocabulário de status/urgência). */
-const OPCOES_URGENCIA = [
-  { value: "todas", label: "Todas as urgências" },
-  { value: "urgentes", label: "Somente urgentes" },
-  { value: "normais", label: "Somente normais" },
-];
+/** Opções do filtro de status da fila (vocabulário fixo). */
 const OPCOES_STATUS = [
   { value: "todos", label: "Todos os status" },
   { value: "aguardando", label: "Aguardando" },
@@ -90,7 +83,6 @@ export default function Aprovacoes() {
 
   // Filtros da fila
   const [filtroProcesso, setFiltroProcesso] = useState("");
-  const [filtroUrgencia, setFiltroUrgencia] = useState("todas");
   const [filtroStatus, setFiltroStatus] = useState("todos");
 
   // Parecer jurídico (estágio Em Revisão)
@@ -105,8 +97,8 @@ export default function Aprovacoes() {
 
   const itens = fila.data ?? [];
 
-  // A fila já chega ordenada por prioridade + prazo (ver getFilaAprovacoes).
-  // Aqui só aplicamos os filtros de exibição, preservando a ordem.
+  // A fila já chega ordenada (ver getFilaAprovacoes). Aqui só aplicamos os
+  // filtros de exibição, preservando a ordem.
   const termo = filtroProcesso.trim().toLowerCase();
   const filtrados = itens.filter((a) => {
     const casaTexto =
@@ -114,11 +106,8 @@ export default function Aprovacoes() {
       a.objeto.toLowerCase().includes(termo) ||
       a.processoId.toLowerCase().includes(termo) ||
       a.secretaria.toLowerCase().includes(termo);
-    const casaUrgencia =
-      filtroUrgencia === "todas" ||
-      (filtroUrgencia === "urgentes" ? a.urgente : !a.urgente);
     const casaStatus = filtroStatus === "todos" || a.status === filtroStatus;
-    return casaTexto && casaUrgencia && casaStatus;
+    return casaTexto && casaStatus;
   });
 
   // Item ativo: mantém a seleção se ela sobrevive ao filtro; senão, o primeiro visível.
@@ -323,12 +312,6 @@ export default function Aprovacoes() {
               onChange={(e) => setFiltroProcesso(e.target.value)}
             />
             <Dropdown
-              value={filtroUrgencia}
-              onChange={setFiltroUrgencia}
-              ariaLabel="Filtrar por urgência"
-              options={OPCOES_URGENCIA}
-            />
-            <Dropdown
               value={filtroStatus}
               onChange={setFiltroStatus}
               ariaLabel="Filtrar por status"
@@ -343,58 +326,41 @@ export default function Aprovacoes() {
           {itens.length > 0 && filtrados.length === 0 && (
             <EmptyState message="Nenhum processo corresponde aos filtros selecionados" />
           )}
-          {filtrados.map((a) => {
-            const mostrarPrazo = a.urgente || a.status === "aguardando";
-            return (
-              <div
-                key={a.processoId}
-                onClick={() => {
-                  setSelected(a.processoId);
-                  resetForms();
-                }}
-                className={`cursor-pointer border-b border-ice px-4.5 py-3.5 transition-colors ${
-                  activeId === a.processoId
-                    ? "border-l-[3px] border-l-royal bg-tint-royal-bg"
-                    : a.urgente
-                      ? "border-l-[3px] border-l-warning hover:bg-ice"
-                      : "border-l-[3px] border-l-transparent hover:bg-ice"
-                }`}
-              >
-                <div className="mb-1.5 flex items-start justify-between gap-2">
-                  <div className="flex-1 text-base font-semibold text-text-1">
-                    {a.objeto}
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <StatusBadge status={a.status} size="sm" />
-                    {a.urgente && <Tag tone="warning">Urgente</Tag>}
-                  </div>
+          {filtrados.map((a) => (
+            <div
+              key={a.processoId}
+              onClick={() => {
+                setSelected(a.processoId);
+                resetForms();
+              }}
+              className={`cursor-pointer border-b border-ice px-4.5 py-3.5 transition-colors ${
+                activeId === a.processoId
+                  ? "border-l-[3px] border-l-royal bg-tint-royal-bg"
+                  : "border-l-[3px] border-l-transparent hover:bg-ice"
+              }`}
+            >
+              <div className="mb-1.5 flex items-start justify-between gap-2">
+                <div className="flex-1 text-base font-semibold text-text-1">
+                  {a.objeto}
                 </div>
-                <div className="mb-1 font-mono text-xs text-text-muted">
-                  {a.processoId}
-                </div>
-                <div className="mb-1 text-sm text-text-3">{a.secretaria}</div>
-                <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                  {a.documentos.map((tipo) => (
-                    <span
-                      key={tipo}
-                      className={`rounded-sm px-1.5 py-0.5 font-mono text-2xs font-bold ${CATALOGO[tipo].chip}`}
-                    >
-                      {tipo}
-                    </span>
-                  ))}
-                </div>
-                {mostrarPrazo && (
-                  <div
-                    className={`flex items-center gap-1.25 text-xs font-semibold ${
-                      a.urgente ? "text-warning-strong" : "text-text-muted"
-                    }`}
-                  >
-                    <IconClock size={11} /> Prazo: {formatData(a.prazo)}
-                  </div>
-                )}
+                <StatusBadge status={a.status} size="sm" />
               </div>
-            );
-          })}
+              <div className="mb-1 font-mono text-xs text-text-muted">
+                {a.processoId}
+              </div>
+              <div className="mb-1 text-sm text-text-3">{a.secretaria}</div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {a.documentos.map((tipo) => (
+                  <span
+                    key={tipo}
+                    className={`rounded-sm px-1.5 py-0.5 font-mono text-2xs font-bold ${CATALOGO[tipo].chip}`}
+                  >
+                    {tipo}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -423,11 +389,6 @@ export default function Aprovacoes() {
                   <span className="inline-flex items-center gap-1.25 text-sm text-text-3">
                     <IconCalendar size={12} /> Enviado em{" "}
                     {formatData(active.enviadoEm)}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1.25 text-sm font-bold ${active.urgente ? "text-warning-strong" : "text-text-3"}`}
-                  >
-                    <IconClock size={12} /> Prazo: {formatData(active.prazo)}
                   </span>
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import { StatCard, StatusBadge, Tag } from "@/components/ui"
+import { StatCard, StatusBadge } from "@/components/ui"
 import {
   IconCheckCircle,
   IconClipboardList,
@@ -180,7 +180,6 @@ export default function Dashboard() {
                       <div className="truncate text-base font-semibold text-text-1">{item.objeto}</div>
                       <div className="mt-0.5 font-mono text-xs text-text-muted">{item.processoId}</div>
                     </div>
-                    {item.urgente && <Tag tone="warning">Urgente</Tag>}
                   </div>
                 ))}
               </div>

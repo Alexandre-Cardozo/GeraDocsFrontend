@@ -219,8 +219,6 @@ export interface ItemAprovacao {
   valorEstimado: number
   modalidade: Modalidade
   enviadoEm: string
-  prazo: string
-  urgente: boolean
   status: StatusProcesso
   parecerJuridico?: ParecerJuridico
   checklist: ItemChecklist[]
