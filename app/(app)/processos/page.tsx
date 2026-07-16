@@ -10,7 +10,7 @@ import { Th } from "@/components/shared/tabela"
 import { useToast } from "@/components/shared/providers"
 import { useProcessos } from "@/lib/api/hooks"
 import { formatBRL } from "@/lib/format"
-import type { StatusProcesso } from "@/lib/types"
+import { MODALIDADE_LABEL, type StatusProcesso } from "@/lib/types"
 
 const statusFilters = [
   { key: "todos", label: "Todos" },
@@ -108,7 +108,7 @@ export default function Processos() {
                     </td>
                     <td className="max-w-40 px-4 py-3.5 text-sm text-text-3">{p.secretaria}</td>
                     <td className="px-4 py-3.5">
-                      <Tag tone="info">{p.modalidade}</Tag>
+                      <Tag tone="info">{MODALIDADE_LABEL[p.modalidade]}</Tag>
                     </td>
                     <td className="px-4 py-3.5 font-mono text-base font-semibold whitespace-nowrap text-petroleum">
                       {formatBRL(p.valorEstimado)}

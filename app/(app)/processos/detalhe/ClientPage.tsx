@@ -29,7 +29,7 @@ import {
 } from "@/lib/api/hooks"
 import { CATALOGO, REGRA_MODALIDADE, documentosDaModalidade, ordenar, pendencias } from "@/lib/documentos"
 import { formatBRL, formatData } from "@/lib/format"
-import type { TipoDocumento } from "@/lib/types"
+import { MODALIDADE_LABEL, type TipoDocumento } from "@/lib/types"
 
 export default function HubProcesso() {
   const searchParams = useSearchParams()
@@ -158,7 +158,7 @@ export default function HubProcesso() {
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="font-mono text-xs text-text-muted">{proc.id}</span>
               <StatusBadge status={proc.status} size="sm" />
-              <Tag tone="info">{proc.modalidade}</Tag>
+              <Tag tone="info">{MODALIDADE_LABEL[proc.modalidade]}</Tag>
             </div>
             {!editando ? (
               <h1 className="mt-2 mb-0 font-display text-2xl font-extrabold tracking-tight text-text-1">{proc.objeto}</h1>

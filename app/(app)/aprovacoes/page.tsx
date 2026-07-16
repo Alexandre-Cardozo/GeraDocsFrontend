@@ -39,6 +39,7 @@ import { CATALOGO, REGRA_MODALIDADE } from "@/lib/documentos";
 import { EVENTO_LABEL } from "@/lib/processos/fluxo";
 import { formatBRL, formatData } from "@/lib/format";
 import {
+  MODALIDADE_LABEL,
   PAPEL_LABEL,
   STATUS_PROCESSO_LABEL,
   type ItemAprovacao,
@@ -55,17 +56,15 @@ const OPCOES_STATUS = [
   { value: "rejeitado", label: "Rejeitado" },
 ];
 
-/** Rótulos curtos de modalidade no filtro (o valor continua sendo o da modalidade). */
-const ROTULO_MODALIDADE: Partial<Record<Modalidade, string>> = {
-  "Dispensa Art. 75": "Dispensa",
-};
-
-/** Opções do filtro de modalidade — derivadas do catálogo de modalidades (fonte única). */
+/**
+ * Opções do filtro de modalidade — modalidades do catálogo (fonte única) com o
+ * mesmo rótulo exibido no wizard de Novo Processo (MODALIDADE_LABEL).
+ */
 const OPCOES_MODALIDADE = [
   { value: "todas", label: "Todas as modalidades" },
   ...(Object.keys(REGRA_MODALIDADE) as Modalidade[]).map((m) => ({
     value: m,
-    label: ROTULO_MODALIDADE[m] ?? m,
+    label: MODALIDADE_LABEL[m],
   })),
 ];
 
@@ -437,7 +436,7 @@ export default function Aprovacoes() {
               {[
                 {
                   label: "Modalidade",
-                  value: <span>{active.modalidade}</span>,
+                  value: <span>{MODALIDADE_LABEL[active.modalidade]}</span>,
                 },
                 {
                   label: "Documentos",

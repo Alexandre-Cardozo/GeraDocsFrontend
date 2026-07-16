@@ -43,68 +43,64 @@ import {
   totalSecoes,
 } from "@/lib/documentos";
 import { formatBRL, parseValorBR } from "@/lib/format";
-import type { Modalidade, ModoATA, TipoDocumento } from "@/lib/types";
+import {
+  MODALIDADE_LABEL,
+  type Modalidade,
+  type ModoATA,
+  type TipoDocumento,
+} from "@/lib/types";
 
 const modalidades: Array<{
   key: string;
   valor: Modalidade;
-  label: string;
   desc: string;
   icon: React.ReactNode;
 }> = [
   {
     key: "pregao",
     valor: "Pregão Eletrônico",
-    label: "Pregão Eletrônico",
     desc: "Para aquisição de bens e serviços comuns",
     icon: <IconCart size={22} />,
   },
   {
     key: "concorrencia",
     valor: "Concorrência",
-    label: "Concorrência",
     desc: "Para obras, serviços e compras de grande vulto",
     icon: <IconBuilding size={22} />,
   },
   {
     key: "concurso",
     valor: "Concurso",
-    label: "Concurso",
     desc: "Para escolha de trabalho técnico, científico ou artístico",
     icon: <IconTrophy size={22} />,
   },
   {
     key: "leilao",
     valor: "Leilão",
-    label: "Leilão",
     desc: "Para alienação de bens móveis ou imóveis",
     icon: <IconGavel size={22} />,
   },
   {
     key: "dialogo",
     valor: "Diálogo Competitivo",
-    label: "Diálogo Competitivo",
     desc: "Para contratações de inovação técnica ou complexidade elevada",
     icon: <IconMessageCircle size={22} />,
   },
   {
     key: "dispensa",
     valor: "Dispensa Art. 75",
-    label: "Dispensa de Licitação",
     desc: "Casos previstos no Art. 75 da Lei 14.133/21",
     icon: <IconZap size={22} />,
   },
   {
     key: "inexigibilidade",
     valor: "Inexigibilidade",
-    label: "Inexigibilidade",
     desc: "Quando a competição é inviável",
     icon: <IconLock size={22} />,
   },
   {
     key: "credenciamento",
     valor: "Credenciamento",
-    label: "Credenciamento",
     desc: "Para seleção de prestadores de serviços",
     icon: <IconClipboard size={22} />,
   },
@@ -323,7 +319,7 @@ export default function NovoProcesso() {
                     selected={modalidade === m.key}
                     onClick={() => escolherModalidade(m.key)}
                     icon={m.icon}
-                    title={m.label}
+                    title={MODALIDADE_LABEL[m.valor]}
                     desc={m.desc}
                   />
                 ))}
@@ -612,7 +608,8 @@ export default function NovoProcesso() {
                 </div>
                 {modalidadeSel && !tiposCabiveis.includes("Edital") && (
                   <InfoBanner tone="info" className="mt-3">
-                    A modalidade <strong>{modalidadeSel.label}</strong> é
+                    A modalidade{" "}
+                    <strong>{MODALIDADE_LABEL[modalidadeSel.valor]}</strong> é
                     contratação direta e não gera edital de licitação — o
                     processo é instruído na forma do Art. 72 da Lei 14.133/21,
                     em que o ETP é dispensável (Art. 18, § 2º).
@@ -724,7 +721,12 @@ export default function NovoProcesso() {
             </p>
             <dl className="flex flex-col gap-3">
               {[
-                { rotulo: "Modalidade", valor: modalidadeSel?.label },
+                {
+                  rotulo: "Modalidade",
+                  valor: modalidadeSel
+                    ? MODALIDADE_LABEL[modalidadeSel.valor]
+                    : undefined,
+                },
                 { rotulo: "Secretaria", valor: secretaria },
                 { rotulo: "Descrição", valor: objeto.trim() },
                 {

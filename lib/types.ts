@@ -47,6 +47,22 @@ export type Modalidade =
   | "Inexigibilidade"
   | "Credenciamento"
 
+/**
+ * Rótulo de exibição da modalidade — fonte única usada no wizard de Novo
+ * Processo e nos filtros. Difere do valor apenas onde o nome usual não é o valor
+ * técnico (ex.: "Dispensa Art. 75" é exibida como "Dispensa de Licitação").
+ */
+export const MODALIDADE_LABEL: Record<Modalidade, string> = {
+  "Pregão Eletrônico": "Pregão Eletrônico",
+  "Concorrência": "Concorrência",
+  "Concurso": "Concurso",
+  "Leilão": "Leilão",
+  "Diálogo Competitivo": "Diálogo Competitivo",
+  "Dispensa Art. 75": "Dispensa de Licitação",
+  "Inexigibilidade": "Inexigibilidade",
+  "Credenciamento": "Credenciamento",
+}
+
 /** Modo de gestão da Ata de Registro de Preços. */
 export type ModoATA = "anexar" | "delegar" | "combinado"
 
